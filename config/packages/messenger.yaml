@@ -1,0 +1,10 @@
+framework:
+    messenger:
+        default_bus: messenger.bus.default
+        buses:
+            messenger.bus.default: ~
+        transports:
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        routing:
+            'Symfony\Component\Mailer\Messenger\SendEmailMessage': async

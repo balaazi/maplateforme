@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des utilisateurs{% endblock %}
+
+{% block body %}
+    <h1>Liste des utilisateurs</h1>
+
+    {% for user in users %}
+        <div>
+            <p>Email: {{ user.email }} - Rôle: {{ user.roles|join(', ') }}</p>
+            <a href="{{ path('admin_send_invite', {'email': user.email}) }}">Envoyer une invitation</a>
+        </div>
+    {% endfor %}
+{% endblock %}
