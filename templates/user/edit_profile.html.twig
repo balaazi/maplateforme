@@ -1,0 +1,281 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le Profil{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-edit fa-2x me-3"></i>
+                        <h2 class="h4 mb-0">Modifier le Profil</h2>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                    
+                        <!-- Photo de profil en premier -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="text-center mb-3">
+                                    {% if app.user.photo %}
+                                        <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}" 
+                                             class="rounded-circle border shadow" 
+                                             width="150" 
+                                             height="150"
+                                             alt="Photo actuelle"
+                                             id="profile-preview">
+                                    {% else %}
+                                        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center border shadow" 
+                                             style="width: 150px; height: 150px;"
+                                             id="profile-preview">
+                                            <i class="fas fa-user text-muted fa-4x"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="d-flex flex-column align-items-center">
+                                    <div class="mb-3 w-75 text-center">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-camera me-2"></i>Changer
+                                            </span>
+                                            {{ form_widget(form.photoFile, {
+                                                'attr': {
+                                                    'class': 'form-control',
+                                                    'accept': 'image/jpeg, image/png',
+                                                    'onchange': 'previewImage(this)'
+                                                }
+                                            }) }}
+                                        </div>
+                                        <small class="text-muted">
+                                            <i class="fas fa-info-circle me-1"></i> 
+                                            Formats acceptés: JPG, PNG (max 2Mo)
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Section Informations Personnelles -->
+                        <h5 class="mb-4 text-primary">
+                            <i class="fas fa-id-card me-2"></i>Informations Personnelles
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.nom, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Nom'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.nom, 'Nom') }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.prenom, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Prénom'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.prenom, 'Prénom') }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.email, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Email'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.email, 'Email') }}
+                                </div>
+                            </div>
+
+
+
+                            {#
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.plainPassword, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Nouveau mot de passe',
+                                            'autocomplete': 'new-password'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.plainPassword, 'Nouveau mot de passe') }}
+                                </div>
+                            </div>
+                            #}
+
+
+
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.telephone, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Téléphone'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.telephone, 'Téléphone') }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.dateNaissance, {
+                                        'attr': {
+                                            'class': 'form-control'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.dateNaissance, 'Date de naissance') }}
+                                </div>
+                            </div>
+                            {% if form.roles is defined %}
+                            <div class="col-md-6" style="display: none;">
+                                <div class="form-floating">
+                                    {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
+                                    {{ form_label(form.roles, 'Rôle') }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Section Professionnelle -->
+                        <h5 class="mb-4 text-primary">
+                            <i class="fas fa-briefcase me-2"></i>Informations Professionnelles
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.specialite, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Spécialité'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.specialite, 'Spécialité') }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-floating">
+                                    {{ form_widget(form.departement, {
+                                        'attr': {
+                                            'class': 'form-control',
+                                            'placeholder': 'Département'
+                                        }
+                                    }) }}
+                                    {{ form_label(form.departement, 'Département') }}
+                                </div>
+                            </div>
+                            
+                            <div class="col-12">
+                               <div class="form-floating">
+                                    {{ form_widget(form.societe, {'attr': {'class': 'form-control', 'placeholder': 'Société'}}) }}
+                                    {{ form_label(form.societe, 'Société (optionnel)') }}
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <!-- Boutons -->
+                        <div class="row mt-5">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a href="{{ path('app_profile') }}">Mon Profil</a>
+                                        <i class="fas fa-times me-2"></i> Annuler
+                                    </a>
+
+                                    <button type="submit" class="btn btn-primary px-4">
+                                        <i class="fas fa-save me-2"></i> Enregistrer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+    }
+    .form-floating > label {
+        padding: 1rem 1.25rem;
+    }
+    #profile-preview {
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    #profile-preview:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<script>
+    // Prévisualisation de l'image
+    function previewImage(input) {
+        const preview = document.getElementById('profile-preview');
+        const file = input.files[0];
+        const reader = new FileReader();
+        
+        reader.onloadend = function() {
+            if (preview.tagName === 'IMG') {
+                preview.src = reader.result;
+            } else {
+                // Remplace le placeholder par une image si c'était un div
+                const newImg = document.createElement('img');
+                newImg.id = 'profile-preview';
+                newImg.src = reader.result;
+                newImg.className = 'rounded-circle border shadow';
+                newImg.width = 150;
+                newImg.height = 150;
+                newImg.style.objectFit = 'cover';
+                preview.parentNode.replaceChild(newImg, preview);s
+            }
+        }
+        
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Activation de la validation Bootstrap
+    (function () {
+        'use strict'
+        const forms = document.querySelectorAll('.needs-validation')
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                form.classList.add('was-validated')
+            }, false)
+        })
+    })()
+</script>
+{%endblock%}

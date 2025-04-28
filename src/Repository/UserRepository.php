@@ -8,7 +8,7 @@ use Symfony\Component\Security\Core\User\PasswordUpgraderInterface;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-
+use App\Entity\Event;
 /**
  * @extends ServiceEntityRepository<User>
  */
@@ -57,4 +57,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    // src/Repository/UserRepository.php
+public function findParticipantsByEvent(Event $event): array
+{
+    return $this->createQueryBuilder('u')
+        ->join('u.invitations', 'i')
+        ->where('i.event = :event')
+        ->setParameter('event', $event)
+        ->getQuery()
+        ->getResult();
+}
 }

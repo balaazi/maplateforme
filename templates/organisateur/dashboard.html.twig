@@ -1,7 +1,16 @@
-{# templates/organisateur/dashboard.html.twig #}
-    <!-- Bouton de déconnexion -->
-    <form action="{{ path('app_logout') }}" method="post">
-        <button type="submit" class="btn btn-danger">Déconnexion</button>
-    </form>
-<h1>Bienvenue sur le tableau de bord des organisateurs</h1>
-<p>Seulement accessible aux organisateurs.</p>
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container mt-5">
+        <div class="mb-4">
+            <h1 class="text-primary">Tableau de bord des organisateurs</h1>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Bienvenue !</h5>
+                <p class="card-text">Vous êtes connecté en tant qu'organisateur. Utilisez ce tableau de bord pour gérer vos événements et suivre la participation.</p>
+            </div>
+        </div>
+    </div>
+{%endblock%}

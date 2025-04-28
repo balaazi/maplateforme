@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rappel - {{ event.title }}</title>
+</head>
+<body style="font-family: Arial, sans-serif;">
+<h2>⏰ Rappel : {{ event.title }}</h2>
+
+<p>Bonjour {{ user.firstname }},</p>
+
+<p>Un petit rappel concernant votre événement prévu :</p>
+
+<ul>
+    <li><strong>Date :</strong> {{ event.startDate|date('d/m/Y') }}</li>
+    <li><strong>Heure :</strong> {{ event.startDate|date('H:i') }}</li>
+    <li><strong>Lieu :</strong> {{ event.location }}</li>
+</ul>
+
+<p>À très bientôt !</p>
+
+<p style="font-size: 12px; color: #999;">Cet email est envoyé automatiquement par EvenHub.</p>
+</body>
+</html>

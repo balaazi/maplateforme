@@ -18,7 +18,7 @@ class InviteUserType extends AbstractType
                 'label' => 'Email du participant',
             ])
             ->add('submit', SubmitType::class, [
-                'label' => 'Envoyer invitation',
+                'label' => 'Envoyer emails',
             ]);
     }
 

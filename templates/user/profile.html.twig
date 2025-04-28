@@ -1,0 +1,130 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon Profil{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-header bg-gradient-primary text-white py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user fa-2x me-3"></i>
+                                <h2 class="h4 mb-0">Mon Profil</h2>
+                            </div>
+                            {% if app.user == user %}
+                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="text-white text-decoration-none">
+                                    <i class="fas fa-pen me-2"></i>Modifier mon profil
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <!-- Photo de profil -->
+                            <div class="col-md-4 text-center mb-4 mb-md-0">
+                                {% if user.photo %}
+                                    <img src="{{ asset('uploads/photos/' ~ user.photo) }}"
+                                         class="rounded-circle border shadow"
+                                         width="200"
+                                         height="200"
+                                         alt="Photo de profil"
+                                         style="object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border shadow"
+                                         style="width: 200px; height: 200px;">
+                                        <i class="fas fa-user text-secondary fa-4x"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Informations du profil -->
+                            <div class="col-md-8">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-id-card me-2 text-primary"></i>Nom</p>
+                                            <p class="mb-0 h5">{{ user.nom }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-id-card me-2 text-primary"></i>Prénom</p>
+                                            <p class="mb-0 h5">{{ user.prenom }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-envelope me-2 text-primary"></i>Email</p>
+                                            <p class="mb-0 h5">{{ user.email }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-phone me-2 text-primary"></i>Téléphone</p>
+                                            <p class="mb-0 h5">{{ user.telephone }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-birthday-cake me-2 text-primary"></i>Date de naissance</p>
+                                            <p class="mb-0 h5">{{ user.dateNaissance ? user.dateNaissance|date('d/m/Y') : 'Non renseignée' }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-graduation-cap me-2 text-primary"></i>Spécialité</p>
+                                            <p class="mb-0 h5">{{ user.specialite }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-building me-2 text-primary"></i>Département</p>
+                                            <p class="mb-0 h5">{{ user.departement }}</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <p class="mb-1 text-muted small"><i class="fas fa-briefcase me-2 text-primary"></i>Société</p>
+                                            <p class="mb-0 h5">{{ user.societe ?? 'Non renseignée' }}</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
+        }
+        .rounded {
+            border-radius: 0.5rem !important;
+        }
+        .card {
+            border-radius: 1rem;
+        }
+        .badge {
+            font-size: 0.9rem;
+            padding: 0.35em 0.65em;
+        }
+    </style>
+{% endblock %}

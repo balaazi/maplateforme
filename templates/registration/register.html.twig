@@ -6,56 +6,23 @@
     <div class="container mt-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card shadow-sm">
+                <div class="card shadow rounded-3 p-4">
                     <div class="card-body">
-                        <h2 class="text-center mb-4">Créer un utilisateur</h2>
+                        <h2 class="text-center mb-5 text-2xl font-bold">Créer un utilisateur</h2>
 
-                        {{ form_start(form) }}
+                        {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
 
-                        <div class="mb-3">
-                            {{ form_label(form.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
-                        </div>
+                        {% for champ in [form.email, form.password, form.nom, form.prenom, form.telephone, form.specialite, form.departement, form.societe, form.dateNaissance, form.photoFile, form.roles] %}
+                            <div class="mb-4">
+                                {{ form_label(champ, null, {'label_attr': {'class': 'form-label font-semibold'}}) }}
+                                {{ form_widget(champ, {'attr': {'class': 'form-control border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500'}}) }}
+                                {{ form_errors(champ) }}
+                            </div>
+                        {% endfor %}
 
-                        <div class="mb-3">
-                            {{ form_label(form.password, 'Password', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.password, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.nom, 'Nom', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.prenom, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.prenom, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.telephone, 'Numéro de téléphone', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.telephone, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.specialite, 'Spécialité', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.specialite, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.departement, 'Département', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.departement, {'attr': {'class': 'form-control'}}) }}
-                        </div>
-
-                        <div class="mb-3">
-                            {{ form_label(form.roles, 'Roles', {'label_attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.roles, {'attr': {'class': 'form-select'}}) }}
-                        </div>
-
-                        <!-- Boutons alignés côte à côte -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ path('app_home') }}" class="btn btn-secondary">Retour</a>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        <div class="d-flex justify-content-between mt-5">
+                            <a href="{{ path('home') }}" class="btn btn-secondary px-4 py-2 rounded-lg shadow">Retour</a>
+                            <button type="submit" class="btn btn-primary px-4 py-2 rounded-lg shadow">Enregistrer</button>
                         </div>
 
                         {{ form_end(form) }}

@@ -1,4 +1,4 @@
-<?php  
+<?php
 
 namespace App\Security;
 
@@ -37,22 +37,22 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         $email = $request->request->get('email');
         $password = $request->request->get('password');
         $csrfToken = $request->request->get('_csrf_token');
-    
+
         if (empty($email) || empty($password)) {
             throw new BadCredentialsException('Email et mot de passe doivent être renseignés.');
         }
-    
+
         // Vérifier si l'utilisateur existe
         $user = $this->userRepository->findOneByEmail($email);
         if (!$user) {
             throw new BadCredentialsException('Utilisateur non trouvé.');
         }
-    
+
         // Vérifier la correspondance du mot de passe
         if (!password_verify($password, $user->getPassword())) {
             throw new BadCredentialsException('Mot de passe incorrect.');
         }
-    
+
         return new Passport(
             new UserBadge($email),
             new PasswordCredentials($password),

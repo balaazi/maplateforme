@@ -1,36 +1,15 @@
 controllers:
-    resource:
-        path: ../src/Controller/
-        namespace: App\Controller
+    resource: ../src/Controller/
     type: attribute
-
-app_login:
-    path: /login
-    controller: App\Controller\SecurityController::login
-
-app_logout:
-    path: /logout
-
-register_user:
-    path: /register
-    controller: App\Controller\RegistrationController::register
-
-confirm_registration:
-    path: /confirm-registration/{token}
-    controller: App\Controller\RegistrationController::confirmRegistration
-# config/routes.yaml or annotations in controllers
-admin_dashboard:
-    path: /admin
-    controller: App\Controller\AdminController::index
-
-participant_dashboard:
-    path: /participant
-    controller: App\Controller\ParticipantController::dashboard
-
-organisateur_dashboard:
-    path: /organisateur
-    controller: App\Controller\OrganisateurController::dashboard
-
-default_dashboard:
-    path: /dashboard
-    controller: App\Controller\DefaultController::dashboard
+event_create:
+    path: /event/create
+    controller: App\Controller\EventController::create
+invitation_send:
+    path: /inviter
+    controller: App\Controller\InvitationController::sendInvitation
+app_send_invitation:
+    path: /invitation/send
+    controller: App\Controller\InvitationController::sendInvitation
+google_add_event:
+  path: /google/add-event
+  controller: App\Controller\GoogleController::addEvent

@@ -1,0 +1,9 @@
+{# templates/emails/invitation.html.twig #}
+
+<h1>Vous êtes invité à : {{ event.title }}</h1>
+<p>{{ event.description }}</p>
+<p>Date de l'événement : {{ event.date|date('d/m/Y H:i') }}</p>
+<p>
+    <a href="{{ path('invitation_respond', {'id': invitation.id, 'response': 'accepted'}) }}">Accepter</a>
+    <a href="{{ path('invitation_respond', {'id': invitation.id, 'response': 'declined'}) }}">Refuser</a>
+</p>

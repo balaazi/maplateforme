@@ -1,0 +1,5 @@
+{# templates/emails/event_update.html.twig #}
+<p>Bonjour {{ user.fullName }},</p>
+<p>L'événement <strong>{{ event.title }}</strong> a été modifié.</p>
+<p><strong>Date :</strong> {{ event.dateHeure|date('d/m/Y H:i') }}</p>
+<p><strong>Lieu :</strong> {{ event.lieu }}</p>

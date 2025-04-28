@@ -15,7 +15,7 @@ class SecurityController extends AbstractController
     {
         // If the user is already logged in, redirect them to the appropriate dashboard based on their roles
         if ($this->getUser()) {
-            return $this->redirectToRoute('redirect_after_login');
+             return $this->redirectToRoute('redirect_after_login');
         }
 
         // Authentication error handling
@@ -30,20 +30,19 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/redirect', name: 'redirect_after_login')]
-public function redirectAfterLogin(): Response
-{
-    $user = $this->getUser(); // Utilisation de getUser() directement
+    public function redirectAfterLogin(): Response
+    {
+        $user = $this->getUser(); // Utilisation de getUser() directement
+         if (!$user) {
+            return $this->redirectToRoute('app_login');
+        }
 
-    if (!$user) {
-        return $this->redirectToRoute('app_login');
-    }
-
-    // Redirection en fonction du rôle de l'utilisateur
-    return match (true) {
-        in_array('ROLE_ADMIN', $user->getRoles()) => $this->redirectToRoute('admin_dashboard'),
-        in_array('ROLE_PARTICIPANT', $user->getRoles()) => $this->redirectToRoute('participant_dashboard'),
-        in_array('ROLE_ORGANISATEUR', $user->getRoles()) => $this->redirectToRoute('organisateur_dashboard'),
-        default => $this->redirectToRoute('app_home'),
-    };
+        // Redirection en fonction du rôle de l'utilisateur
+        return match (true) {
+            in_array('ROLE_ADMIN', $user->getRoles()) => $this->redirectToRoute('admin_dashboard'),
+            in_array('ROLE_PARTICIPANT', $user->getRoles()) => $this->redirectToRoute('participant_dashboard'),
+            in_array('ROLE_ORGANISATEUR', $user->getRoles()) => $this->redirectToRoute('organisateur_dashboard'),
+            default => $this->redirectToRoute('app_home'),
+        };
     }
 }

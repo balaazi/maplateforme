@@ -1,7 +1,10 @@
-{# templates/participant/dashboard.html.twig #}
+{% extends 'base.html.twig' %}
 
-<div class="container mt-5 text-center">
-    <button class="btn btn-danger mb-3">Déconnexion</button>
-    <h1 class="text-primary">Bienvenue sur le tableau de bord des participants</h1>
-    <p class="text-muted">Seulement accessible aux participants.</p>
-</div>
+{% block title %}Dashboard Participant{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1 class="mt-5">Bienvenue dans votre espace participant</h1>
+        <p class="lead">Accédez ici à vos événements, messages et notifications.</p>
+    </div>
+{% endblock %}

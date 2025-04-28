@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Événements Google Calendar{% endblock %}
+
+{% block body %}
+    <h1>Événements Google Calendar</h1>
+
+    {% if events is empty %}
+        <p>Aucun événement à afficher.</p>
+    {% else %}
+        <ul>
+            {% for event in events %}
+                <li>
+                    <strong>{{ event.summary }}</strong><br>
+                    {{ event.start.dateTime ? event.start.dateTime : event.start.date }}<br>
+                    {{ event.location ? event.location : 'Aucun lieu' }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

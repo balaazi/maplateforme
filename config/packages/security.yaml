@@ -11,18 +11,13 @@ security:
 
     firewalls:
         main:
-            pattern: ^/
             lazy: true
-            stateless: false
+            provider: user_provider
             custom_authenticator: App\Security\AppAuthenticator
             logout:
-                path: app_logout
-            access_denied_handler: App\Security\AccessDeniedHandler
-            
-        login:
-            pattern: ^/login
-            security: false # The login page is public
-            access_denied_handler: App\Security\AccessDeniedHandler
+                path: /logout        # ← on met un chemin simple
+
+        #     access_denied_handler: App\Security\AccessDeniedHandler
 
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }

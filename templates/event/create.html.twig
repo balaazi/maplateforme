@@ -1,0 +1,143 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un Événement{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h1 class="h4 mb-0">Créer un  événement</h1>
+                    </div>
+
+                    <div class="card-body">
+                        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+
+                        <div class="mb-4">
+                            {{ form_label(form.title, 'Titre', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.title, {'attr': {'class': 'form-control form-control-lg' ~ (form.title.vars.valid ? '' : ' is-invalid'), 'placeholder': 'Nom de votre événement'}}) }}
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.title) }}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control' ~ (form.description.vars.valid ? '' : ' is-invalid'), 'rows': 5, 'placeholder': 'Décrivez votre événement en détail'}}) }}
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.lieu, 'Lieu', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.lieu, {'attr': {'class': 'form-control' ~ (form.lieu.vars.valid ? '' : ' is-invalid'), 'placeholder': 'Adresse ou nom du lieu'}}) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.lieu) }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_label(form.category, 'Catégorie', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                {{ form_widget(form.category, {'attr': {'class': 'form-select' ~ (form.category.vars.valid ? '' : ' is-invalid')}}) }}
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.category) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                {{ form_label(form.dateHeure, 'Date et heure', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                                <div class="input-group">
+                                    {{ form_widget(form.dateHeure, {'attr': {'class': 'form-control datetimepicker' ~ (form.dateHeure.vars.valid ? '' : ' is-invalid')}}) }}
+                                </div>
+                                <div class="invalid-feedback">
+                                    {{ form_errors(form.dateHeure) }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.duree, 'Durée', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            <div class="input-group">
+                                {{ form_widget(form.duree, {'attr': {'class': 'form-control' ~ (form.duree.vars.valid ? '' : ' is-invalid')}}) }}
+                                <span class="input-group-text">minutes</span>
+                            </div>
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.duree) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ path('event_create') }}" class="btn btn-outline-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-2"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Créer l'événement
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <style>
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.5rem;
+        }
+        .form-control-lg {
+            padding: 0.75rem 1rem;
+            font-size: 1.1rem;
+        }
+        .datetimepicker {
+            cursor: pointer;
+        }
+        .invalid-feedback {
+            display: block;
+            font-size: 0.85rem;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <!-- Intégration de Flatpickr pour le datepicker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuration du datetime picker
+            flatpickr('.datetimepicker', {
+                enableTime: true,
+                dateFormat: "Y-m-d\\TH:i", // Format ISO 8601 compatible HTML5
+                locale: "fr",
+                minDate: "today",
+                time_24hr: true,
+                minuteIncrement: 15
+            });
+
+            // Validation du formulaire
+            const forms = document.querySelectorAll('.needs-validation');
+            Array.prototype.slice.call(forms).forEach(function(form) {
+                form.addEventListener('submit', function(event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    form.classList.add('was-validated');
+                }, false);
+            });
+        });
+    </script>
+{% endblock %}

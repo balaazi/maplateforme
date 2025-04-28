@@ -7,9 +7,9 @@
         <h2 class="mb-4 text-primary">Gestion des Utilisateurs</h2>
         
         <div class="d-flex justify-content-between mb-3">
-            <!-- Bouton de déconnexion -->
-            <form action="{{ path('app_logout') }}" method="post">
-                <button type="submit" class="btn btn-danger">Déconnexion</button>
+            <!-- Bouton de connexion -->
+            <form action="{{ path('_logout_main') }}" method="post">
+                <button type="submit" class="btn btn-danger">connexion</button>
             </form>
             
             <a href="{{ path('admin_invite') }}" class="btn btn-success">Inviter un Participant</a>

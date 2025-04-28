@@ -45,9 +45,10 @@ class EditType extends AbstractType
                     'Participant' => 'ROLE_PARTICIPANT',
                     'Organisateur' => 'ROLE_ORGANISATEUR',
                 ],
-                'expanded' => false,  // Menu déroulant
-                'multiple' => true,   // Sélection multiple
+                'expanded' => false,
+                'multiple' => true,  // Permet de sélectionner plusieurs rôles
                 'label' => 'Rôles',
+                'placeholder' => 'Sélectionner un rôle',
             ]);
     }
 
