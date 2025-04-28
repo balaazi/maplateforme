@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Invitations{% endblock %}
+
+{% block body %}
+    <h1>Liste des invitations</h1>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Date d'invitation</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for invitation in invitations %}
+            <tr>
+                <td>{{ invitation.id }}</td>
+                <td>{{ invitation.receiver.email }}</td>
+                <td>{{ invitation.sentAt|date('d/m/Y H:i') }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">Aucune invitation trouvée.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('admin_dashboard') }}">Retour au tableau de bord</a>
+{% endblock %}

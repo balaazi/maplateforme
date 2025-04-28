@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Invitations{% endblock %}
+
+{% block body %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Mes Invitations</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success">{{ message }}</div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger">{{ message }}</div>
+        {% endfor %}
+
+        {% if invitations is empty %}
+            <p>Aucune invitation pour le moment.</p>
+        {% else %}
+            <table class="table table-bordered">
+                <thead>
+                <tr>
+                    <th>Événement</th>
+                    <th>Date d'envoi</th>
+                    <th>Répondu le</th>
+                    <th>Statut</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for invitation in invitations %}
+                    <tr>
+                        <td>{{ invitation.event.title }}</td>
+                        <td>{{ invitation.sentAt|date('d/m/Y H:i') }}</td>
+                        <td>
+                            {% if invitation.respondedAt %}
+                                {{ invitation.respondedAt|date('d/m/Y H:i') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if invitation.status.value == 'accepted' %}
+                                <span class="badge bg-success">Acceptée</span>
+                            {% elseif invitation.status.value == 'declined' %}
+                                <span class="badge bg-danger">Refusée</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark">En attente</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if invitation.status.value == 'pending' %}
+                                <form method="post" action="{{ path('invitation_respond', { id: invitation.id }) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('invitation_respond') }}">
+                                    <input type="hidden" name="response" value="accepted">
+                                    <button class="btn btn-success btn-sm" onclick="return confirm('Confirmer votre participation ?')">Accepter</button>
+                                </form>
+                                <form method="post" action="{{ path('invitation_respond', { id: invitation.id }) }}" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('invitation_respond') }}">
+                                    <input type="hidden" name="response" value="declined">
+                                    <button class="btn btn-danger btn-sm" onclick="return confirm('Refuser l\'invitation ?')">Refuser</button>
+                                </form>
+                            {% else %}
+                                <em>Réponse enregistrée</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

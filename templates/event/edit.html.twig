@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier l'événement{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        .form-container {
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            max-width: 700px;
+            margin: 2rem auto;
+        }
+
+        .form-title {
+            background: #0d6efd;
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #343a40;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #ced4da;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+
+        .btn-danger {
+            border-radius: 0.5rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 576px) {
+            .form-container {
+                padding: 1rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="form-container">
+        <h2 class="form-title">Modifier l'événement</h2>
+
+        {{ form_start(form) }}
+
+        <div class="mb-3">
+            {{ form_label(form.title, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.title, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.description, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.lieu, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.lieu, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.dateHeure, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.dateHeure, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.duree, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.duree, {'attr': {'class': 'form-control'}}) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form_label(form.category, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+            <a href="{{ path('event_cancel', { id: event.id }) }}" class="btn btn-danger">❌ Annuler l'événement</a>
+        </div>
+
+        <!-- Nouveau bouton de retour à la liste des événements -->
+        <div class="mt-3">
+            <a href="{{ path('event_list') }}" class="btn btn-secondary">← Retour à la liste</a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réinitialisez votre mot de passe{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <!-- Formulaire de réinitialisation -->
+                <div class="card shadow-sm border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center py-4 rounded-top">
+                        <h4>Réinitialisez votre mot de passe</h4>
+                    </div>
+                    <div class="card-body p-4">
+                        {% for flash_error in app.flashes('reset_password_error') %}
+                            <div class="alert alert-danger text-center" role="alert">{{ flash_error }}</div>
+                        {% endfor %}
+
+                        <p class="text-center text-muted mb-4">Entrez votre adresse email, et nous vous enverrons un lien pour réinitialiser votre mot de passe.</p>
+
+                        <!-- Formulaire -->
+                        {{ form_start(requestForm) }}
+                        <div class="form-group mb-4">
+                            {{ form_label(requestForm.email) }}
+                            {{ form_widget(requestForm.email, {'attr': {'class': 'form-control form-control-lg shadow-sm'}}) }}
+                            {{ form_errors(requestForm.email) }}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block btn-lg">Envoyer le lien</button>
+                        {{ form_end(requestForm) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            border-radius: 1rem;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+        }
+
+        .card-body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            height: 50px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+            font-size: 1.1rem;
+            padding: 12px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        .alert {
+            font-size: 0.9rem;
+        }
+
+        .container {
+            max-width: 600px;
+        }
+
+        .text-muted {
+            font-size: 0.9rem;
+        }
+    </style>
+{% endblock %}

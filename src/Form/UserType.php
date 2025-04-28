@@ -10,6 +10,10 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class UserType extends AbstractType
 {
@@ -22,7 +26,8 @@ class UserType extends AbstractType
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe',
-                'required' => false,
+                'mapped' => false,  // Empêche Doctrine de lier ce champ à l'entité User
+                'required' => true,
             ])
             ->add('nom', TextType::class, [
                 'label' => 'Nom',
@@ -44,15 +49,41 @@ class UserType extends AbstractType
                 'label' => 'Département',
                 'required' => true,
             ])
+            ->add('societe', TextType::class, [
+                'label' => 'Société',
+                'required'=>false,
+            ])
             ->add('roles', ChoiceType::class, [
                 'choices' => [
                     'Admin' => 'ROLE_ADMIN',
                     'Participant' => 'ROLE_PARTICIPANT',
                     'Organisateur' => 'ROLE_ORGANISATEUR',
                 ],
-                'expanded' => false,  // Menu déroulant
-                'multiple' => true,   // Sélection multiple
+                'expanded' => false,
+                'multiple' => true,
                 'label' => 'Rôles',
+                'placeholder' => 'Sélectionner un rôle',
+            ])
+            ->add('dateNaissance', DateType::class, [
+                'widget' => 'single_text',
+                'required' => false,
+                'label' => 'Date de naissance',
+                'attr' => [
+                    'class' => 'form-control',
+                ],
+            ])
+           
+            ->add('photoFile', FileType::class, [
+                'label' => 'Photo de profil',
+                'mapped' => false, // Ce champ ne doit pas être mappé à l’entité User
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG, WEBP).',
+                    ])
+                ],
             ]);
     }
 
@@ -60,6 +91,6 @@ class UserType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => User::class,
-        ]);
-    }
+   ]);
+}
 }

@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Réinitialisation du mot de passe{% endblock %}
+
+{% block body %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <!-- Card -->
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-body p-4">
+                        <!-- Titre -->
+                        <h3 class="text-center mb-4">Email de réinitialisation envoyé</h3>
+
+                        <!-- Message -->
+                        <p class="text-muted text-center">
+                            Si un compte correspondant à votre adresse email existe, un email contenant un lien pour réinitialiser votre mot de passe a été envoyé.
+                        </p>
+                        <p class="text-muted text-center">
+                            Ce lien expirera dans <strong>1 minute</strong>.
+                        </p>
+
+                        <p class="text-muted text-center">
+                            Si vous ne recevez pas d'email, vérifiez votre dossier spam<a href="{{ path('app_forgot_password_request') }}">réessayez</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            border-radius: 1rem;
+        }
+
+        .card-body {
+            background-color: #f8f9fa;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            font-size: 1.25rem;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        a {
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .container {
+            max-width: 600px;
+        }
+
+        .text-muted {
+            font-size: 1rem;
+        }
+    </style>
+{% endblock %}

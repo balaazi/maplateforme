@@ -1,0 +1,6 @@
+{# templates/emails/invitation.html.twig #}
+<p>Bonjour {{ invitation.receiver.username }},</p>
+<p>Vous avez été invité à l'événement "{{ invitation.event.title }}" organisé par {{ invitation.event.organizer.username }}.</p>
+<p>Vous pouvez accepter ou refuser l'invitation en cliquant sur les liens ci-dessous :</p>
+<p><a href="{{ accept_url }}">Accepter l'invitation</a></p>
+<p><a href="{{ decline_url }}">Refuser l'invitation</a></p>

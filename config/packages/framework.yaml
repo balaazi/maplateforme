@@ -1,17 +1,19 @@
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Session configuration
-     # Session configuration
+    router:
+        utf8: true
+        default_uri: '%env(APP_URL)%'  # ➔ AJOUT obligatoire pour les liens d'email corrects
+
     session:
         handler_id: 'session.handler.native_file'
-        # Ensure other necessary settings for sessions
         save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
         cookie_secure: auto
         cookie_httponly: true
         cookie_samesite: 'lax'
-        cookie_lifetime: 3600 # 1 hour for example
+        cookie_lifetime: 3600
         enabled: true
+
 when@test:
     framework:
         test: true
