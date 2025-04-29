@@ -74,7 +74,135 @@
         }
     </style>
 </head>
+<body><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Eventhub</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+    
+    <!-- Animate.css pour les animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+    <!-- Styles personnalisés -->
+    <style>
+        /* Navbar transparente */
+        /* Ajout d'un style pour l'élément h1 */
+        /* Application de la police "Great Vibes" à l'élément avec la classe great-vibes-regular */
+    .great-vibes-regular {
+    font-family: "Great Vibes", cursive; /* Utilisation de la police Great Vibes */
+    font-weight: 600; /* Poids de la police normal */
+    font-style: normal; /* Style de police normal */
+    color:rgb(177, 186, 195); /* Couleur du texte (gris foncé) */
+    text-align: center; /* Centrer le texte */
+    padding: 10px 0; /* Espacement autour du texte */
+            }
+/* Définition de l'animation fadeInLeft */
+
+/* Personnalisation du bouton transparent */
+.btn-transparent {
+    background-color: transparent; /* Fond transparent */
+    color:rgb(131, 112, 243); /* Couleur du texte (vert, pour correspondre à la couleur du bouton original) */
+    border: 1px solid:rgb(12, 12, 12); /* Bordure plus fine */
+    padding: 5px 12px; /* Espacement autour du texte */
+    
+    text-align: left; /* Aligner le texte à gauche */
+}
+
+.btn-transparent:hover {
+    background-color:rgb(131, 112, 243); /* Fond vert au survol */
+    color: black ; /* Texte blanc au survol */
+}
+
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.5) !important; /* Noir semi-transparent */
+            position: absolute;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        /* Changement de couleur des liens au survol */
+        .navbar .nav-link {
+            color: white !important;
+        }
+        .navbar .nav-link:hover {
+            color: #f8d210 !important; /* Jaune */
+        }
+
+        /* Background en dégradé */
+        body {
+            background: rgb(63,94,251);
+            background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 77%);
+            color: white;
+            height: 100vh;
+        }
+
+        /* Ajustement de l'image */
+        .img-fluid {
+            max-width: 80%;
+        }
+    </style>
+</head>
 <body>
+
+    <!-- Barre de navigation transparente -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-transparent shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">Eventhub</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link text-white" href="/">Accueil</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="/contact">Contact</a></li>
+                    <li class="nav-item"><a class="btn btn-danger btn-sm ms-3" href="/logout">Déconnexion</a></li>
+                </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <div class="container vh-100 d-flex align-items-center justify-content-center">
+        <div class="row w-100">
+            <!-- Texte à gauche -->
+            <div class="col-md-6 d-flex flex-column justify-content-center">
+                <!-- Balise h1 avec la classe great-vibes-regular et animation -->
+<h1 class="great-vibes-regular animate__animated animate__fadeInLeft">
+    Bienvenue sur notre plateforme
+</h1>
+                <p class="lead animate__animated animate__fadeInLeft animate__delay-1s">
+                  Eventhub est une plateforme qui permet aux entreprises de gérer facilement leurs événements internes (réunions, formations, séminaires). Elle simplifie la planification, l'envoi d'invitations, le suivi des réponses, les rappels et le partage de documents, le tout de manière collaborative et efficace.
+                   </p>
+
+                <a href="{{ path('app_login') }}" class="btn btn-success btn-lg shadow-lg px-5 py-3 animate__animated animate__zoomIn btn-transparent">
+                    Se connecter
+                    </a>
+
+
+            </div>
+
+            <!-- Image à droite -->
+            <div class="col-md-6 text-center animate__animated animate__fadeInRight">
+                <img src="images/teamwork.jpg" alt="Collaboration" class="img-fluid">
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
 
     <!-- Barre de navigation transparente -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-transparent shadow-sm">
