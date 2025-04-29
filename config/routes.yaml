@@ -13,3 +13,20 @@ app_send_invitation:
 google_add_event:
   path: /google/add-event
   controller: App\Controller\GoogleController::addEvent
+google_calendar_callback:
+    path: /calendar/google-callback
+    controller: App\Controller\CalendarController::googleCallback
+    methods: GET
+invitation_index:
+    path: /organizer/invitations
+    controller: App\Controller\InvitationController::index
+
+invitation_new:
+    path: /organizer/invitations/new
+    controller: App\Controller\InvitationController::new
+
+invitation_respond:
+    path: /invitation/respond/{token}/{response}
+    controller: App\Controller\InvitationController::respond
+    requirements:
+        response: accepted|declined

@@ -40,5 +40,4 @@ class InvitationRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-
 }

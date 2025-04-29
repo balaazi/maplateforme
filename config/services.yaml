@@ -1,6 +1,7 @@
 parameters:
   photos_directory: '%kernel.project_dir%/public/uploads/photos'
   google_token_expiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
+  app.mailer_from: 'no-reply@votresite.com'
 
 services:
   _defaults:
@@ -40,25 +41,11 @@ services:
   # Service de rappel
   App\Service\ReminderService: ~
 
-  # Service pour l'authentification et l'interaction avec Google API (Client)
-  App\Service\GoogleClientService:
-    arguments:
-      $clientId: '%env(GOOGLE_CLIENT_ID)%'
-      $clientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
-      $redirectUri: '%env(GOOGLE_REDIRECT_URI)%'
-
-  # Service pour la gestion des tokens d'authentification Google
-  App\Service\GoogleTokenService:
-    arguments:
-      $requestStack: '@request_stack'
-      $tokenExpiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
-      $googleClient: '@Google_Client'  # Injection du service Google_Client
-
-  # Définir Google_Client en tant que service avec une méthode de configuration via une factory
-  Google_Client:
-    class: Google_Client
-    factory: ['@App\Service\GoogleClientFactory', 'createClient']
-    arguments:
-      - '%env(GOOGLE_CLIENT_ID)%'
-      - '%env(GOOGLE_CLIENT_SECRET)%'
-      - '%env(GOOGLE_REDIRECT_URI)%'
+  App\Service\GoogleCalendarService:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+            $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
+            $router: '@router'
+            $security: '@security.helper'
+            $em: '@doctrine.orm.entity_manager'
+            $requestStack: '@request_stack'

@@ -1,0 +1,21 @@
+{# templates/invitation/response.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Merci pour votre réponse{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h1>Merci pour votre réponse</h1>
+        
+        {% if response == 'accepted' %}
+            <div class="alert alert-success">
+                Vous avez accepté l'invitation. Nous avons hâte de vous voir!
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                Vous avez décliné l'invitation. Merci de nous avoir informé.
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

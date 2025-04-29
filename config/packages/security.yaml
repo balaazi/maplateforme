@@ -10,16 +10,33 @@ security:
                 property: email
 
     firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+            
         main:
             lazy: true
             provider: user_provider
+            entry_point: App\Security\AppAuthenticator  # Point d'entrée spécifié
             custom_authenticator: App\Security\AppAuthenticator
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                enable_csrf: true
+                default_target_path: redirect_after_login
             logout:
-                path: /logout        # ← on met un chemin simple
-
-        #     access_denied_handler: App\Security\AccessDeniedHandler
+                path: /logout
+                target: app_home
+                csrf_parameter: '_csrf_token'
+                csrf_token_id: 'logout'
+                invalidate_session: true
 
     access_control:
         - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/participant, roles: ROLE_PARTICIPANT }
         - { path: ^/organisateur, roles: ROLE_ORGANISATEUR }
+        - { path: ^/participant, roles: ROLE_PARTICIPANT }
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+        - { path: ^/invitation, roles: PUBLIC_ACCESS }
+        - { path: ^/, roles: IS_AUTHENTICATED_FULLY }
