@@ -41,11 +41,11 @@ class Invitation
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'invitations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Event $event = null;
 
     #[ORM\ManyToOne(inversedBy: 'invitations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Participant $participant = null;
 
     public function __construct()
