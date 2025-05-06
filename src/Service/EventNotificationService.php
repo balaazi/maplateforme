@@ -4,6 +4,7 @@
 namespace App\Service;
 
 use App\Entity\Event;
+use App\Entity\Invitation;
 use App\Repository\UserRepository;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
@@ -41,14 +42,17 @@ $this->mailer->send($email);
 }
 public function sendEventCancelNotification(Event $event): void
 {
-    foreach ($event->getParticipants() as $participant) {
-        if ($participant->getEmail()) {
+     /**
+     * @var $invit Invitation
+     */
+    foreach ($event->getInvitations() as $invit) {
+         if ($invit->getEmail()) {
             $email = (new Email())
                 ->from('nadiabalaazi@gmail.com')
-                ->to($participant->getEmail())
+                ->to($invit->getEmail())
                 ->subject('❌ Événement annulé : ' . $event->getTitle())
                 ->html("
-                    <p>Bonjour {$participant->getPrenom()} {$participant->getNom()},</p>
+                    <p>Bonjour {$invit->getParticipant()->getName()}},</p>
                     <p>Nous vous informons que l'événement <strong>{$event->getTitle()}</strong> prévu le <strong>{$event->getDateHeure()->format('d/m/Y H:i')}</strong> a été <strong>annulé</strong>.</p>
                     <p>Merci de votre compréhension.</p>
                 ");
