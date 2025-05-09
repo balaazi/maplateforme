@@ -6,9 +6,8 @@ framework:
         transports:
             async:
                 dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    delete_after_ack: false
+                    delete_after_reject: false
         routing:
             'Symfony\Component\Mailer\Messenger\SendEmailMessage': async
-
-
-
-  

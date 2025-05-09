@@ -1,71 +1,151 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Liste des invitations{% endblock %}
+{% block title %}Invitations pour {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        .badge {
+            font-size: 0.9em;
+            padding: 0.5em 0.75em;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .action-buttons {
+            min-width: 200px;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <div class="container mt-5">
-        <h1 class="mb-4">Liste des invitations</h1>
-        
-        {% for message in app.flashes('success') %}
-            <div class="alert alert-success">
-                {{ message }}
-            </div>
-        {% endfor %}
-        
-        <div class="card mb-4">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span>Invitations envoyées</span>
-                <a href="{{ path('invitation_new') }}" class="btn btn-sm btn-primary">
-                    <i class="fas fa-plus"></i> Nouvelle invitation
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-envelope-open me-2"></i>
+                Invitations pour <strong>{{ event.title }}</strong>
+            </h1>
+            <div>
+                <a href="{{ path('event_show', {'id': event.id}) }}" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left"></i> Retour à l'événement
+                </a>
+                <a href="{{ path('invitation_new', {'eventId': event.id}) }}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouvelle invitation
                 </a>
             </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show mb-4">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        <div class="card shadow">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-list-check me-2"></i>
+                        Liste des invitations
+                    </h5>
+                    <span class="badge bg-primary">
+                    {{ invitations|length }} invitation(s)
+                </span>
+                </div>
+            </div>
+
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-light">
+                {% if invitations|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
                             <tr>
+                                <th>Nom</th>
                                 <th>Email</th>
                                 <th>Statut</th>
-                                <th>Date d'envoi</th>
-                                <th>Expire le</th>
-                                <th>Actions</th>
+                                <th>Date</th>
+                                <th class="action-buttons">Actions</th>
                             </tr>
-                        </thead>
-                        <tbody>
-                        {% for invitation in invitations %}
-                            <tr>
-                                <td>{{ invitation.email }}</td>
-                                <td>
-                                    {% if invitation.status == 'accepted' %}
-                                        <span class="badge bg-success">Accepté</span>
-                                    {% elseif invitation.status == 'declined' %}
-                                        <span class="badge bg-danger">Refusé</span>
-                                    {% else %}
-                                        <span class="badge bg-warning">En attente</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ invitation.createdAt|date('d/m/Y H:i') }}</td>
-                                <td>{{ invitation.expiresAt|date('d/m/Y H:i') }}</td>
-                                <td>
-                                    <a href="{{ path('invitation_respond', {'token': invitation.token, 'response': 'accepted'}) }}" 
-                                       class="btn btn-sm btn-outline-success" target="_blank">
-                                        <i class="fas fa-check"></i> Lien acceptation
-                                    </a>
-                                    <a href="{{ path('invitation_respond', {'token': invitation.token, 'response': 'declined'}) }}" 
-                                       class="btn btn-sm btn-outline-danger mt-1" target="_blank">
-                                        <i class="fas fa-times"></i> Lien refus
-                                    </a>
-                                </td>
-                            </tr>
-                        {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center">Aucune invitation trouvée</td>
-                            </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                            {% for invitation in invitations %}
+                                <tr>
+                                    <td>{{ invitation.name }}</td>
+                                    <td>{{ invitation.email }}</td>
+                                    <td>
+                                        {% if invitation.status == 'accepted' %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Acceptée
+                                            </span>
+                                        {% elseif invitation.status == 'declined' %}
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-x-circle"></i> Refusée
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-hourglass"></i> En attente
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ invitation.createdAt|date('d/m/Y H:i') }}</td>
+                                    <td>
+                                        <div class="d-flex gap-2">
+                                            <a href="{{ path('invitation_respond', {
+                                                'token': invitation.token,
+                                                'response': 'accepted'
+                                            }) }}"
+                                               class="btn btn-sm btn-outline-success"
+                                               target="_blank">
+                                                <i class="bi bi-check"></i>
+                                            </a>
+                                            <a href="{{ path('invitation_respond', {
+                                                'token': invitation.token,
+                                                'response': 'declined'
+                                            }) }}"
+                                               class="btn btn-sm btn-outline-danger"
+                                               target="_blank">
+                                                <i class="bi bi-x"></i>
+                                            </a>
+                                            <a href="#"
+                                               class="btn btn-sm btn-outline-primary"
+                                               data-bs-toggle="tooltip"
+                                               title="Renvoyer l'invitation">
+                                                <i class="bi bi-arrow-repeat"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-envelope-slash text-muted" style="font-size: 3rem;"></i>
+                        <h4 class="mt-3 text-muted">Aucune invitation pour cet événement</h4>
+                        <p class="text-muted">Créez votre première invitation en cliquant sur le bouton ci-dessus</p>
+                    </div>
+                {% endif %}
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Activation des tooltips Bootstrap
+        document.addEventListener('DOMContentLoaded', function() {
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
 {% endblock %}

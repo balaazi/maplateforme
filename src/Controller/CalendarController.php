@@ -25,7 +25,7 @@ class CalendarController extends AbstractController
         $state = bin2hex(random_bytes(16));
         $request->getSession()->set('oauth_state', $state);
         
-        return $this->redirect($googleService->getAuthUrl().'&state='.$state);
+        return $this->redirect($googleService->getAuthUrl());
     }
 
     #[Route('/calendar/google-callback', name: 'google_calendar_callback')]

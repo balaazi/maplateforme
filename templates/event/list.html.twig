@@ -52,6 +52,13 @@
 
         <h1>Liste des Événements</h1>
 
+        <!-- 🔽 Bouton Créer un Événement -->
+        <div class="mb-4 text-end">
+            <a href="{{ path('event_create') }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Créer un Événement
+            </a>
+        </div>
+
         <table class="table table-bordered table-hover shadow-sm">
             <thead class="table-dark">
             <tr>
@@ -80,6 +87,11 @@
                         <a href="{{ path('event_cancel', { id: event.id }) }}" class="btn btn-sm btn-danger">
                             <i class="bi bi-x-circle"></i> Annuler
                         </a>
+                        <!-- Lien pour gérer les invitations -->
+                        <a href="{{ path('invitation_index', { eventId: event.id }) }}" class="btn btn-sm btn-info text-white">
+                            <i class="bi bi-envelope-paper"></i> Gérer les invitations
+                        </a>
+
                     </td>
                 </tr>
             {% else %}
