@@ -35,9 +35,18 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{{ path('home') }}">
-                     <i class="fas fa-home me-1"></i> Accueil
+                        <i class="fas fa-home me-1"></i> Accueil
                     </a>
                 </li>
+
+                {% if app.user %}
+                    <!-- Bouton Agenda visible seulement si connecté -->
+                    <li class="nav-item">
+                        <a class="nav-link text-white" href="{{ path('calendar_page') }}">
+                            <i class="fas fa-calendar-alt me-1"></i> Agenda
+                        </a>
+                    </li>
+                {% endif %}
 
                 {% if app.user %}
                     <!-- Menu Mon Compte (si connecté) -->
@@ -70,7 +79,6 @@
                                     <a class="dropdown-item" href="{{ path('event_index') }}">
                                         <i class="fas fa-list me-2"></i> Liste des Événements
                                     </a>
-
                                 </li>
                             {% endif %}
 
@@ -87,8 +95,6 @@
                                     <i class="fas fa-sign-out-alt me-2"></i> Déconnexion
                                 </a>
                             </li>
-
-
                         </ul>
                     </li>
                 {% endif %}

@@ -8,75 +8,87 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Google\Service\Calendar\Event;
+use App\Entity\CalendarEvent;
 
 class GoogleCalendarService
 {
     private GoogleClient $client;
     private $user;
-    private EntityManagerInterface $em;
-    private RequestStack $requestStack;
 
     public function __construct(
         string $googleClientId,
         string $googleClientSecret,
         private UrlGeneratorInterface $router,
         private Security $security,
-        EntityManagerInterface $em,
-        RequestStack $requestStack
+        private EntityManagerInterface $em,
+        private RequestStack $requestStack
     ) {
         $this->user = $this->security->getUser();
-        $this->em = $em;
-        $this->requestStack = $requestStack;
-
         $this->initializeClient($googleClientId, $googleClientSecret);
         $this->handleExistingToken();
     }
 
     private function initializeClient(string $clientId, string $clientSecret): void
     {
-        $this->client = new GoogleClient([
-            'client_id' => $clientId,
-            'client_secret' => $clientSecret,
-            'redirect_uri' => $this->generateRedirectUri(),
-            'access_type' => 'offline',
-            'prompt' => 'consent select_account',
-            'include_granted_scopes' => true
-        ]);
-
-        $this->client->setScopes([GoogleServiceCalendar::CALENDAR_EVENTS]);
-        $this->client->setState($this->generateStateToken());
-    }
-
-    private function generateRedirectUri(): string
-    {
-        return $this->router->generate(
-            'google_calendar_callback',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
-        );
-    }
-
-    private function generateStateToken(): string
-    {
-        $state = bin2hex(random_bytes(16));
-        $this->requestStack->getSession()->set('oauth_state', $state);
-        return $state;
+        $this->client = new GoogleClient();
+        $this->client->setClientId($clientId);
+        $this->client->setClientSecret($clientSecret);
+        $this->client->setRedirectUri($this->router->generate('google_calendar_callback', [], UrlGeneratorInterface::ABSOLUTE_URL));
+        $this->client->addScope(GoogleServiceCalendar::CALENDAR_EVENTS);
+        $this->client->setAccessType('offline');
+        $this->client->setPrompt('consent');
     }
 
     private function handleExistingToken(): void
     {
         if ($this->user && method_exists($this->user, 'getGoogleToken')) {
             $token = $this->user->getGoogleToken();
-            
-            if ($token && $decodedToken = json_decode($token, true)) {
-                $this->client->setAccessToken($decodedToken);
-                
-                if ($this->isTokenExpired()) {
-                    $this->refreshToken();
+
+            if ($token && is_string($token)) {
+                try {
+                    $decoded = $this->safeJsonDecode($token);
+
+                    if (!is_array($decoded) || !isset($decoded['access_token'])) {
+                        throw new \InvalidArgumentException("Le token est invalide : il manque 'access_token'.");
+                    }
+
+                    $this->client->setAccessToken($decoded);
+
+                    if ($this->client->isAccessTokenExpired()) {
+                        $this->refreshToken();
+                    }
+                } catch (\RuntimeException $e) {
+                    // Log the error and continue without token
+                    error_log('Google token error: ' . $e->getMessage());
+                    return;
                 }
             }
         }
+    }
+
+    private function safeJsonDecode(string $json): array
+    {
+        // Nettoyage approfondi du JSON
+        $cleaned = trim($json);
+        $cleaned = preg_replace('/[[:^print:]]/', '', $cleaned);
+        $cleaned = mb_convert_encoding($cleaned, 'UTF-8', 'UTF-8');
+        $cleaned = iconv('UTF-8', 'UTF-8//IGNORE', $cleaned);
+
+        $decoded = json_decode($cleaned, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            // Tentative de récupération avec extraction du JSON valide
+            if (preg_match('/\{(?:[^{}]|(?R))*\}/', $cleaned, $matches)) {
+                $decoded = json_decode($matches[0], true);
+            }
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \RuntimeException('Erreur JSON : ' . json_last_error_msg());
+            }
+        }
+
+        return $decoded;
     }
 
     public function getAuthUrl(): string
@@ -84,74 +96,96 @@ class GoogleCalendarService
         return $this->client->createAuthUrl();
     }
 
-    public function handleCallback(string $code, string $state): void
-    {
-        $this->validateStateToken($state);
-        $token = $this->fetchAccessToken($code);
-        $this->storeToken($token);
-    }
-
-    private function validateStateToken(string $state): void
-    {
-        $sessionState = $this->requestStack->getSession()->get('oauth_state');
-        
-        if (!$sessionState || $sessionState !== $state) {
-            throw new AuthenticationException('Invalid state parameter');
-        }
-    }
-
-    private function fetchAccessToken(string $code): array
+    public function fetchAccessTokenWithCode(string $code): array
     {
         $token = $this->client->fetchAccessTokenWithAuthCode($code);
-        
+
         if (isset($token['error'])) {
-            throw new \RuntimeException($token['error_description'] ?? 'Authentication failed');
+            throw new \Exception('Erreur d\'authentification Google: ' . $token['error']);
         }
 
-        return $token;
-    }
+        // Sérialisation sécurisée du token
+        $tokenJson = json_encode($token, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
 
-    private function storeToken(array $token): void
-    {
         if ($this->user && method_exists($this->user, 'setGoogleToken')) {
-            $this->client->setAccessToken($token);
-            $this->user->setGoogleToken(json_encode($token));
-            
+            $this->user->setGoogleToken($tokenJson);
             $this->em->persist($this->user);
             $this->em->flush();
         }
+
+        $this->client->setAccessToken($token);
+        return $token;
     }
 
     public function getCalendarService(): GoogleServiceCalendar
     {
-        if ($this->isTokenExpired()) {
-            $this->refreshToken();
-        }
-        
         return new GoogleServiceCalendar($this->client);
-    }
-
-    public function isTokenExpired(): bool
-    {
-        return $this->client->isAccessTokenExpired();
     }
 
     public function refreshToken(): void
     {
-        if (!$refreshToken = $this->client->getRefreshToken()) {
-            throw new \RuntimeException('No refresh token available');
+        $refreshToken = $this->client->getRefreshToken();
+        if (!$refreshToken) {
+            throw new \RuntimeException('Pas de refresh token disponible');
         }
 
-        $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
-        $this->storeToken($this->client->getAccessToken());
+        $token = $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
+
+        if (isset($token['error'])) {
+            throw new \RuntimeException('Erreur de rafraîchissement du token: ' . $token['error']);
+        }
+
+        $tokenJson = json_encode($token, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+
+        if ($this->user && method_exists($this->user, 'setGoogleToken')) {
+            $this->user->setGoogleToken($tokenJson);
+            $this->em->persist($this->user);
+            $this->em->flush();
+        }
+
+        $this->client->setAccessToken($token);
     }
 
-    public function revokeToken(): bool
+    public function exportToGoogleCalendar(CalendarEvent $localEvent): void
     {
-        if (!$this->client->getAccessToken()) {
-            return false;
+        if ($this->client->isAccessTokenExpired()) {
+            $this->refreshToken();
         }
-        
-        return $this->client->revokeToken();
+
+        $calendar = $this->getCalendarService();
+
+        $event = new Event([
+            'summary'     => $localEvent->getTitle(),
+            'description' => $localEvent->getDescription(),
+            'start'       => ['dateTime' => $localEvent->getStart()->format(DATE_RFC3339)],
+            'end'         => ['dateTime' => $localEvent->getEnd()->format(DATE_RFC3339)],
+        ]);
+
+        try {
+            $createdEvent = $calendar->events->insert('primary', $event);
+            $localEvent->setGoogleEventId($createdEvent->getId());
+            $this->em->persist($localEvent);
+            $this->em->flush();
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Erreur lors de l\'export vers Google Calendar: ' . $e->getMessage());
+        }
+    }
+
+    public function isAuthenticated(): bool
+    {
+        try {
+            if ($this->client->getAccessToken() && !$this->client->isAccessTokenExpired()) {
+                return true;
+            }
+
+            if ($this->client->getRefreshToken()) {
+                $this->refreshToken();
+                return true;
+            }
+        } catch (\Exception $e) {
+            error_log('Google authentication check failed: ' . $e->getMessage());
+        }
+
+        return false;
     }
 }

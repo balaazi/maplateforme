@@ -26,28 +26,29 @@ class EventController extends AbstractController
         $this->notificationService = $notificationService;
     }
 
-    #[Route('/event/create', name: 'event_create')]
+   #[Route('/event/create', name: 'event_create')]
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $event = new Event();
-        $form = $this->createForm(EventFormType::class, $event);
+    $event = new Event();
+    $form = $this->createForm(EventFormType::class, $event);
+    $form->handleRequest($request);
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-// ✅ Définir l’organisateur ici
-            $event->setOrganizer($this->getUser());
+    if ($form->isSubmitted() && $form->isValid()) {
+        $event->setOrganizer($this->getUser());
 
-            $entityManager->persist($event);
-            $entityManager->flush();
+        $entityManager->persist($event);
+        $entityManager->flush();
 
-            $this->addFlash('success', 'Événement créé avec succès !');
-            return $this->redirectToRoute('event_list');
-        }
+        $this->addFlash('success', 'Événement créé avec succès !');
 
-        return $this->render('event/create.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        return $this->redirectToRoute('calendar_page'); // redirection vers calendrier
     }
+
+    return $this->render('event/create.html.twig', [
+        'form' => $form->createView(),
+    ]);
+    }
+
 
     #[Route('/event/list', name: 'event_list')]
     public function list(EntityManagerInterface $em): Response
@@ -62,21 +63,21 @@ class EventController extends AbstractController
     #[Route('/event/{id}/edit', name: 'event_edit')]
     public function edit(Event $event, Request $request, EntityManagerInterface $em): Response
     {
-// Créer le formulaire pour modifier l'événement
+    // Créer le formulaire pour modifier l'événement
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
 
-// Si le formulaire est soumis et valide
+    // Si le formulaire est soumis et valide
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
-// Notifier les participants de la modification de l'événement
+    // Notifier les participants de la modification de l'événement
             $this->notificationService->sendEventUpdateNotification($event);
 
-// Afficher un message de succès
+    // Afficher un message de succès
             $this->addFlash('success', 'Événement modifié avec succès.');
 
-// Rediriger vers la page de la liste des événements
+    // Rediriger vers la page de la liste des événements
             return $this->redirectToRoute('event_list');
         }
 
@@ -115,5 +116,20 @@ class EventController extends AbstractController
         return $this->render('event/list.html.twig', [
             'events' => $events,
         ]);
+    }
+    #[Route('/calendar', name: 'calendar_page')]
+    public function calendar(): Response
+    {
+    return $this->render('calendar/index.html.twig');
+    }
+
+    public function showEvent(Event $event)
+    {
+    return $this->render('event/show.html.twig', [
+    'event' => $event,
+    'googleDriveUrl' => 'https://drive.google.com/embeddedfolderview?id=ID_DOSSIER_GOOGLE',
+    'notionUrl' => 'https://www.notion.so/LIEN_DE_TA_PAGE_NOTION',
+    'etherpadUrl' => 'https://etherpad.domain.tld/p/ID_PAD_EVENT',
+    ]);
     }
 }

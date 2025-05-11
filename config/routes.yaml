@@ -30,3 +30,7 @@ invitation_respond:
     controller: App\Controller\InvitationController::respond
     requirements:
         response: accepted|declined
+
+google_calendar_auth:
+  path: /google/connect
+  controller: App\Controller\GoogleCalendarController::connect

@@ -1,0 +1,24 @@
+<h2>{{ event.title }}</h2>
+
+<h3>Partage de documents :</h3>
+
+{% if googleDriveUrl %}
+    <h4>Google Drive :</h4>
+    <iframe src="{{ googleDriveUrl }}" width="100%" height="600px"></iframe>
+{% else %}
+    <p>Aucun document Google Drive partagé pour cet événement.</p>
+{% endif %}
+
+{% if notionUrl %}
+    <h4>Notion :</h4>
+    <iframe src="{{ notionUrl }}" width="100%" height="600px"></iframe>
+{% else %}
+    <p>Aucune page Notion partagée pour cet événement.</p>
+{% endif %}
+
+{% if etherpadUrl %}
+    <h4>Etherpad :</h4>
+    <iframe src="{{ etherpadUrl }}" width="100%" height="600px"></iframe>
+{% else %}
+    <p>Aucun pad Etherpad partagé pour cet événement.</p>
+{% endif %}

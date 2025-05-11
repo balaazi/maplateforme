@@ -42,6 +42,10 @@ class Event
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Invitation::class, cascade: ['persist', 'remove'])]
     private Collection $invitations;
 
+
+     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $googleDriveUrl = null;
+
     public function __construct()
     {
         $this->invitations = new ArrayCollection();
@@ -65,6 +69,18 @@ class Event
     public function getOrganizer(): ?User { return $this->organizer; }
     public function setOrganizer(?User $organizer): self { $this->organizer = $organizer; return $this; }
 
+     // 2. Méthode getter pour googleDriveUrl
+    public function getGoogleDriveUrl(): ?string
+    {
+        return $this->googleDriveUrl;
+    }
+
+    // 3. Méthode setter pour googleDriveUrl
+    public function setGoogleDriveUrl(?string $googleDriveUrl): self
+    {
+        $this->googleDriveUrl = $googleDriveUrl;
+        return $this;
+    }
     public function getInvitations(): Collection { return $this->invitations; }
 
     public function addInvitation(Invitation $invitation): self
