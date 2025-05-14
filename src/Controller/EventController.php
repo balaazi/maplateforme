@@ -6,6 +6,7 @@ use App\Entity\Event;
 use App\Form\EventFormType;
 use App\Repository\EventRepository;
 use App\Service\EventNotificationService;
+use App\Service\GoogleDriveService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -132,4 +133,42 @@ class EventController extends AbstractController
     'etherpadUrl' => 'https://etherpad.domain.tld/p/ID_PAD_EVENT',
     ]);
     }
+ #[Route('/event/{id}/fichiers', name: 'event_files')]
+public function listFiles(Event $event, Request $request, GoogleDriveService $driveService): Response
+{
+    $token = $request->getSession()->get('google_access_token');
+
+    if (!$token) {
+        return $this->redirectToRoute('google_drive_connect');
+    }
+
+    $client = $driveService->getClient();
+    $client->setAccessToken($token);
+
+    if ($client->isAccessTokenExpired()) {
+        return $this->redirectToRoute('google_drive_connect');
+    }
+
+    $drive = $driveService->getDriveService();
+
+    // Extraire l’ID du dossier depuis le lien
+    preg_match('/\/folders\/([^\/\?]+)/', $event->getGoogleDriveUrl(), $matches);
+    $folderId = $matches[1] ?? null;
+
+    if (!$folderId) {
+        return new Response("Lien du dossier Google Drive invalide.");
+    }
+
+    $files = $drive->files->listFiles([
+        'q' => "'$folderId' in parents and trashed = false",
+        'fields' => 'files(id, name, mimeType, webViewLink)'
+    ]);
+
+    return $this->render('event/files.html.twig', [
+        'event' => $event,
+        'files' => $files->getFiles(),
+    ]);
+}
+
+
 }

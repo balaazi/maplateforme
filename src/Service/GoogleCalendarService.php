@@ -59,7 +59,6 @@ class GoogleCalendarService
                         $this->refreshToken();
                     }
                 } catch (\RuntimeException $e) {
-                    // Log the error and continue without token
                     error_log('Google token error: ' . $e->getMessage());
                     return;
                 }
@@ -69,7 +68,6 @@ class GoogleCalendarService
 
     private function safeJsonDecode(string $json): array
     {
-        // Nettoyage approfondi du JSON
         $cleaned = trim($json);
         $cleaned = preg_replace('/[[:^print:]]/', '', $cleaned);
         $cleaned = mb_convert_encoding($cleaned, 'UTF-8', 'UTF-8');
@@ -78,7 +76,6 @@ class GoogleCalendarService
         $decoded = json_decode($cleaned, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            // Tentative de récupération avec extraction du JSON valide
             if (preg_match('/\{(?:[^{}]|(?R))*\}/', $cleaned, $matches)) {
                 $decoded = json_decode($matches[0], true);
             }
@@ -104,7 +101,6 @@ class GoogleCalendarService
             throw new \Exception('Erreur d\'authentification Google: ' . $token['error']);
         }
 
-        // Sérialisation sécurisée du token
         $tokenJson = json_encode($token, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
 
         if ($this->user && method_exists($this->user, 'setGoogleToken')) {

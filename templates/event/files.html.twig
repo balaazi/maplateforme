@@ -1,0 +1,21 @@
+{# templates/event/files.html.twig #}
+
+<h1>Fichiers de l'événement : {{ event.title }}</h1>
+
+{{ form_start(form) }}
+    {{ form_row(form.file) }}
+<button class="btn btn-success">Uploader</button>
+{{ form_end(form) }}
+
+<h2 class="mt-4">Liste des fichiers</h2>
+<ul>
+    {% for file in files %}
+        <li>
+            {{ file.name }} -
+            <a href="https://drive.google.com/file/d/{{ file.googleDriveFileId }}/view" target="_blank">Voir</a> |
+            <a href="{{ path('event_file_delete', {id: file.id, eventId: event.id}) }}" onclick="return confirm('Supprimer ce fichier ?');">Supprimer</a>
+        </li>
+    {% else %}
+        <li>Aucun fichier</li>
+    {% endfor %}
+</ul>

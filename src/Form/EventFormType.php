@@ -40,7 +40,11 @@ class EventFormType extends AbstractType
                     'Atelier' => 'Atelier',
                     'Conférence' => 'Conférence',
                 ],
-            ]);
+            ])
+            ->add('googleDriveUrl', TextType::class, [
+        'required' => false,
+        'label' => 'Lien du dossier Google Drive',
+    ]);
 
     }
 

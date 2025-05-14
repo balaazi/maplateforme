@@ -3,35 +3,43 @@
 {% block title %}Agenda Partagé{% endblock %}
 
 {% block stylesheets %}
-<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.css" rel="stylesheet">
 {% endblock %}
 
 {% block body %}
-<div class="agenda-container">
-    <h1>🗓️ Agenda Partagé</h1>
+    <div class="agenda-container">
+        <h1>🗓️ Agenda Partagé</h1>
 
-    <a href="{{ path('event_create') }}" class="btn btn-primary">+ Ajouter un événement</a>
+        <div class="mb-3">
+            <a href="{{ path('event_create') }}" class="btn btn-primary">
+                + Ajouter un événement
+            </a>
+            <!-- Ajouter le bouton de synchronisation ici -->
+            <a href="{{ path('calendar_sync') }}" class="btn btn-success ms-2">
+                🔄 Synchroniser l’agenda
+            </a>
+        </div>
 
-    <div id="calendar"></div>
-</div>
+        <div id="calendar"></div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('calendar');
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'fr',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            events: '/api/events', // API Symfony
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'fr',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: '/api/events',
+            });
+
+            calendar.render();
         });
-
-        calendar.render();
-    });
-</script>
+    </script>
 {% endblock %}
