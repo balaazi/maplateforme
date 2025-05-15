@@ -1,24 +1,132 @@
-<h2>{{ event.title }}</h2>
+{% extends 'base.html.twig' %}
 
-<h3>Partage de documents :</h3>
+{% block title %}Détails de l'événement{% endblock %}
 
-{% if googleDriveUrl %}
-    <h4>Google Drive :</h4>
-    <iframe src="{{ googleDriveUrl }}" width="100%" height="600px"></iframe>
+{% block stylesheets %}
+    <style>
+        .event-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #0d6efd;
+            margin-bottom: 1rem;
+        }
+
+        .event-description {
+            font-size: 1.1rem;
+            color: #444;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #0d6efd;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+
+        iframe {
+            border-radius: 0.5rem;
+            border: 1px solid #ddd;
+            margin-bottom: 2rem;
+        }
+
+        ul.document-list {
+            padding-left: 1.2rem;
+        }
+
+        ul.document-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        ul.document-list a {
+            text-decoration: none;
+            color: #0d6efd;
+        }
+
+        ul.document-list a:hover {
+            text-decoration: underline;
+        }
+
+        .no-doc {
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="event-container">
+        <h2>{{ event.title }}</h2>
+        <p class="event-description">{{ event.description }}</p>
+
+        <a href="{{ path('document_upload', { id: event.id }) }}" class="btn btn-primary">
+            📎 Ajouter un document
+        </a>
+
+        <h3 class="section-title">📁 Documents liés à l’événement</h3>
+        <ul class="document-list">
+            {% for doc in event.documents %}
+                <li>
+                    <a href="{{ asset('uploads/documents/' ~ doc.fileName) }}" target="_blank">
+                        {{ doc.fileName }}
+                    </a>
+                </li>
+            {% else %}
+                <li class="no-doc">Aucun document pour cet événement.</li>
+            {% endfor %}
+        </ul>
+
+        <h3 class="section-title">🔗 Partage de documents</h3>
+
+        {% if googleDriveUrl %}
+            <h4>📂 Google Drive :</h4>
+            <iframe src="{{ googleDriveUrl }}" width="100%" height="600"></iframe>
+        {% else %}
+            <p class="no-doc">Aucun document Google Drive partagé pour cet événement.</p>
+        {% endif %}
+
+        {% if notionUrl %}
+            <h4>🧠 Notion :</h4>
+            <iframe src="{{ notionUrl }}" width="100%" height="600"></iframe>
+        {% else %}
+            <p class="no-doc">Aucune page Notion partagée pour cet événement.</p>
+        {% endif %}
+
+        {% if event.etherpadUrl %}
+            <h4>📝 Notes collaboratives (Etherpad)</h4>
+            <iframe src="{{ event.etherpadUrl }}" width="100%" height="600"></iframe>
+        {% else %}
+            <p class="no-doc">⚠️ Aucun lien Etherpad n’a été fourni pour cet événement.</p>
+        {% endif %}
+        <h3 class="section-title">📁 Fichiers téléchargés</h3>
+{% if event.uploadedDocuments is not empty %}
+  <ul class="document-list">
+    {% for file in event.uploadedDocuments %}
+      <li><a href="{{ asset('uploads/documents/' ~ file) }}" target="_blank">{{ file }}</a></li>
+    {% endfor %}
+  </ul>
 {% else %}
-    <p>Aucun document Google Drive partagé pour cet événement.</p>
+  <p class="no-doc">Aucun fichier téléchargé.</p>
 {% endif %}
-
-{% if notionUrl %}
-    <h4>Notion :</h4>
-    <iframe src="{{ notionUrl }}" width="100%" height="600px"></iframe>
-{% else %}
-    <p>Aucune page Notion partagée pour cet événement.</p>
-{% endif %}
-
-{% if etherpadUrl %}
-    <h4>Etherpad :</h4>
-    <iframe src="{{ etherpadUrl }}" width="100%" height="600px"></iframe>
-{% else %}
-    <p>Aucun pad Etherpad partagé pour cet événement.</p>
-{% endif %}
+    </div>
+{% endblock %}

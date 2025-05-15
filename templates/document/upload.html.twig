@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upload pour {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .upload-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+        .upload-header {
+            position: relative;
+        }
+        .upload-link {
+            position: absolute;
+            right: 0;
+            top: 0;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="upload-container">
+        <div class="upload-header">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-file-upload"></i> Upload pour<br>
+                <small class="text-muted">{{ event.title }}</small>
+            </h2>
+
+            {% if event.id is defined %}
+                <a href="{{ path('document_upload', {'id': event.id}) }}" 
+                   class="btn btn-sm btn-outline-primary upload-link"
+                   title="Uploader un nouveau document">
+                   <i class="fas fa-plus"></i> Nouvel upload
+                </a>
+            {% endif %}
+        </div>
+
+        {{ form_start(form, {'attr': {'id': 'documentUploadForm'}}) }}
+            <div class="form-group">
+                {{ form_label(form.file, 'Fichier à uploader', {'label_attr': {'class': 'font-weight-bold'}}) }}
+                {{ form_widget(form.file, {
+                    'attr': {
+                        'class': 'form-control-file',
+                        'accept': '.pdf,.doc,.docx,.jpg,.jpeg,.png'
+                    }
+                }) }}
+                <small class="form-text text-muted">
+                    Formats acceptés : PDF, DOC, JPG, PNG (max. 5 Mo)
+                </small>
+                {{ form_errors(form.file) }}
+            </div>
+
+            <div class="form-group text-center mt-4">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload"></i> Envoyer le document
+                </button>
+            </div>
+        {{ form_end(form) }}
+
+        <div class="text-center mt-4">
+            <a href="{{ path('event_show', {'id': event.id}) }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Retour à l'événement
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.querySelector('#document_file');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file && file.size > 5 * 1024 * 1024) {
+                alert('Le fichier dépasse la taille maximale autorisée (5 Mo).');
+                this.value = '';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

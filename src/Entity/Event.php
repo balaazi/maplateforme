@@ -42,17 +42,28 @@ class Event
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Invitation::class, cascade: ['persist', 'remove'])]
     private Collection $invitations;
 
-    
-     #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Document::class)]
+    private Collection $documents;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $googleDriveUrl = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?string $googleDriveFolderId = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $etherpadUrl = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $uploadedDocuments = [];
+ 
     public function __construct()
     {
         $this->invitations = new ArrayCollection();
+        $this->documents = new ArrayCollection(); 
     }
 
+    // 🧠 Getters & Setters
     public function getId(): ?int { return $this->id; }
     public function getTitle(): ?string { return $this->title; }
     public function setTitle(string $title): self { $this->title = $title; return $this; }
@@ -71,33 +82,23 @@ class Event
     public function getOrganizer(): ?User { return $this->organizer; }
     public function setOrganizer(?User $organizer): self { $this->organizer = $organizer; return $this; }
 
+    public function getGoogleDriveFolderId(): ?string { return $this->googleDriveFolderId; }
+    public function setGoogleDriveFolderId(?string $googleDriveFolderId): self { $this->googleDriveFolderId = $googleDriveFolderId; return $this; }
+    public function getGoogleDriveUrl(): ?string { return $this->googleDriveUrl; }
+    public function setGoogleDriveUrl(?string $googleDriveUrl): self { $this->googleDriveUrl = $googleDriveUrl; return $this; }
 
+    public function getEtherpadUrl(): ?string { return $this->etherpadUrl; }
+    public function setEtherpadUrl(?string $etherpadUrl): self { $this->etherpadUrl = $etherpadUrl; return $this; }
 
-     // 2. Méthode getter pour googleDriveUrl
-    public function getGoogleDriveUrl(): ?string
-    {
-        return $this->googleDriveUrl;
-    }
-
-    // 3. Méthode setter pour googleDriveUrl
-    public function setGoogleDriveUrl(?string $googleDriveUrl): self
-    {
-        $this->googleDriveUrl = $googleDriveUrl;
-        return $this;
-    }
     public function getInvitations(): Collection { return $this->invitations; }
-
-    public function addInvitation(Invitation $invitation): self
-    {
+    public function addInvitation(Invitation $invitation): self {
         if (!$this->invitations->contains($invitation)) {
             $this->invitations[] = $invitation;
             $invitation->setEvent($this);
         }
         return $this;
     }
-
-    public function removeInvitation(Invitation $invitation): self
-    {
+    public function removeInvitation(Invitation $invitation): self {
         if ($this->invitations->removeElement($invitation)) {
             if ($invitation->getEvent() === $this) {
                 $invitation->setEvent(null);
@@ -105,4 +106,33 @@ class Event
         }
         return $this;
     }
+
+    public function getDocuments(): Collection { return $this->documents; }
+    public function addDocument(Document $document): self {
+        if (!$this->documents->contains($document)) {
+            $this->documents[] = $document;
+            $document->setEvent($this);
+        }
+        return $this;
+    }
+    public function removeDocument(Document $document): self {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getEvent() === $this) {
+                $document->setEvent(null);
+            }
+        }
+        return $this;
+    }
+    public function getUploadedDocuments(): ?array
+    {
+    return $this->uploadedDocuments;
+    }
+
+    public function setUploadedDocuments(?array $uploadedDocuments): self
+    {
+    $this->uploadedDocuments = $uploadedDocuments;
+
+    return $this;
+}
+
 }

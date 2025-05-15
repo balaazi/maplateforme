@@ -6,31 +6,35 @@ use App\Service\GoogleDriveService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 class GoogleDriveController extends AbstractController
 {
-    #[Route('/google-drive/connect', name: 'google_drive_connect')]
-    public function connect(GoogleDriveService $googleDriveService): Response
+    #[Route('/google/connect', name: 'google_drive_connect')]
+    public function connect(GoogleDriveService $driveService): Response
     {
-        $client = $googleDriveService->getClient();
+        $client = $driveService->getClient();
         $authUrl = $client->createAuthUrl();
 
         return $this->redirect($authUrl);
     }
 
-    #[Route('/google-drive/callback', name: 'google_drive_callback')]
-    public function callback(Request $request, GoogleDriveService $googleDriveService): Response
+    #[Route('/google/callback', name: 'google_drive_callback')]
+    public function callback(Request $request, GoogleDriveService $driveService, SessionInterface $session): Response
     {
+        $client = $driveService->getClient();
         $code = $request->query->get('code');
 
-        if (!$code) {
-            return new Response('Code de vérification manquant', 400);
+        if ($code) {
+            $accessToken = $client->fetchAccessTokenWithAuthCode($code);
+            $session->set('google_access_token', $accessToken);
+
+            $this->addFlash('success', 'Connexion à Google Drive réussie.');
+            return $this->redirectToRoute('event_list'); // ou n'importe quelle route
         }
 
-        $token = $googleDriveService->authenticate($code);
-        // Tu peux stocker ce token en base de données ou session
-
-        return new Response('<h1>Connexion réussie à Google Drive ✅</h1><pre>' . print_r($token, true) . '</pre>');
+        $this->addFlash('error', 'Erreur lors de l\'authentification avec Google.');
+        return $this->redirectToRoute('event_list');
     }
 }

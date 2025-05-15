@@ -8,11 +8,14 @@
             <div class="col-lg-8">
                 <div class="card shadow-lg">
                     <div class="card-header bg-primary text-white">
-                        <h1 class="h4 mb-0">Créer un  événement</h1>
+                        <h1 class="h4 mb-0">Créer un événement</h1>
                     </div>
 
                     <div class="card-body">
-                        {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
+                        {{ form_start(form, {
+                            'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'},
+                            'enctype': 'multipart/form-data'
+                        }) }}
 
                         <div class="mb-4">
                             {{ form_label(form.title, 'Titre', {'label_attr': {'class': 'form-label fw-bold'}}) }}
@@ -27,6 +30,15 @@
                             {{ form_widget(form.description, {'attr': {'class': 'form-control' ~ (form.description.vars.valid ? '' : ' is-invalid'), 'rows': 5, 'placeholder': 'Décrivez votre événement en détail'}}) }}
                             <div class="invalid-feedback">
                                 {{ form_errors(form.description) }}
+                            </div>
+                        </div>
+
+                        {# هنا خانة تحميل الملفات #}
+                        <div class="mb-4">
+                            {{ form_label(form.documents, 'Documents (PDF, Word, etc)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.documents, {'attr': {'class': 'form-control' ~ (form.documents.vars.valid ? '' : ' is-invalid'), 'multiple': 'multiple'}}) }}
+                            <div class="invalid-feedback">
+                                {{ form_errors(form.documents) }}
                             </div>
                         </div>
 
@@ -46,6 +58,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="row mb-4">
                             <div class="col-md-6">
                                 {{ form_label(form.dateHeure, 'Date et heure', {'label_attr': {'class': 'form-label fw-bold'}}) }}
@@ -84,7 +97,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     <style>
         .card {
@@ -117,17 +129,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Configuration du datetime picker
             flatpickr('.datetimepicker', {
                 enableTime: true,
-                dateFormat: "Y-m-d\\TH:i", // Format ISO 8601 compatible HTML5
+                dateFormat: "Y-m-d\\TH:i",
                 locale: "fr",
                 minDate: "today",
                 time_24hr: true,
                 minuteIncrement: 15
             });
 
-            // Validation du formulaire
             const forms = document.querySelectorAll('.needs-validation');
             Array.prototype.slice.call(forms).forEach(function(form) {
                 form.addEventListener('submit', function(event) {

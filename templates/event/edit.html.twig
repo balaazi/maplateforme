@@ -101,6 +101,11 @@
             {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
         </div>
 
+        <div class="mb-3">
+            {{ form_label(form.etherpadUrl, null, {'label_attr': {'class': 'form-label'}}) }}
+            {{ form_widget(form.etherpadUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://etherpad.example.com/p/ton-pad'}}) }}
+        </div>
+        
         <div class="d-flex justify-content-between mt-4">
             <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
             <a href="{{ path('event_cancel', { id: event.id }) }}" class="btn btn-danger">❌ Annuler l'événement</a>

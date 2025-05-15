@@ -12,24 +12,23 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
-// Vérifie que tu utilises bien EventFormType
-
-// Assure-toi d'importer le service EventNotificationService
 
 class EventController extends AbstractController
 {
     private $notificationService;
 
-// Injection du service EventNotificationService via le constructeur
     public function __construct(EventNotificationService $notificationService)
     {
         $this->notificationService = $notificationService;
     }
 
-   #[Route('/event/create', name: 'event_create')]
-    public function create(Request $request, EntityManagerInterface $entityManager): Response
-    {
+public function create(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, GoogleDriveService $driveService, SessionInterface $session): Response
+{
     $event = new Event();
     $form = $this->createForm(EventFormType::class, $event);
     $form->handleRequest($request);
@@ -37,18 +36,55 @@ class EventController extends AbstractController
     if ($form->isSubmitted() && $form->isValid()) {
         $event->setOrganizer($this->getUser());
 
+        $token = $session->get('google_access_token');
+        if ($token) {
+            $_SESSION['google_access_token'] = $token;
+
+            $folderId = $driveService->createFolder('Event_' . $event->getTitle());
+            if ($folderId) {
+                $event->setGoogleDriveUrl('https://drive.google.com/drive/folders/' . $folderId);
+            }
+        }
+
+        /** @var UploadedFile[] $documents */
+        $documents = $form->get('documents')->getData();
+
+        $uploadedFileNames = []; // مصفوفة لتخزين أسماء الملفات
+
+        if ($documents) {
+            foreach ($documents as $document) {
+                $originalFilename = pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
+                $safeFilename = $slugger->slug($originalFilename);
+                $newFilename = $safeFilename . '-' . uniqid() . '.' . $document->guessExtension();
+
+                try {
+                    $document->move(
+                        $this->getParameter('documents_directory'),
+                        $newFilename
+                    );
+                    $uploadedFileNames[] = $newFilename; // خزّن اسم الملف
+                } catch (FileException $e) {
+                    $this->addFlash('error', 'Erreur lors du téléchargement de ' . $document->getClientOriginalName());
+                }
+            }
+        }
+
+        // خزّن أسماء الملفات في الكائن Event
+        $event->setUploadedDocuments($uploadedFileNames);
+
         $entityManager->persist($event);
         $entityManager->flush();
 
         $this->addFlash('success', 'Événement créé avec succès !');
-
-        return $this->redirectToRoute('calendar_page'); // redirection vers calendrier
+        return $this->redirectToRoute('calendar_page');
     }
 
     return $this->render('event/create.html.twig', [
         'form' => $form->createView(),
     ]);
-    }
+}
+
+
 
 
     #[Route('/event/list', name: 'event_list')]
@@ -64,21 +100,16 @@ class EventController extends AbstractController
     #[Route('/event/{id}/edit', name: 'event_edit')]
     public function edit(Event $event, Request $request, EntityManagerInterface $em): Response
     {
-    // Créer le formulaire pour modifier l'événement
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
 
-    // Si le formulaire est soumis et valide
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
-    // Notifier les participants de la modification de l'événement
             $this->notificationService->sendEventUpdateNotification($event);
 
-    // Afficher un message de succès
             $this->addFlash('success', 'Événement modifié avec succès.');
 
-    // Rediriger vers la page de la liste des événements
             return $this->redirectToRoute('event_list');
         }
 
@@ -97,12 +128,10 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-// Ici on annule l'événement (on doit avoir un champ status dans l'entité Event)
         $event->setStatus('annulé');
 
         $em->flush();
 
-// Notifier les participants de l'annulation de l'événement
         $this->notificationService->sendEventCancelNotification($event);  // Appel de la méthode d'annulation
 
         $this->addFlash('success', 'Événement annulé avec succès.');
@@ -151,7 +180,6 @@ public function listFiles(Event $event, Request $request, GoogleDriveService $dr
 
     $drive = $driveService->getDriveService();
 
-    // Extraire l’ID du dossier depuis le lien
     preg_match('/\/folders\/([^\/\?]+)/', $event->getGoogleDriveUrl(), $matches);
     $folderId = $matches[1] ?? null;
 

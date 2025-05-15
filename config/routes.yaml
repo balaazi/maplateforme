@@ -34,3 +34,7 @@ invitation_respond:
 google_calendar_auth:
   path: /google/connect
   controller: App\Controller\GoogleCalendarController::connect
+document_upload:
+    path: /document/upload/{id}
+    controller: App\Controller\DocumentController::upload
+    methods: [GET, POST]
