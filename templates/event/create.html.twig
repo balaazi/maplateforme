@@ -35,10 +35,10 @@
 
                         {# هنا خانة تحميل الملفات #}
                         <div class="mb-4">
-                            {{ form_label(form.documents, 'Documents (PDF, Word, etc)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
-                            {{ form_widget(form.documents, {'attr': {'class': 'form-control' ~ (form.documents.vars.valid ? '' : ' is-invalid'), 'multiple': 'multiple'}}) }}
+                            {{ form_label(form.imageFile, 'Documents (PDF, Word, etc)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.imageFile, {'attr': {'class': 'form-control' ~ (form.imageFile.vars.valid ? '' : ' is-invalid'), 'multiple': 'multiple'}}) }}
                             <div class="invalid-feedback">
-                                {{ form_errors(form.documents) }}
+                                {{ form_errors(form.imageFile) }}
                             </div>
                         </div>
 

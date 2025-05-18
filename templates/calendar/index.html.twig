@@ -7,6 +7,17 @@
 {% endblock %}
 
 {% block body %}
+    <div>
+        {# Flash messages #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
     <div class="agenda-container">
         <h1>🗓️ Agenda Partagé</h1>
 

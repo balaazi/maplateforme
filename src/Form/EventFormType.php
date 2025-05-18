@@ -14,6 +14,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Vich\UploaderBundle\Form\Type\VichFileType;
 
 class EventFormType extends AbstractType
 {
@@ -50,23 +51,24 @@ class EventFormType extends AbstractType
         ]
 
             ])
-        ->add('documents', FileType::class, [
-        'label' => 'Documents (PDF, Word, etc)',
-        'multiple' => true,
-        'mapped' => false, // si ce champ n’est pas dans l’entité Event directement
-        'required' => false,
-        'constraints' => [
-            new File([
-                'maxSize' => '10M',
-                'mimeTypes' => [
-                    'application/pdf',
-                    'application/msword',
-                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                ],
-                'mimeTypesMessage' => 'Merci de choisir un fichier PDF ou Word valide.',
+            ->add('imageFile', VichFileType::class, [
+                'required' => false,
+                'allow_delete' => true,
+                'delete_label' => 'Supprimer',
+                'asset_helper' => true,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '10M',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        ],
+                        'mimeTypesMessage' => 'Merci de choisir un fichier PDF ou Word valide.',
+                    ])
+                ]
             ])
-        ],
-    ]);
+        ;
 }
 
     public function configureOptions(OptionsResolver $resolver): void

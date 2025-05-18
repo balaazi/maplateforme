@@ -7,11 +7,20 @@ use App\Service\GoogleCalendarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use function Webmozart\Assert\Tests\StaticAnalysis\throws;
 
 class CalendarController extends AbstractController
 {
+    private RequestStack $requestStack;
+
+    public function __construct(RequestStack $requestStack)
+    {
+        $this->requestStack = $requestStack;
+    }
+
     #[Route('/calendar', name: 'calendar_index')]
     public function index(): Response
     {
@@ -97,11 +106,74 @@ class CalendarController extends AbstractController
         $this->addFlash('success', 'Événement exporté vers Google Calendar !');
         return $this->redirectToRoute('calendar_index');
     }
-    #[Route('/calendar/sync', name: 'calendar_sync')]
-    public function syncCalendar(): Response
+
+    #[Route('/google/callback', name: 'google_calendar_callback2')]
+
+    public function handleCallback(Request $request, GoogleCalendarService $googleCalendarService): Response
     {
-        // Logique pour synchroniser l'agenda (par exemple, appel à Google Calendar)
-        $this->addFlash('success', 'L’agenda a été synchronisé avec succès !');
-        return $this->redirectToRoute('calendar_index');  // Redirige vers l'agenda
+        $code = $request->query->get('code');
+
+        if (!$code) {
+            $this->addFlash('error', 'Erreur d\'authentification Google: Code d\'autorisation manquant.');
+            return $this->redirectToRoute('calendar_index');
+        }
+
+        try {
+            // Exchange code for access token
+            $googleCalendarService->fetchAccessTokenWithCode($code);
+             // Get the intended route from session if it exists
+            $session = $request->getSession();
+            $intendedRoute = $session->get('intended_route', 'calendar_index');
+            $session->remove('intended_route');
+
+            $this->addFlash('success', 'Authentification Google réussie.');
+
+            // Redirect to the intended route
+            return $this->redirectToRoute($intendedRoute);
+
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur d\'authentification Google: ' . $e->getMessage());
+            return $this->redirectToRoute('calendar_index');
+        }
+    }
+
+
+    #[Route('/google/auth', name: 'google_calendar_auth')]
+
+    public function initiateAuth(GoogleCalendarService $googleCalendarService): Response
+    {
+         $authUrl = $googleCalendarService->getAuthUrl();
+         return $this->redirect($authUrl);
+    }
+    #[Route('/calendar/sync', name: 'calendar_sync')]
+    public function syncCalendar(GoogleCalendarService $googleCalendarService): Response
+    {
+         // Check if the user is authenticated with Google
+        if (!$googleCalendarService->isAuthenticated()) {
+            // Store the intended action in session to redirect back after authentication
+            $session = $this->requestStack->getSession();
+            $session->set('intended_route', 'calendar_sync');
+
+            // Get authentication URL and redirect to Google OAuth
+          //  $authUrl = $googleCalendarService->getAuthUrl();
+            return $this->redirectToRoute('google_calendar_auth');
+        }
+
+        try {
+            $syncResults = $googleCalendarService->synchronizeCalendars();
+
+            $message = sprintf(
+                'Synchronisation réussie: %d événements importés depuis Google, %d événements exportés vers Google.',
+                $syncResults['imported'],
+                $syncResults['exported']
+            );
+
+            $this->addFlash('success', $message);
+
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la synchronisation: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('calendar_index');
     }
 }

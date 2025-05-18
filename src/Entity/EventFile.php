@@ -4,9 +4,12 @@
 namespace App\Entity;
 
 use App\Repository\EventFileRepository;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EventFileRepository::class)]
+#[Vich\Uploadable]
 class EventFile
 {
 #[ORM\Id]
@@ -24,7 +27,6 @@ private string $googleDriveFileId;
 #[ORM\JoinColumn(nullable: false)]
 private ?Event $event = null;
 
-// Getters et setters...
 
     public function getId(): ?int
     {

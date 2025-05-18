@@ -20,7 +20,7 @@ class GoogleDriveController extends AbstractController
         return $this->redirect($authUrl);
     }
 
-    #[Route('/google/callback', name: 'google_drive_callback')]
+    #[Route('/drive-google/callback', name: 'google_drive_callback')]
     public function callback(Request $request, GoogleDriveService $driveService, SessionInterface $session): Response
     {
         $client = $driveService->getClient();

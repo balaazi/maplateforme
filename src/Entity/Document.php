@@ -4,7 +4,8 @@ namespace App\Entity;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Symfony\Component\HttpFoundation\File\File;
 use Doctrine\ORM\Mapping as ORM;
-use App\Entity\Event; // 👈 IMPORTANT : importer la bonne entité
+
+use App\Entity\Event; 
 
 #[ORM\Entity]
 #[Vich\Uploadable]
@@ -33,7 +34,6 @@ class Document
         $this->createdAt = new \DateTimeImmutable();
     }
 
-    // Getters & Setters
     public function getId(): ?int
     {
         return $this->id;
@@ -47,7 +47,6 @@ class Document
             $this->createdAt = new \DateTimeImmutable();
         }
     }
-
     public function getFile(): ?File
     {
         return $this->file;

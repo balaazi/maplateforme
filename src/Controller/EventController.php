@@ -27,64 +27,62 @@ class EventController extends AbstractController
         $this->notificationService = $notificationService;
     }
 
-public function create(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, GoogleDriveService $driveService, SessionInterface $session): Response
-{
-    $event = new Event();
-    $form = $this->createForm(EventFormType::class, $event);
-    $form->handleRequest($request);
+    public function create(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, GoogleDriveService $driveService, SessionInterface $session): Response
+    {
+        $event = new Event();
+        $form = $this->createForm(EventFormType::class, $event);
+        $form->handleRequest($request);
 
-    if ($form->isSubmitted() && $form->isValid()) {
-        $event->setOrganizer($this->getUser());
+        if ($form->isSubmitted() && $form->isValid()) {
+            $event->setOrganizer($this->getUser());
 
-        $token = $session->get('google_access_token');
-        if ($token) {
-            $_SESSION['google_access_token'] = $token;
+            $token = $session->get('google_access_token');
+            if ($token) {
+                $_SESSION['google_access_token'] = $token;
 
-            $folderId = $driveService->createFolder('Event_' . $event->getTitle());
-            if ($folderId) {
-                $event->setGoogleDriveUrl('https://drive.google.com/drive/folders/' . $folderId);
-            }
-        }
-
-        /** @var UploadedFile[] $documents */
-        $documents = $form->get('documents')->getData();
-
-        $uploadedFileNames = []; // مصفوفة لتخزين أسماء الملفات
-
-        if ($documents) {
-            foreach ($documents as $document) {
-                $originalFilename = pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
-                $safeFilename = $slugger->slug($originalFilename);
-                $newFilename = $safeFilename . '-' . uniqid() . '.' . $document->guessExtension();
-
-                try {
-                    $document->move(
-                        $this->getParameter('documents_directory'),
-                        $newFilename
-                    );
-                    $uploadedFileNames[] = $newFilename; // خزّن اسم الملف
-                } catch (FileException $e) {
-                    $this->addFlash('error', 'Erreur lors du téléchargement de ' . $document->getClientOriginalName());
+                $folderId = $driveService->createFolder('Event_' . $event->getTitle());
+                if ($folderId) {
+                    $event->setGoogleDriveUrl('https://drive.google.com/drive/folders/' . $folderId);
                 }
             }
+
+         /*   /** @var UploadedFile[] $documents */
+        /*    $documents = $form->get('documents')->getData();
+
+            $uploadedFileNames = []; // مصفوفة لتخزين أسماء الملفات
+
+            if ($documents) {
+                foreach ($documents as $document) {
+                    $originalFilename = pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safeFilename = $slugger->slug($originalFilename);
+                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $document->guessExtension();
+
+                    try {
+                        $document->move(
+                            $this->getParameter('documents_directory'),
+                            $newFilename
+                        );
+                        $uploadedFileNames[] = $newFilename; // خزّن اسم الملف
+                    } catch (FileException $e) {
+                        $this->addFlash('error', 'Erreur lors du téléchargement de ' . $document->getClientOriginalName());
+                    }
+                }
+            }
+
+            // خزّن أسماء الملفات في الكائن Event
+            $event->setUploadedDocuments($uploadedFileNames);*/
+
+            $entityManager->persist($event);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Événement créé avec succès !');
+            return $this->redirectToRoute('calendar_page');
         }
 
-        // خزّن أسماء الملفات في الكائن Event
-        $event->setUploadedDocuments($uploadedFileNames);
-
-        $entityManager->persist($event);
-        $entityManager->flush();
-
-        $this->addFlash('success', 'Événement créé avec succès !');
-        return $this->redirectToRoute('calendar_page');
+        return $this->render('event/create.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
-
-    return $this->render('event/create.html.twig', [
-        'form' => $form->createView(),
-    ]);
-}
-
-
 
 
     #[Route('/event/list', name: 'event_list')]
@@ -147,56 +145,58 @@ public function create(Request $request, EntityManagerInterface $entityManager, 
             'events' => $events,
         ]);
     }
+
     #[Route('/calendar', name: 'calendar_page')]
     public function calendar(): Response
     {
-    return $this->render('calendar/index.html.twig');
+        return $this->render('calendar/index.html.twig');
     }
 
     public function showEvent(Event $event)
     {
-    return $this->render('event/show.html.twig', [
-    'event' => $event,
-    'googleDriveUrl' => 'https://drive.google.com/embeddedfolderview?id=ID_DOSSIER_GOOGLE',
-    'notionUrl' => 'https://www.notion.so/LIEN_DE_TA_PAGE_NOTION',
-    'etherpadUrl' => 'https://etherpad.domain.tld/p/ID_PAD_EVENT',
-    ]);
-    }
- #[Route('/event/{id}/fichiers', name: 'event_files')]
-public function listFiles(Event $event, Request $request, GoogleDriveService $driveService): Response
-{
-    $token = $request->getSession()->get('google_access_token');
-
-    if (!$token) {
-        return $this->redirectToRoute('google_drive_connect');
+        return $this->render('event/show.html.twig', [
+            'event' => $event,
+            'googleDriveUrl' => 'https://drive.google.com/embeddedfolderview?id=ID_DOSSIER_GOOGLE',
+            'notionUrl' => 'https://www.notion.so/LIEN_DE_TA_PAGE_NOTION',
+            'etherpadUrl' => 'https://etherpad.domain.tld/p/ID_PAD_EVENT',
+        ]);
     }
 
-    $client = $driveService->getClient();
-    $client->setAccessToken($token);
+    #[Route('/event/{id}/fichiers', name: 'event_files')]
+    public function listFiles(Event $event, Request $request, GoogleDriveService $driveService): Response
+    {
+        $token = $request->getSession()->get('google_access_token');
 
-    if ($client->isAccessTokenExpired()) {
-        return $this->redirectToRoute('google_drive_connect');
+        if (!$token) {
+            return $this->redirectToRoute('google_drive_connect');
+        }
+
+        $client = $driveService->getClient();
+        $client->setAccessToken($token);
+
+        if ($client->isAccessTokenExpired()) {
+            return $this->redirectToRoute('google_drive_connect');
+        }
+
+        $drive = $driveService->getDriveService();
+
+        preg_match('/\/folders\/([^\/\?]+)/', $event->getGoogleDriveUrl(), $matches);
+        $folderId = $matches[1] ?? null;
+
+        if (!$folderId) {
+            return new Response("Lien du dossier Google Drive invalide.");
+        }
+
+        $files = $drive->files->listFiles([
+            'q' => "'$folderId' in parents and trashed = false",
+            'fields' => 'files(id, name, mimeType, webViewLink)'
+        ]);
+
+        return $this->render('event/files.html.twig', [
+            'event' => $event,
+            'files' => $files->getFiles(),
+        ]);
     }
-
-    $drive = $driveService->getDriveService();
-
-    preg_match('/\/folders\/([^\/\?]+)/', $event->getGoogleDriveUrl(), $matches);
-    $folderId = $matches[1] ?? null;
-
-    if (!$folderId) {
-        return new Response("Lien du dossier Google Drive invalide.");
-    }
-
-    $files = $drive->files->listFiles([
-        'q' => "'$folderId' in parents and trashed = false",
-        'fields' => 'files(id, name, mimeType, webViewLink)'
-    ]);
-
-    return $this->render('event/files.html.twig', [
-        'event' => $event,
-        'files' => $files->getFiles(),
-    ]);
-}
 
 
 }

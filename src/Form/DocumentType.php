@@ -18,7 +18,7 @@ class DocumentType extends AbstractType
                 'label' => 'Fichier à uploader',
                 'required' => true,
                 'attr' => [
-                    'accept' => '.pdf,.jpg,.jpeg,.png' // Filtre visuel dans le sélecteur de fichiers
+                    'accept' => '.pdf,.jpg,.jpeg,.png'
                 ],
                 'constraints' => [
                     new File([
