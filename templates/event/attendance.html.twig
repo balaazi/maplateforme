@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques de participation - {{ event.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1>📋 Participation à l'événement : <strong>{{ event.title }}</strong></h1>
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <h3>✅ Acceptés</h3>
+            <ul class="list-group">
+                {% for user in going %}
+                    <li class="list-group-item">{{ user.fullName }}</li>
+                {% else %}
+                    <li class="list-group-item text-muted">Aucun participant accepté pour le moment.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-4">
+            <h3>❌ Refusés</h3>
+            <ul class="list-group">
+                {% for user in notGoing %}
+                    <li class="list-group-item">{{ user.fullName }}</li>
+                {% else %}
+                    <li class="list-group-item text-muted">Aucun participant refusé pour le moment.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="col-md-4">
+            <h3>⏳ En attente</h3>
+            <ul class="list-group">
+                {% for user in pending %}
+                    <li class="list-group-item">{{ user.fullName }}</li>
+                {% else %}
+                    <li class="list-group-item text-muted">Aucune réponse en attente.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <a href="{{ path('event_list') }}" class="btn btn-secondary mt-4">⬅ Retour à la liste des événements</a>
+</div>
+{% endblock %}

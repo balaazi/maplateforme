@@ -15,8 +15,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Validator\Constraints\Image;
+
 class ProfileType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -39,15 +38,6 @@ class ProfileType extends AbstractType
             ->add('societe', TextType::class, [
                 'required' => false,
                 'label' => 'Société'
-            ])
-            ->add('photoFile', FileType::class, [
-                'required' => false,
-                'mapped' => false,  // ne pas mapper directement à l'entité
-                'constraints' => [
-                    new Assert\Image([
-                        'maxSize' => '2M',
-                    ])
-                ]
             ]);
     }
 

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\CalendarEvent;
+use App\Entity\Event;
 use App\Service\GoogleCalendarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -10,7 +11,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use function Webmozart\Assert\Tests\StaticAnalysis\throws;
 
 class CalendarController extends AbstractController
 {
@@ -27,62 +27,98 @@ class CalendarController extends AbstractController
         return $this->render('calendar/index.html.twig');
     }
 
-    #[Route('/calendar/connect-google', name: 'google_calendar_connect')]
-    public function connectGoogle(GoogleCalendarService $googleService): Response
+    #[Route('/oauth/connect', name: 'google_calendar_connect')]
+    public function connectGoogle(GoogleCalendarService $googleCalendarService): Response
     {
-        return $this->redirect($googleService->getAuthUrl());
+        return $this->redirect($googleCalendarService->getAuthUrl());
     }
 
-    #[Route('/calendar/google-callback', name: 'google_calendar_callback')]
-    public function googleCallback(Request $request, GoogleCalendarService $googleService, EntityManagerInterface $em): Response
+    #[Route('/oauth/callback', name: 'google_calendar_callback', methods: ['GET'])]
+    public function handleCallback(Request $request, GoogleCalendarService $googleCalendarService): Response
     {
-        // Vérifier si l'utilisateur est authentifié
-        if (!$googleService->isAuthenticated()) {
+        $code = $request->query->get('code');
+        $error = $request->query->get('error');
+
+        if ($error) {
+            $this->addFlash('error', 'Erreur Google: ' . $error);
+            return $this->redirectToRoute('calendar_index');
+        }
+
+        if (!$code) {
+            $this->addFlash('error', 'Code d\'autorisation manquant');
+            return $this->redirectToRoute('calendar_index');
+        }
+
+        try {
+            $googleCalendarService->fetchAccessTokenWithCode($code);
+            $this->addFlash('success', 'Connexion à Google Calendar réussie');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur de connexion: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('calendar_index');
+    }
+
+    #[Route('/calendar/sync', name: 'calendar_sync')]
+    public function syncCalendar(GoogleCalendarService $googleCalendarService, EntityManagerInterface $em): Response
+    {
+        if (!$googleCalendarService->isAuthenticated()) {
+            $this->requestStack->getSession()->set('intended_route', 'calendar_sync');
             return $this->redirectToRoute('google_calendar_connect');
         }
 
         try {
-            // Récupérer le code d'authentification
-            $code = $request->query->get('code');
-            $googleService->fetchAccessTokenWithCode($code);
+            $syncResults = $googleCalendarService->synchronizeCalendars();
 
-            // Récupérer les événements de Google Calendar
-            $calendar = $googleService->getCalendarService();
-            $events = $calendar->events->listEvents('primary', ['singleEvents' => true, 'orderBy' => 'startTime']);
+            // Sync Events (Event -> CalendarEvent)
+            $events = $em->getRepository(Event::class)->findAll();
+            $exported = 0;
 
-            // Synchroniser les événements dans la base de données
-            foreach ($events as $googleEvent) {
-                // Vérifier si l'événement existe déjà dans la base de données
-                $existingEvent = $em->getRepository(CalendarEvent::class)->findOneBy(['googleEventId' => $googleEvent->getId()]);
-                if (!$existingEvent) {
-                    // Si l'événement n'existe pas, on l'ajoute
-                    $event = new CalendarEvent();
-                    $event->setTitle($googleEvent->getSummary() ?? 'Sans titre');
-                    $event->setDescription($googleEvent->getDescription());
-                    $event->setStart(new \DateTime($googleEvent->getStart()->getDateTime() ?? $googleEvent->getStart()->getDate()));
-                    $event->setEnd(new \DateTime($googleEvent->getEnd()->getDateTime() ?? $googleEvent->getEnd()->getDate()));
-                    $event->setGoogleEventId($googleEvent->getId());
-                    $em->persist($event);
+            foreach ($events as $event) {
+                $start = $event->getDateHeure();
+                $end = (clone $start)->modify('+' . $event->getDuree() . ' minutes');
+
+                $calendarEvent = $em->getRepository(CalendarEvent::class)->findOneBy([
+                    'title' => $event->getTitle(),
+                    'start' => $start,
+                    'end' => $end,
+                ]);
+
+                if (!$calendarEvent) {
+                    $calendarEvent = new CalendarEvent();
+                    $calendarEvent->setTitle($event->getTitle());
+                    $calendarEvent->setDescription($event->getDescription());
+                    $calendarEvent->setStart($start);
+                    $calendarEvent->setEnd($end);
+
+                    $em->persist($calendarEvent);
+                    try {
+                        $googleCalendarService->exportToGoogleCalendar($calendarEvent);
+                        $exported++;
+                    } catch (\Exception $e) {
+                        // Ignorer les erreurs individuelles
+                        continue;
+                    }
                 }
             }
 
-            // Sauvegarder les événements dans la base de données
             $em->flush();
 
-            // Message de succès
-            $this->addFlash('success', 'Événements synchronisés !');
-            return $this->redirectToRoute('calendar_index');
-        } catch (\Google_Service_Exception $e) {
-            // Gérer les erreurs lors de la récupération des événements
-            $this->addFlash('error', 'Erreur lors de la récupération des événements : ' . $e->getMessage());
-            return $this->redirectToRoute('calendar_index');
+            $this->addFlash('success', sprintf(
+                '✅ Synchronisation réussie: %d importés, %d exportés.',
+                $syncResults['imported'],
+                $exported
+            ));
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur de synchronisation: ' . $e->getMessage());
         }
+
+        return $this->redirectToRoute('calendar_index');
     }
 
     #[Route('/api/events', name: 'calendar_events')]
     public function getEvents(EntityManagerInterface $em): Response
     {
-        // Récupérer tous les événements de la base de données
         $events = $em->getRepository(CalendarEvent::class)->findAll();
         $data = array_map(function ($e) {
             return [
@@ -90,6 +126,7 @@ class CalendarController extends AbstractController
                 'start' => $e->getStart()->format(\DateTimeInterface::ATOM),
                 'end' => $e->getEnd()->format(\DateTimeInterface::ATOM),
                 'description' => $e->getDescription(),
+                'googleEventId' => $e->getGoogleEventId(),
             ];
         }, $events);
 
@@ -97,83 +134,16 @@ class CalendarController extends AbstractController
     }
 
     #[Route('/calendar/export/{id}', name: 'export_event_to_google')]
-    public function export(CalendarEvent $event, GoogleCalendarService $googleService): Response
+    public function export(CalendarEvent $event, GoogleCalendarService $googleCalendarService): Response
     {
-        // Exporter l'événement vers Google Calendar
-        $googleService->exportToGoogleCalendar($event);
-
-        // Message de succès
-        $this->addFlash('success', 'Événement exporté vers Google Calendar !');
-        return $this->redirectToRoute('calendar_index');
-    }
-
-    #[Route('/google/callback', name: 'google_calendar_callback2')]
-
-    public function handleCallback(Request $request, GoogleCalendarService $googleCalendarService): Response
-    {
-        $code = $request->query->get('code');
-
-        if (!$code) {
-            $this->addFlash('error', 'Erreur d\'authentification Google: Code d\'autorisation manquant.');
-            return $this->redirectToRoute('calendar_index');
-        }
-
         try {
-            // Exchange code for access token
-            $googleCalendarService->fetchAccessTokenWithCode($code);
-             // Get the intended route from session if it exists
-            $session = $request->getSession();
-            $intendedRoute = $session->get('intended_route', 'calendar_index');
-            $session->remove('intended_route');
-
-            $this->addFlash('success', 'Authentification Google réussie.');
-
-            // Redirect to the intended route
-            return $this->redirectToRoute($intendedRoute);
-
+            $googleCalendarService->exportToGoogleCalendar($event);
+            $this->addFlash('success', '✅ Événement exporté avec succès vers Google Calendar.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur d\'authentification Google: ' . $e->getMessage());
-            return $this->redirectToRoute('calendar_index');
-        }
-    }
-
-
-    #[Route('/google/auth', name: 'google_calendar_auth')]
-
-    public function initiateAuth(GoogleCalendarService $googleCalendarService): Response
-    {
-         $authUrl = $googleCalendarService->getAuthUrl();
-         return $this->redirect($authUrl);
-    }
-    #[Route('/calendar/sync', name: 'calendar_sync')]
-    public function syncCalendar(GoogleCalendarService $googleCalendarService): Response
-    {
-         // Check if the user is authenticated with Google
-        if (!$googleCalendarService->isAuthenticated()) {
-            // Store the intended action in session to redirect back after authentication
-            $session = $this->requestStack->getSession();
-            $session->set('intended_route', 'calendar_sync');
-
-            // Get authentication URL and redirect to Google OAuth
-          //  $authUrl = $googleCalendarService->getAuthUrl();
-            return $this->redirectToRoute('google_calendar_auth');
-        }
-
-        try {
-            $syncResults = $googleCalendarService->synchronizeCalendars();
-
-            $message = sprintf(
-                'Synchronisation réussie: %d événements importés depuis Google, %d événements exportés vers Google.',
-                $syncResults['imported'],
-                $syncResults['exported']
-            );
-
-            $this->addFlash('success', $message);
-
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors de la synchronisation: ' . $e->getMessage());
+            $this->addFlash('error', '❌ Échec de l’export: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('calendar_index');
     }
+    
 }

@@ -1,46 +1,760 @@
-{# templates/invitation/index.html.twig #}
-
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion des invitations{% endblock %}
+{% block title %}Gestion des invitations - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .invitation-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .invitation-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 30px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102,126,234,0.2);
+        }
+        
+        .invitation-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        .invitation-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .header-info {
+            flex: 1;
+        }
+        
+        .invitation-icon {
+            background: rgba(255,255,255,0.25);
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .invitation-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            line-height: 1.2;
+        }
+        
+        .event-title {
+            background: rgba(255,255,255,0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            min-width: 160px;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(40,167,69,0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(40,167,69,0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(23,162,184,0.3);
+        }
+        
+        .btn-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(23,162,184,0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-outline-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-outline-secondary:hover {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-3px);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .table-container {
+            background: white;
+            border-radius: 25px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .table-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .table-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .table-title-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+        
+        .table {
+            margin: 0;
+            border-collapse: separate;
+            border-spacing: 0 0.5rem;
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+            padding: 1.5rem 1rem;
+            border: none;
+            position: relative;
+            border-radius: 0;
+        }
+        
+        .table thead th:first-child {
+            border-top-left-radius: 15px;
+            border-bottom-left-radius: 15px;
+        }
+        
+        .table thead th:last-child {
+            border-top-right-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+        
+        .table tbody tr {
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border-radius: 15px;
+        }
+        
+        .table tbody tr:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102,126,234,0.15);
+        }
+        
+        .table tbody td {
+            padding: 1.5rem 1rem;
+            border: none;
+            vertical-align: middle;
+            position: relative;
+        }
+        
+        .table tbody td:first-child {
+            border-top-left-radius: 15px;
+            border-bottom-left-radius: 15px;
+        }
+        
+        .table tbody td:last-child {
+            border-top-right-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+        
+        .badge {
+            padding: 0.75rem 1.5rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.8s ease;
+        }
+        
+        .badge:hover::before {
+            left: 100%;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(40,167,69,0.3);
+        }
+        
+        .badge.bg-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(255,193,7,0.3);
+        }
+        
+        .badge.bg-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(108,117,125,0.3);
+        }
+        
+        .btn-sm {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: auto;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(220,53,69,0.3);
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220,53,69,0.4);
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6c757d;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+        
+        .empty-state::before {
+            content: '📋';
+            display: block;
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            box-shadow: 0 8px 25px rgba(108,117,125,0.3);
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(108,117,125,0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .invitation-container {
+                padding: 1rem;
+            }
+            
+            .invitation-header {
+                padding: 2.5rem 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .invitation-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .btn {
+                min-width: auto;
+                flex: 1;
+            }
+            
+            .table-container {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .table-responsive {
+                margin: -1.5rem;
+                border-radius: 0;
+            }
+            
+            .table thead th {
+                padding: 1rem 0.5rem;
+                font-size: 0.75rem;
+            }
+            
+            .table tbody td {
+                padding: 1rem 0.5rem;
+            }
+            
+            .badge {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+            }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .stat-card.accepted::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .stat-card.declined::before {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        .stat-card.pending::before {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.85rem;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <h1>Gestion des invitations</h1>
+    <div class="invitation-container">
+        <div class="container-fluid">
+            <!-- En-tête des invitations -->
+            <div class="invitation-header fade-in">
+                <div class="header-content">
+                    <div class="header-info">
+                        <div class="invitation-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h1>Gestion des invitations</h1>
+                        <div class="event-title">
+                            <i class="fas fa-calendar-alt"></i> {{ event.title }}
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <a href="{{ path('event_presence', {'id': event.id}) }}" class="btn btn-info">
+                            <i class="fas fa-calendar-check"></i> Marquer ma présence
+                        </a>
+                        <a href="{{ path('invitation_new', {'eventId': event.id}) }}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle"></i> Nouvelle invitation
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-    <a href="{{ path('invitation_new') }}" class="btn btn-primary">Nouvelle invitation</a>
+            <!-- Statistiques des invitations -->
+            <div class="stats-summary fade-in" style="animation-delay: 0.1s;">
+                {% set acceptedCount = invitations|filter(inv => inv.status == 'accepted')|length %}
+                {% set declinedCount = invitations|filter(inv => inv.status == 'declined')|length %}
+                {% set pendingCount = invitations|filter(inv => inv.status == 'pending')|length %}
+                
+                
+            </div>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Email</th>
-                <th>Statut</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for invitation in invitations %}
-            <tr>
-                <td>{{ invitation.name }}</td>
-                <td>{{ invitation.email }}</td>
-                <td>
-                    {% if invitation.status == 'pending' %}
-                        <span class="badge bg-warning">En attente</span>
-                    {% elseif invitation.status == 'accepted' %}
-                        <span class="badge bg-success">Accepté</span>
-                    {% else %}
-                        <span class="badge bg-danger">Refusé</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <a href="#" class="btn btn-sm btn-secondary">Modifier</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">Aucune invitation trouvée</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            <!-- Tableau des invitations -->
+            <div class="table-container fade-in" style="animation-delay: 0.2s;">
+                <div class="table-header">
+                    <div class="table-title">
+                        <div class="table-title-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        Liste des invitations
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Statut</th>
+                                <th>Présence</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for invitation in invitations %}
+                                {% set participation = invitation.participant ? invitation.participant.participations|filter(p => p.event == event)|first : null %}
+                                <tr>
+                                    <td><strong>{{ invitation.name }}</strong></td>
+                                    <td>{{ invitation.email }}</td>
+                                    <td>
+                                        <span class="badge {% if invitation.status == 'accepted' %}bg-success{% elseif invitation.status == 'declined' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {% if invitation.status == 'accepted' %}
+                                                <i class="fas fa-check"></i>
+                                            {% elseif invitation.status == 'declined' %}
+                                                <i class="fas fa-times"></i>
+                                            {% else %}
+                                                <i class="fas fa-clock"></i>
+                                            {% endif %}
+                                            {{ invitation.status|capitalize }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if participation %}
+                                            <span class="badge {% if participation.isPresent %}bg-success{% else %}bg-danger{% endif %}">
+                                                {% if participation.isPresent %}
+                                                    <i class="fas fa-check-circle"></i> Présent(e)
+                                                {% else %}
+                                                    <i class="fas fa-times-circle"></i> Absent(e)
+                                                {% endif %}
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-question-circle"></i> Non défini
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if invitation.status == 'pending' %}
+                                            <a href="{{ path('invitation_cancel', {'id': invitation.id}) }}" 
+                                               class="btn btn-sm btn-danger"
+                                               onclick="return confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')">
+                                                <i class="fas fa-ban"></i> Annuler
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted" style="font-style: italic;">Aucune action</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            Aucune invitation trouvée pour cet événement
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bouton retour -->
+            <div class="back-button-container fade-in" style="animation-delay: 0.3s;">
+                <a href="{{ path('event_list') }}" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Retour à la liste des événements
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée progressive
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            // Observer les éléments avec animation
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Animation des lignes du tableau
+            const tableRows = document.querySelectorAll('.table tbody tr');
+            tableRows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateX(-30px)';
+                
+                setTimeout(() => {
+                    row.style.transition = 'all 0.6s ease-out';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateX(0)';
+                }, (index * 100) + 800);
+            });
+            
+            // Animation des badges au survol
+            const badges = document.querySelectorAll('.badge');
+            badges.forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.05)';
+                });
+                
+                badge.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+            
+            // Animation des cartes de statistiques
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.5s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                }, (index * 150) + 500);
+            });
+            
+            // Effet de parallaxe subtil sur l'en-tête
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.invitation-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+            
+            // Amélioration des confirmations de suppression
+            const deleteButtons = document.querySelectorAll('a[onclick*="confirm"]');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Créer une boîte de dialogue personnalisée
+                    const modal = document.createElement('div');
+                    modal.innerHTML = `
+                        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
+                            <div style="background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); max-width: 400px; text-align: center;">
+                                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                                <h3 style="color: #2c3e50; margin-bottom: 1rem;">Confirmer l'annulation</h3>
+                                <p style="color: #6c757d; margin-bottom: 2rem;">Êtes-vous sûr de vouloir annuler cette invitation ?</p>
+                                <div style="display: flex; gap: 1rem; justify-content: center;">
+                                    <button onclick="this.closest('div').remove()" style="padding: 0.75rem 1.5rem; border: 2px solid #6c757d; background: transparent; color: #6c757d; border-radius: 10px; cursor: pointer;">Annuler</button>
+                                    <button onclick="window.location.href='${this.href}'" style="padding: 0.75rem 1.5rem; border: none; background: linear-gradient(135deg, #dc3545, #c82333); color: white; border-radius: 10px; cursor: pointer;">Confirmer</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+                });
+            });
+        });
+    </script>
 {% endblock %}

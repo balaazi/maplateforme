@@ -1,0 +1,349 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analyse de Suppression - {{ user.fullName }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .delete-analysis {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .analysis-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .analysis-header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .impact-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .danger-box {
+            background: #f8d7da;
+            border: 2px solid #f5c6cb;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .success-box {
+            background: #d1edff;
+            border: 2px solid #74b9ff;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .btn-action {
+            border-radius: 20px;
+            padding: 0.6rem 1.5rem;
+            margin: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="delete-analysis">
+    <div class="container">
+        <div class="analysis-card">
+            <div class="analysis-header">
+                <h1 class="mb-0">
+                    <i class="fas fa-exclamation-triangle me-3"></i>
+                    Analyse de Suppression
+                </h1>
+                <p class="mb-0 mt-2">Impact de la suppression de <strong>{{ user.fullName }}</strong></p>
+            </div>
+            
+            <div class="p-4">
+                <!-- User Info -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="impact-section">
+                            <h4>
+                                <i class="fas fa-user me-2"></i>
+                                Informations Utilisateur
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nom:</strong> {{ user.fullName }}</p>
+                                    <p><strong>Email:</strong> {{ user.email }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Département:</strong> {{ user.departement ?: 'Non défini' }}</p>
+                                    <p><strong>Rôles:</strong> 
+                                        {% for role in user.roles %}
+                                            {% if role != 'ROLE_USER' %}
+                                                <span class="badge bg-primary">{{ role|replace({'ROLE_': ''})|title }}</span>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Impact Statistics -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number text-primary">{{ impact.organized_events.total }}</div>
+                            <div>Événements Organisés</div>
+                            <small class="text-muted">
+                                {{ impact.organized_events.future }} futurs | {{ impact.organized_events.past }} passés
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number text-success">{{ impact.participations }}</div>
+                            <div>Participations</div>
+                            <small class="text-muted">Événements auxquels l'utilisateur participe</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="stat-card">
+                            <div class="stat-number {% if impact.can_delete_safely %}text-success{% else %}text-danger{% endif %}">
+                                {% if impact.can_delete_safely %}✓{% else %}⚠️{% endif %}
+                            </div>
+                            <div>Suppression Sécurisée</div>
+                            <small class="text-muted">
+                                {% if impact.can_delete_safely %}Possible{% else %}Risquée{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warnings and Impact Analysis -->
+                {% if impact.warnings is not empty %}
+                    <div class="danger-box">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Avertissements</h5>
+                        {% for warning in impact.warnings %}
+                            <p class="mb-1"><i class="fas fa-exclamation-circle me-2"></i>{{ warning }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if impact.can_delete_safely %}
+                    <div class="success-box">
+                        <h5><i class="fas fa-check-circle me-2"></i>Suppression Sécurisée</h5>
+                        <p class="mb-0">Cet utilisateur peut être supprimé en toute sécurité. Il n'organise aucun événement futur.</p>
+                    </div>
+                {% else %}
+                    <div class="warning-box">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Suppression Risquée</h5>
+                        <p class="mb-0">Cet utilisateur organise des événements futurs. La suppression affectera ces événements.</p>
+                    </div>
+                {% endif %}
+
+                <!-- Impact Details -->
+                <div class="impact-section">
+                    <h4>
+                        <i class="fas fa-info-circle me-2"></i>
+                        Détails de l'Impact
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Événements Organisés:</h6>
+                            <ul>
+                                <li>{{ impact.organized_events.total }} total</li>
+                                <li>{{ impact.organized_events.future }} futurs (seront supprimés)</li>
+                                <li>{{ impact.organized_events.past }} passés (seront supprimés)</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Participations:</h6>
+                            <ul>
+                                <li>{{ impact.participations }} participations (seront supprimées)</li>
+                                <li>Historique de présence perdu</li>
+                                <li>Commentaires et feedback supprimés</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="text-center mt-4">
+                    <a href="{{ path('admin_users_list') }}" class="btn btn-secondary btn-action">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Retour à la Liste
+                    </a>
+                    
+                    {% if not impact.can_delete_safely %}
+                        <button type="button" class="btn btn-warning btn-action" onclick="showTransferModal()">
+                            <i class="fas fa-exchange-alt me-2"></i>
+                            Transférer les Événements
+                        </button>
+                    {% endif %}
+                    
+                    <button type="button" class="btn btn-danger btn-action" onclick="confirmDelete(false)">
+                        <i class="fas fa-trash me-2"></i>
+                        {% if impact.can_delete_safely %}Supprimer{% else %}Supprimer (Risqué){% endif %}
+                    </button>
+                    
+                    {% if not impact.can_delete_safely %}
+                        <button type="button" class="btn btn-outline-danger btn-action" onclick="confirmDelete(true)">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Forcer la Suppression
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Modal -->
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Transférer les Événements</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sélectionnez l'utilisateur qui reprendra l'organisation des {{ impact.organized_events.total }} événement(s):</p>
+                <select class="form-select" id="transferToUser">
+                    <option value="">-- Sélectionner un utilisateur --</option>
+                    <!-- This would be populated via AJAX -->
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="transferEvents()">Transférer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete(force = false) {
+    const message = force 
+        ? 'ATTENTION: Cette action supprimera DÉFINITIVEMENT l\'utilisateur et TOUS ses événements. Êtes-vous absolument sûr ?'
+        : 'Êtes-vous sûr de vouloir supprimer cet utilisateur ?';
+        
+    if (confirm(message)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ path("admin_user_delete", {id: user.id}) }}';
+        
+        if (force) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'force_delete';
+            input.value = '1';
+            form.appendChild(input);
+        }
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function showTransferModal() {
+    // Load available users for transfer
+    fetch('/admin/users/', {
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(users => {
+        const select = document.getElementById('transferToUser');
+        select.innerHTML = '<option value="">-- Sélectionner un utilisateur --</option>';
+        
+        users.forEach(user => {
+            if (user.id !== {{ user.id }}) {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = `${user.fullName} (${user.email})`;
+                select.appendChild(option);
+            }
+        });
+    })
+    .catch(error => {
+        console.error('Error loading users:', error);
+    });
+    
+    new bootstrap.Modal(document.getElementById('transferModal')).show();
+}
+
+function transferEvents() {
+    const toUserId = document.getElementById('transferToUser').value;
+    
+    if (!toUserId) {
+        alert('Veuillez sélectionner un utilisateur');
+        return;
+    }
+    
+    fetch(`/admin/users/{{ user.id }}/transfer-events/${toUserId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Erreur: ' + (data.issues ? data.issues.join(', ') : data.message));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Une erreur est survenue');
+    });
+}
+</script>
+{% endblock %} 

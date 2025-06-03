@@ -1,16 +1,349 @@
 {% extends 'base.html.twig' %}
 
-{% block body %}
-    <div class="container mt-5">
-        <div class="mb-4">
-            <h1 class="text-primary">Tableau de bord des organisateurs</h1>
-        </div>
+{% block title %}Dashboard Organisateur - Ma Plateforme{% endblock %}
 
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">Bienvenue !</h5>
-                <p class="card-text">Vous êtes connecté en tant qu'organisateur. Utilisez ce tableau de bord pour gérer vos événements et suivre la participation.</p>
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin-top: -90px;
+            padding-top: 90px;
+        }
+
+        .dashboard-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .welcome-title {
+            color: white;
+            font-weight: 700;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-bottom: 0;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-label {
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .action-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .action-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .recent-activity {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #f8f9fa;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .bg-primary-gradient { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .bg-success-gradient { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+        .bg-warning-gradient { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .bg-info-gradient { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .bg-danger-gradient { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-container">
+    <div class="container py-4">
+        <!-- En-tête de bienvenue -->
+        <div class="dashboard-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="welcome-title">
+                        <i class="fas fa-tachometer-alt me-3"></i>
+                        Tableau de bord
+                    </h1>
+                    <p class="welcome-subtitle">
+                        Bonjour {{ app.user.fullName }} ! Gérez vos événements et suivez votre activité.
+                    </p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="text-white">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        {{ "now"|date("d/m/Y") }}
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- Statistiques -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon bg-primary-gradient">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="stats-number">{{ events_count ?? 12 }}</div>
+                    <div class="stats-label">Événements créés</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon bg-success-gradient">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stats-number">{{ participants_count ?? 87 }}</div>
+                    <div class="stats-label">Participants</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon bg-warning-gradient">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stats-number">{{ upcoming_events ?? 5 }}</div>
+                    <div class="stats-label">Événements à venir</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-icon bg-info-gradient">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="stats-number">{{ participation_rate ?? 92 }}%</div>
+                    <div class="stats-label">Taux de participation</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions rapides -->
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <h3 class="text-white mb-4">
+                    <i class="fas fa-bolt me-2"></i>
+                    Actions rapides
+                </h3>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ path('event_create') }}" class="action-card">
+                    <div class="action-icon bg-primary-gradient">
+                        <i class="fas fa-plus"></i>
+                    </div>
+                    <div class="action-title">Créer un événement</div>
+                    <p class="action-description">
+                        Organisez un nouveau rendez-vous et invitez vos participants.
+                    </p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ path('organisateur_statistics') }}" class="action-card">
+                    <div class="action-icon bg-success-gradient">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="action-title">Voir les statistiques</div>
+                    <p class="action-description">
+                        Consultez les statistiques et analyses de vos événements.
+                    </p>
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="{{ path('app_send_invitation') }}" class="action-card">
+                    <div class="action-icon bg-info-gradient">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="action-title">Envoyer invitation</div>
+                    <p class="action-description">
+                        Invitez de nouveaux participants à vos événements.
+                    </p>
+                </a>
+            </div>
+        </div>
+
+        <!-- Activité récente et prochains événements -->
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="recent-activity">
+                    <h4 class="mb-4">
+                        <i class="fas fa-history me-2 text-primary"></i>
+                        Activité récente
+                    </h4>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-success-gradient">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Nouvelle inscription</div>
+                            <div class="activity-time">Il y a 2 heures</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-primary-gradient">
+                            <i class="fas fa-calendar-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Événement "Réunion équipe" créé</div>
+                            <div class="activity-time">Il y a 5 heures</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-warning-gradient">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Modification du lieu de l'événement</div>
+                            <div class="activity-time">Hier</div>
+                        </div>
+                    </div>
+                    <div class="activity-item">
+                        <div class="activity-icon bg-info-gradient">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="activity-content">
+                            <div class="activity-title">Rappels envoyés (15 participants)</div>
+                            <div class="activity-time">Il y a 2 jours</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+        </div>
     </div>
-{%endblock%}
+</div>
+{% endblock %}

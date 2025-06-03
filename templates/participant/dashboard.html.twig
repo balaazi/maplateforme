@@ -1,10 +1,791 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard Participant{% endblock %}
+{% block title %}Dashboard Participant - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .participant-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .participant-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(102,126,234,0.2);
+        }
+        
+        .participant-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        .participant-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+
+        .participant-header .welcome-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .participant-header h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .participant-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.3rem;
+            font-weight: 300;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .user-avatar {
+            background: rgba(255,255,255,0.25);
+            width: 90px;
+            height: 90px;
+            border-radius: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            border-radius: 25px 25px 0 0;
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease;
+        }
+        
+        .stat-card:hover::after {
+            transform: scale(1);
+        }
+        
+        .stat-card.events::before {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stat-card.notifications::before {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card.documents::before {
+            background: linear-gradient(90deg, #17a2b8, #20c997);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+        }
+        
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 2rem;
+            color: white;
+            font-size: 1.8rem;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .stat-icon.events {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+
+        .stat-icon.notifications {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            box-shadow: 0 8px 25px rgba(255,193,7,0.3);
+        }
+
+        .stat-icon.documents {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            box-shadow: 0 8px 25px rgba(23,162,184,0.3);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-label {
+            color: #34495e;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-action:hover::before {
+            left: 100%;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(102,126,234,0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-action.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        }
+
+        .btn-action.warning:hover {
+            box-shadow: 0 12px 30px rgba(255,193,7,0.4);
+        }
+
+        .btn-action.info {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+        }
+        
+        .btn-action.info:hover {
+            box-shadow: 0 12px 30px rgba(23,162,184,0.4);
+        }
+
+        .activity-section {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .activity-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 2.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            position: relative;
+        }
+        
+        .section-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 3px;
+        }
+        
+        .section-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .section-header .icon-wrapper {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 8px 25px rgba(40,167,69,0.3);
+            transition: all 0.3s ease;
+        }
+
+        .section-header:hover .icon-wrapper {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .section-content {
+            padding: 3rem;
+        }
+        
+        .activity-timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #28a745, #20c997);
+            border-radius: 3px;
+        }
+        
+        .timeline-item {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+            position: relative;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #28a745;
+        }
+        
+        .timeline-item:hover {
+            background: rgba(40,167,69,0.05);
+            transform: translateX(10px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+        }
+
+        .timeline-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 6px 20px rgba(40,167,69,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .timeline-item:hover .timeline-icon {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+        
+        .timeline-content h5 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .timeline-content p {
+            margin: 0 0 0.5rem 0;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .timeline-time {
+            color: #95a5a6;
+            font-size: 0.85rem;
+            font-weight: 500;
+            background: rgba(149,165,166,0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .welcome-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .welcome-stat {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .welcome-stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .welcome-stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .participant-container {
+                padding: 1rem;
+            }
+
+            .participant-header {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .participant-header h1 {
+                font-size: 2.2rem;
+            }
+
+            .user-avatar {
+                width: 70px;
+                height: 70px;
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 2rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .section-content {
+                padding: 2rem;
+            }
+
+            .activity-timeline {
+                padding-left: 1rem;
+            }
+
+            .timeline-item {
+                padding: 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            .timeline-item::before {
+                left: -1.3rem;
+        }
+
+            .welcome-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+        }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1 class="mt-5">Bienvenue dans votre espace participant</h1>
-        <p class="lead">Accédez ici à vos événements, messages et notifications.</p>
+    <div class="participant-container">
+        <div class="container-fluid">
+            <!-- En-tête participant -->
+            <div class="participant-header fade-in">
+                <div class="d-flex align-items-center justify-content-between flex-wrap">
+                    <div class="welcome-content">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h1>👋 Bienvenue {{ app.user ? app.user.prenom : 'Participant' }} !</h1>
+                        <p>Votre espace personnel pour gérer vos événements et participations</p>
+                        
+                        <!-- Mini statistiques dans l'en-tête -->
+                        <div class="welcome-stats">
+                            <div class="welcome-stat">
+                                <div class="welcome-stat-number">8</div>
+                                <div class="welcome-stat-label">Événements</div>
+                            </div>
+                            <div class="welcome-stat">
+                                <div class="welcome-stat-number">5</div>
+                                <div class="welcome-stat-label">Notifications</div>
+                            </div>
+                            <div class="welcome-stat">
+                                <div class="welcome-stat-number">12</div>
+                                <div class="welcome-stat-label">Documents</div>
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cartes statistiques -->
+            <div class="stats-grid">
+                <div class="stat-card events fade-in" style="animation-delay: 0.1s;">
+                    <div class="stat-icon events">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-number pulse-animation" data-target="8">0</div>
+                    <div class="stat-label">Mes Événements</div>
+                    <div class="stat-description">Gérez vos participations et confirmez votre présence aux événements organisés</div>
+                    <a href="{{ path('participant_events') }}" class="btn-action">
+                        <i class="fas fa-arrow-right"></i>
+                        Accéder
+                    </a>
+                </div>
+                
+                <div class="stat-card notifications fade-in" style="animation-delay: 0.3s;">
+                    <div class="stat-icon notifications">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="stat-number pulse-animation" data-target="5">0</div>
+                    <div class="stat-label">Notifications</div>
+                    <div class="stat-description">Restez informé des dernières mises à jour, rappels et messages importants</div>
+                    <a href="{{ path('participant_notifications') }}" class="btn-action warning">
+                        <i class="fas fa-bell"></i>
+                        Notifications
+                    </a>
+                </div>
+                
+                <div class="stat-card documents fade-in" style="animation-delay: 0.4s;">
+                    <div class="stat-icon documents">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-number pulse-animation" data-target="12">0</div>
+                    <div class="stat-label">Documents</div>
+                    <div class="stat-description">Accédez aux documents partagés et ressources liées à vos événements</div>
+                    <a href="{{ path('participant_documents') }}" class="btn-action info">
+                        <i class="fas fa-folder"></i>
+                        Documents
+                    </a>
+                </div>
+            </div>
+
+            <!-- Section activité récente -->
+            <div class="activity-section fade-in" style="animation-delay: 0.6s;">
+                <div class="section-header">
+                    <h3>
+                        <div class="icon-wrapper">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        Activité récente
+                    </h3>
+                </div>
+                
+                <div class="section-content">
+                    <div class="activity-timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5>Présence confirmée</h5>
+                                <p>Vous avez confirmé votre participation à la formation sécurité</p>
+                                <div class="timeline-time">Il y a 2 heures</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-calendar-plus"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5>Nouvel événement</h5>
+                                <p>Vous avez reçu une invitation pour la réunion équipe projet</p>
+                                <div class="timeline-time">Hier à 14h30</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-file-download"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5>Document téléchargé</h5>
+                                <p>Téléchargement du guide de procédures de sécurité</p>
+                                <div class="timeline-time">Il y a 2 jours</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5>Note collaborative ajoutée</h5>
+                                <p>Contribution aux notes de la réunion mensuelle d'équipe</p>
+                                <div class="timeline-time">Il y a 3 jours</div>
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des compteurs
+            function animateCounter(element) {
+                const target = parseInt(element.getAttribute('data-target'));
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current);
+                }, 16);
+            }
+
+            // Lancer les animations des compteurs
+            const counters = document.querySelectorAll('.stat-number[data-target]');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(entry.target);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+
+            counters.forEach(counter => {
+                observer.observe(counter);
+            });
+
+            // Animation au hover des cartes statistiques
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-15px) scale(1.03)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Animation de la timeline
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            timelineItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.6s ease-out';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0)';
+                }, (index * 200) + 1000);
+            });
+
+            // Interactions avec les boutons
+            const actionButtons = document.querySelectorAll('.btn-action');
+            actionButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px) scale(1.05)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Animation de parallaxe légère pour l'en-tête
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.participant-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+
+            // Animation des mini-stats dans l'en-tête
+            const welcomeStats = document.querySelectorAll('.welcome-stat-number');
+            welcomeStats.forEach(stat => {
+                const value = parseInt(stat.textContent);
+                stat.textContent = '0';
+                
+                setTimeout(() => {
+                    animateCounter(stat);
+                }, 500);
+                
+                stat.setAttribute('data-target', value);
+            });
+        });
+    </script>
 {% endblock %}

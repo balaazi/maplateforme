@@ -2,312 +2,192 @@
 
 namespace App\Service;
 
-use Google\Client as GoogleClient;
-use Google\Service\Calendar as GoogleServiceCalendar;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Bundle\SecurityBundle\Security;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
-use Google\Service\Calendar\Event;
 use App\Entity\CalendarEvent;
-use App\Repository\CalendarEventRepository;
+use App\Entity\Event;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
+use Google\Client;
+use Google\Service\Calendar;
+use Google\Service\Calendar\Event as GoogleEvent;
+use Symfony\Bundle\SecurityBundle\Security;
 
 class GoogleCalendarService
 {
-    private GoogleClient $client;
-    private $user;
+    private Client $client;
+    private Calendar $calendarService;
+    private EntityManagerInterface $em;
+    private ManagerRegistry $registry;
+    private Security $security;
+    private string $tokenPath;
 
     public function __construct(
+        ManagerRegistry $registry,
+        Security $security,
         string $googleClientId,
         string $googleClientSecret,
-        private UrlGeneratorInterface $router,
-        private Security $security,
-        private EntityManagerInterface $em,
-        private RequestStack $requestStack,
-        private CalendarEventRepository $eventRepository
+        string $googleRedirectUri,
+        string $projectDir
     ) {
-        $this->user = $this->security->getUser();
-        $this->initializeClient("1033191673793-51257rfro8soq2etien8hgovctl3igls.apps.googleusercontent.com", "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");
-        //$this->initializeClient($googleClientId, $googleClientSecret);
-        $this->handleExistingToken();
-    }
+        $this->registry = $registry;
+        $this->em = $registry->getManager();
+        $this->security = $security;
+        $this->tokenPath = $projectDir . '/var/google-token.json';
 
-    private function initializeClient(string $clientId, string $clientSecret): void
-    {
-        $this->client = new GoogleClient();
-        $this->client->setClientId($clientId);
-        $this->client->setClientSecret($clientSecret);
-        $this->client->setRedirectUri('http://127.0.0.1:8000/google/callback');
-        $this->client->addScope(GoogleServiceCalendar::CALENDAR_EVENTS);
+        $this->client = new Client();
+        $this->client->setApplicationName('MaPlateforme');
+        $this->client->setClientId($googleClientId);
+        $this->client->setClientSecret($googleClientSecret);
+        $this->client->setRedirectUri($googleRedirectUri);
+        $this->client->addScope(Calendar::CALENDAR);
+        $this->client->addScope(Calendar::CALENDAR_EVENTS);
         $this->client->setAccessType('offline');
         $this->client->setPrompt('consent');
-    }
 
-    private function handleExistingToken(): void
-    {
-        if ($this->user && method_exists($this->user, 'getGoogleToken')) {
-            $token = $this->user->getGoogleToken();
-
-            if ($token && is_string($token)) {
-                try {
-                    $decoded = $this->safeJsonDecode($token);
-
-                    if (!is_array($decoded) || !isset($decoded['access_token'])) {
-                        throw new \InvalidArgumentException("Le token est invalide : il manque 'access_token'.");
-                    }
-
-                    $this->client->setAccessToken($decoded);
-
-                    if ($this->client->isAccessTokenExpired()) {
-                        $this->refreshToken();
-                    }
-                } catch (\RuntimeException $e) {
-                    error_log('Google token error: ' . $e->getMessage());
-                    return;
-                }
-            }
-        }
-    }
-
-    private function safeJsonDecode(string $json): array
-    {
-        $cleaned = trim($json);
-        $cleaned = preg_replace('/[[:^print:]]/', '', $cleaned);
-        $cleaned = mb_convert_encoding($cleaned, 'UTF-8', 'UTF-8');
-        $cleaned = iconv('UTF-8', 'UTF-8//IGNORE', $cleaned);
-
-        $decoded = json_decode($cleaned, true);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            if (preg_match('/\{(?:[^{}]|(?R))*\}/', $cleaned, $matches)) {
-                $decoded = json_decode($matches[0], true);
-            }
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new \RuntimeException('Erreur JSON : ' . json_last_error_msg());
-            }
-        }
-
-        return $decoded;
+        $this->loadAccessTokenFromFile();
+        $this->calendarService = new Calendar($this->client);
     }
 
     public function getAuthUrl(): string
     {
         return $this->client->createAuthUrl();
     }
-
-    public function fetchAccessTokenWithCode(string $code): array
+    public function fetchAccessTokenWithCode(string $code): void
     {
-        $token = $this->client->fetchAccessTokenWithAuthCode($code);
-
-        if (isset($token['error'])) {
-            throw new \Exception('Erreur d\'authentification Google: ' . $token['error']);
+        $accessToken = $this->client->fetchAccessTokenWithAuthCode($code);
+        if (!isset($accessToken['access_token'])) {
+            throw new \Exception('Token invalide reçu de Google');
         }
-
-        $tokenJson = json_encode($token, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-
-        if ($this->user && method_exists($this->user, 'setGoogleToken')) {
-            $this->user->setGoogleToken($tokenJson);
-            $this->em->persist($this->user);
-            $this->em->flush();
-        }
-
-        $this->client->setAccessToken($token);
-        return $token;
+        $this->client->setAccessToken($accessToken);
+        $this->storeAccessTokenToFile($accessToken);
     }
-
-    public function getCalendarService(): GoogleServiceCalendar
-    {
-        return new GoogleServiceCalendar($this->client);
-    }
-
-    public function refreshToken(): void
-    {
-        $refreshToken = $this->client->getRefreshToken();
-        if (!$refreshToken) {
-            throw new \RuntimeException('Pas de refresh token disponible');
-        }
-
-        $token = $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
-
-        if (isset($token['error'])) {
-            throw new \RuntimeException('Erreur de rafraîchissement du token: ' . $token['error']);
-        }
-
-        $tokenJson = json_encode($token, JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
-
-        if ($this->user && method_exists($this->user, 'setGoogleToken')) {
-            $this->user->setGoogleToken($tokenJson);
-            $this->em->persist($this->user);
-            $this->em->flush();
-        }
-
-        $this->client->setAccessToken($token);
-    }
-
-    public function exportToGoogleCalendar(CalendarEvent $localEvent): void
-    {
-        if ($this->client->isAccessTokenExpired()) {
-            $this->refreshToken();
-        }
-
-        $calendar = $this->getCalendarService();
-
-        $event = new Event([
-            'summary'     => $localEvent->getTitle(),
-            'description' => $localEvent->getDescription(),
-            'start'       => ['dateTime' => $localEvent->getStart()->format(DATE_RFC3339)],
-            'end'         => ['dateTime' => $localEvent->getEnd()->format(DATE_RFC3339)],
-        ]);
-
-        try {
-            $createdEvent = $calendar->events->insert('primary', $event);
-            $localEvent->setGoogleEventId($createdEvent->getId());
-            $this->em->persist($localEvent);
-            $this->em->flush();
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Erreur lors de l\'export vers Google Calendar: ' . $e->getMessage());
-        }
-    }
-
     public function isAuthenticated(): bool
     {
-        try {
-            if ($this->client->getAccessToken() && !$this->client->isAccessTokenExpired()) {
-                return true;
-            }
-
-            if ($this->client->getRefreshToken()) {
-                $this->refreshToken();
-                return true;
-            }
-        } catch (\Exception $e) {
-            error_log('Google authentication check failed: ' . $e->getMessage());
-        }
-
-        return false;
+        return $this->client->getAccessToken() !== null;
     }
-
-    /**
-     * Import events from Google Calendar to the local database
-     *
-     * @return int Number of events imported
-     */
-    public function importEventsFromGoogle(): int
+    private function storeAccessTokenToFile(array $accessToken): void
     {
-        if ($this->client->isAccessTokenExpired()) {
-            $this->refreshToken();
+        file_put_contents($this->tokenPath, json_encode($accessToken));
+    }
+    private function loadAccessTokenFromFile(): void
+    {
+        if (!file_exists($this->tokenPath)) {
+            return;
         }
 
-        $calendarService = $this->getCalendarService();
-        $googleEvents = $calendarService->events->listEvents('primary', [
-            'singleEvents' => true,
-            'orderBy' => 'startTime',
-            'timeMin' => (new \DateTime('today'))->format(DATE_RFC3339),
+        $accessToken = json_decode(file_get_contents($this->tokenPath), true);
+        if ($accessToken && isset($accessToken['access_token'])) {
+            $this->client->setAccessToken($accessToken);
+            if ($this->client->isAccessTokenExpired() && $this->client->getRefreshToken()) {
+                $newToken = $this->client->fetchAccessTokenWithRefreshToken($this->client->getRefreshToken());
+                $this->storeAccessTokenToFile($newToken);
+            }
+        }
+    }
+    public function exportToGoogleCalendar(CalendarEvent $event): void
+    {
+        if (!$this->isAuthenticated()) {
+            throw new \Exception("L'utilisateur n'est pas authentifié à Google.");
+        }
+
+        $googleEvent = new GoogleEvent([
+            'summary' => $event->getTitle(),
+            'description' => $event->getDescription(),
+            'start' => ['dateTime' => $event->getStart()->format(\DateTimeInterface::RFC3339)],
+            'end' => ['dateTime' => $event->getEnd()->format(\DateTimeInterface::RFC3339)],
         ]);
 
-        $importCount = 0;
-        foreach ($googleEvents->getItems() as $googleEvent) {
-            // Skip events without an ID
-            if (!$googleEvent->getId()) {
-                continue;
-            }
+        $createdEvent = $this->calendarService->events->insert('primary', $googleEvent);
+        $event->setGoogleEventId($createdEvent->getId());
 
-            // Check if this event already exists in our database
-            $existingEvent = $this->eventRepository->findOneBy(['googleEventId' => $googleEvent->getId()]);
-
-            if (!$existingEvent) {
-                // Create new event
-                $event = new CalendarEvent();
-                $event->setGoogleEventId($googleEvent->getId());
-                $importCount++;
-            } else {
-                // Update existing event
-                $event = $existingEvent;
-            }
-
-            // Handle start and end dates (can be dateTime or date for all-day events)
-            $startDateTime = null;
-            if ($googleEvent->getStart()->getDateTime()) {
-                $startDateTime = new \DateTime($googleEvent->getStart()->getDateTime());
-            } elseif ($googleEvent->getStart()->getDate()) {
-                $startDateTime = new \DateTime($googleEvent->getStart()->getDate());
-            }
-
-            $endDateTime = null;
-            if ($googleEvent->getEnd()->getDateTime()) {
-                $endDateTime = new \DateTime($googleEvent->getEnd()->getDateTime());
-            } elseif ($googleEvent->getEnd()->getDate()) {
-                $endDateTime = new \DateTime($googleEvent->getEnd()->getDate());
-            }
-
-            // Set event data
-            $event->setTitle($googleEvent->getSummary() ?? 'Sans titre');
-            $event->setDescription($googleEvent->getDescription() ?? '');
-
-            if ($startDateTime) {
-                $event->setStart($startDateTime);
-            }
-
-            if ($endDateTime) {
-                $event->setEnd($endDateTime);
-            }
-
-            $this->em->persist($event);
-        }
-
+        $this->em->persist($event);
         $this->em->flush();
-        return $importCount;
     }
-
-    /**
-     * Export events from local database to Google Calendar
-     *
-     * @return int Number of events exported
-     */
-    public function exportEventsToGoogle(): int
-    {
-        if ($this->client->isAccessTokenExpired()) {
-            $this->refreshToken();
-        }
-
-        // Get all local events that don't have a Google Event ID
-        $localEvents = $this->eventRepository->findBy(['googleEventId' => null]);
-
-        $exportCount = 0;
-        foreach ($localEvents as $localEvent) {
-            try {
-                $this->exportToGoogleCalendar($localEvent);
-                $exportCount++;
-            } catch (\Exception $e) {
-                error_log('Failed to export event ' . $localEvent->getId() . ': ' . $e->getMessage());
-                // Continue with the next event
-            }
-        }
-
-        return $exportCount;
-    }
-
-    /**
-     * Perform a two-way synchronization between Google Calendar and local database
-     *
-     * @return array With counts of imported and exported events
-     */
     public function synchronizeCalendars(): array
     {
         if (!$this->isAuthenticated()) {
-            throw new \RuntimeException('L\'utilisateur doit être authentifié pour synchroniser l\'agenda.');
+            throw new \Exception("Non authentifié à Google.");
         }
 
-        // First import from Google
-        $importCount = $this->importEventsFromGoogle();
+        $imported = 0;
+        $exported = 0;
 
-        // Then export to Google
-        $exportCount = $this->exportEventsToGoogle();
+        try {
+            $googleEvents = $this->calendarService->events->listEvents('primary', [
+                'timeMin' => (new \DateTime('-1 month'))->format(\DateTimeInterface::RFC3339),
+                'timeMax' => (new \DateTime('+6 months'))->format(\DateTimeInterface::RFC3339),
+            ]);
 
+            foreach ($googleEvents->getItems() as $googleEvent) {
+                if (!$googleEvent->getStart() || !$googleEvent->getEnd()) {
+                    continue;
+                }
+
+                if (!$this->em->isOpen()) {
+                    $this->em = $this->registry->resetManager();
+                }
+
+                $existing = $this->em->getRepository(CalendarEvent::class)
+                    ->findOneBy(['googleEventId' => $googleEvent->getId()]);
+
+                if ($existing) {
+                    continue;
+                }
+
+                $calendarEvent = new CalendarEvent();
+                $calendarEvent->setTitle($googleEvent->getSummary() ?? '(Sans titre)');
+                $calendarEvent->setDescription($googleEvent->getDescription() ?? '');
+                $calendarEvent->setStart(new \DateTime($googleEvent->getStart()->getDateTime()));
+                $calendarEvent->setEnd(new \DateTime($googleEvent->getEnd()->getDateTime()));
+                $calendarEvent->setGoogleEventId($googleEvent->getId());
+                $this->em->persist($calendarEvent);
+
+                $event = new Event();
+                $event->setTitle($calendarEvent->getTitle());
+                $event->setDescription($calendarEvent->getDescription());
+                $event->setDateHeure($calendarEvent->getStart());
+                $event->setDuree($calendarEvent->getStart()->diff($calendarEvent->getEnd())->i);
+                $event->setLieu($googleEvent->getLocation() ?? 'Lieu non défini');
+                $event->setOrganizer($this->security->getUser()); // Peut être null en CLI
+                $event->setStatus('programmé');
+                $this->em->persist($event);
+
+                $imported++;
+            }
+
+            $events = $this->em->getRepository(Event::class)->findAll();
+            foreach ($events as $e) {
+                $start = $e->getDateHeure();
+                $end = (clone $start)->modify('+' . $e->getDuree() . ' minutes');
+                $existingCalendarEvent = $this->em->getRepository(CalendarEvent::class)->findOneBy([
+                    'title' => $e->getTitle(),
+                    'start' => $start,
+                    'end' => $end,
+                ]);
+                if (!$existingCalendarEvent) {
+                    $calendarEvent = new CalendarEvent();
+                    $calendarEvent->setTitle($e->getTitle());
+                    $calendarEvent->setDescription($e->getDescription());
+                    $calendarEvent->setStart($start);
+                    $calendarEvent->setEnd($end);
+                    $this->em->persist($calendarEvent);
+                    try {
+                        $this->exportToGoogleCalendar($calendarEvent);
+                        $exported++;
+                    } catch (\Throwable $ex) {
+                        // Ignorer l'erreur, continuer
+                    }
+                }
+            }
+            $this->em->flush();
+        } catch (\Throwable $e) {
+            if (!$this->em->isOpen()) {
+                $this->em = $this->registry->resetManager();
+            }
+            throw new \RuntimeException("Erreur critique : " . $e->getMessage());
+        }
         return [
-            'imported' => $importCount,
-            'exported' => $exportCount
+            'imported' => $imported,
+            'exported' => $exported,
         ];
     }
 }

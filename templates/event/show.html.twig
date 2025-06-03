@@ -1,132 +1,206 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Détails de l'événement{% endblock %}
+{% block title %}{{ event.title }} - Détails de l'événement{% endblock %}
 
 {% block stylesheets %}
-    <style>
-        .event-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: #ffffff;
-            border-radius: 1rem;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
-        }
+{{ parent() }}
+<style>
+    .event-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
 
-        h2 {
-            font-size: 2rem;
-            color: #0d6efd;
-            margin-bottom: 1rem;
-        }
+    .event-header {
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
 
-        .event-description {
-            font-size: 1.1rem;
-            color: #444;
-            margin-bottom: 2rem;
-        }
+    .event-title {
+        font-size: 2rem;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+    }
 
-        .section-title {
-            font-size: 1.4rem;
-            color: #0d6efd;
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-        }
+    .event-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
 
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            margin-bottom: 1rem;
-        }
+    .meta-item {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+    }
 
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-        }
+    .meta-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        margin-bottom: 0.25rem;
+    }
 
-        iframe {
-            border-radius: 0.5rem;
-            border: 1px solid #ddd;
-            margin-bottom: 2rem;
-        }
+    .meta-value {
+        font-size: 1rem;
+        color: #1e293b;
+        font-weight: 500;
+    }
 
-        ul.document-list {
-            padding-left: 1.2rem;
-        }
+    .event-description {
+        background: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        white-space: pre-line;
+    }
 
-        ul.document-list li {
-            margin-bottom: 0.5rem;
-        }
+    .tools-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
 
-        ul.document-list a {
-            text-decoration: none;
-            color: #0d6efd;
-        }
+    .tool-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
 
-        ul.document-list a:hover {
-            text-decoration: underline;
-        }
+    .tool-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
 
-        .no-doc {
-            font-style: italic;
-            color: #888;
-        }
-    </style>
+    .tool-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+        color: #4f46e5;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+    }
+
+    .btn-edit {
+        background: #4f46e5;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .btn-edit:hover {
+        background: #4338ca;
+    }
+
+    .btn-cancel {
+        background: #ef4444;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+
+    .btn-cancel:hover {
+        background: #dc2626;
+    }
+</style>
 {% endblock %}
 
 {% block body %}
-    <div class="event-container">
-        <h2>{{ event.title }}</h2>
-        <p class="event-description">{{ event.description }}</p>
+<div class="event-container">
+    <div class="event-header">
+        <h1 class="event-title">{{ event.title }}</h1>
+        {% if event.status %}
+            <span class="badge {% if event.status == 'annulé' %}bg-danger{% else %}bg-success{% endif %}">
+                {{ event.status|capitalize }}
+            </span>
+        {% endif %}
+    </div>
 
-        <a href="{{ path('document_upload', { id: event.id }) }}" class="btn btn-primary">
-            📎 Ajouter un document
+    <div class="event-meta">
+        <div class="meta-item">
+            <div class="meta-label">Date et heure</div>
+            <div class="meta-value">{{ event.dateHeure|date('d/m/Y H:i') }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Durée</div>
+            <div class="meta-value">{{ event.duree }} minutes</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Lieu</div>
+            <div class="meta-value">{{ event.lieu }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="meta-label">Catégorie</div>
+            <div class="meta-value">{{ event.category }}</div>
+        </div>
+    </div>
+
+    {% if event.description %}
+    <div class="event-description">
+        <h3>Description</h3>
+        {{ event.description|nl2br }}
+    </div>
+    {% endif %}
+
+    <div class="tools-section">
+        {% if event.googleDriveUrl %}
+        <a href="{{ event.googleDriveUrl }}" target="_blank" class="tool-card">
+            <div class="tool-icon">📁</div>
+            <h4>Google Drive</h4>
+            <p>Accéder aux documents partagés</p>
+        </a>
+        {% endif %}
+
+        <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" class="tool-card">
+            <div class="tool-icon">📋</div>
+            <h4>Notes Collaboratives</h4>
+            <p>Gérer les notes de l'événement</p>
         </a>
 
-        <h3 class="section-title">📁 Documents liés à l’événement</h3>
-        <ul class="document-list">
-            {% for doc in event.documents %}
-                <li>
-                    <a href="{{ asset('uploads/documents/' ~ doc.fileName) }}" target="_blank">
-                        {{ doc.fileName }}
-                    </a>
-                </li>
-            {% else %}
-                <li class="no-doc">Aucun document pour cet événement.</li>
-            {% endfor %}
-        </ul>
-
-        <h3 class="section-title">🔗 Partage de documents</h3>
-
-        {% if googleDriveUrl %}
-            <h4>📂 Google Drive :</h4>
-            <iframe src="{{ googleDriveUrl }}" width="100%" height="600"></iframe>
-        {% else %}
-            <p class="no-doc">Aucun document Google Drive partagé pour cet événement.</p>
-        {% endif %}
-
-        {% if notionUrl %}
-            <h4>🧠 Notion :</h4>
-            <iframe src="{{ notionUrl }}" width="100%" height="600"></iframe>
-        {% else %}
-            <p class="no-doc">Aucune page Notion partagée pour cet événement.</p>
-        {% endif %}
-
         {% if event.etherpadUrl %}
-            <h4>📝 Notes collaboratives (Etherpad)</h4>
-            <iframe src="{{ event.etherpadUrl }}" width="100%" height="600"></iframe>
-        {% else %}
-            <p class="no-doc">⚠️ Aucun lien Etherpad n’a été fourni pour cet événement.</p>
+        <a href="{{ event.etherpadUrl }}" target="_blank" class="tool-card">
+            <div class="tool-icon">📝</div>
+            <h4>Etherpad</h4>
+            <p>Notes collaboratives</p>
+        </a>
         {% endif %}
-        <h3 class="section-title">📁 Fichiers téléchargés</h3>
-{% if event.uploadedDocuments is not empty %}
-  <ul class="document-list">
-    {% for file in event.uploadedDocuments %}
-      <li><a href="{{ asset('uploads/documents/' ~ file) }}" target="_blank">{{ file }}</a></li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p class="no-doc">Aucun fichier téléchargé.</p>
-{% endif %}
+
+        <a href="{{ path('event_attendance', {'id': event.id}) }}" class="tool-card">
+            <div class="tool-icon">👥</div>
+            <h4>Participants</h4>
+            <p>Voir les présences</p>
+        </a>
     </div>
+
+    {% if isOrganizer %}
+    <div class="action-buttons">
+        <a href="{{ path('event_edit', {'id': event.id}) }}" class="btn-edit">
+            <i class="fas fa-edit"></i> Modifier
+        </a>
+        {% if event.status != 'annulé' %}
+            <a href="{{ path('event_cancel', {'id': event.id}) }}" class="btn-cancel" 
+               onclick="return confirm('Êtes-vous sûr de vouloir annuler cet événement ?')">
+                <i class="fas fa-times"></i> Annuler
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

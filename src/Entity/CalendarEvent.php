@@ -29,44 +29,43 @@ class CalendarEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $googleEventId = null;
 
-    // Getters et Setters...
     public function getId(): ?int
-{
+    {
     return $this->id;
-}
+    }
 
-public function getTitle(): ?string
-{
+    public function getTitle(): ?string
+    {
     return $this->title;
-}
+    }
 
-public function setTitle(string $title): self
-{
+    public function setTitle(string $title): self
+    {
     $this->title = $title;
     return $this;
-}
+    }
 
-public function getDescription(): ?string
-{
+    public function getDescription(): ?string
+    {
     return $this->description;
-}
+    }
 
-public function setDescription(?string $description): self
-{
+    public function setDescription(?string $description): self
+    {
     $this->description = $description;
     return $this;
-}
+    }
 
-public function getStart(): ?\DateTimeInterface
-{
+    public function getStart(): ?\DateTimeInterface
+    {
     return $this->start;
-}
+    }
 
-public function setStart(\DateTimeInterface $start): self
-{
+    public function setStart(\DateTimeInterface $start): self
+    {
     $this->start = $start;
     return $this;
-}
+    }
 
 public function getEnd(): ?\DateTimeInterface
 {

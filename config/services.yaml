@@ -2,6 +2,8 @@ parameters:
   photos_directory: '%kernel.project_dir%/public/uploads/photos'
   google_token_expiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
   app.mailer_from: 'no-reply@votresite.com'
+  google_token_file: '%kernel.project_dir%/var/google_token.json'
+  app.mail_from: 'no-reply@maplateforme.com'
 
 services:
   _defaults:
@@ -16,41 +18,23 @@ services:
       - '../src/Entity/'
       - '../src/Kernel.php'
 
-  # Authenticator pour l'authentification
   App\Security\AppAuthenticator:
     arguments:
       $userRepository: '@App\Repository\UserRepository'
 
-  # Contrôleur pour les utilisateurs
   App\Controller\UserController:
     tags: ['controller.service_arguments']
 
-  # Service pour l'envoi d'SMS
-  App\Service\SmsService:
-    arguments:
-      $sid: '%env(TWILIO_SID)%'
-      $authToken: '%env(TWILIO_AUTH_TOKEN)%'
-      $from: '%env(TWILIO_FROM)%'
-
-  # Service de notification des événements
   App\Service\EventNotificationService:
     arguments:
       $mailer: '@mailer.mailer'
       $userRepository: '@App\Repository\UserRepository'
 
-  # Service de rappel
   App\Service\ReminderService: ~
 
   App\Service\GoogleCalendarService:
-        arguments:
-            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
-            $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
-            $router: '@router'
-            $security: '@security.helper'
-            $em: '@doctrine.orm.entity_manager'
-            $requestStack: '@request_stack'
-  App\Service\GoogleDriveService:
-        arguments:
-            $clientId: '%env(GOOGLE_CLIENT_ID)%'
-            $clientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
-            $redirectUri: '%env(GOOGLE_REDIRECT_URI)%'
+   arguments:
+        $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+        $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
+        $googleRedirectUri: '%env(GOOGLE_REDIRECT_URI)%'
+        $projectDir: '%kernel.project_dir%'

@@ -1,66 +1,669 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Réinitialisation du mot de passe{% endblock %}
+{% block title %}Email envoyé - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .check-email-container {
+            background: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 2rem 1rem;
+        }
+        
+        .check-email-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.2),
+                0 15px 40px rgba(102, 126, 234, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            z-index: 10;
+            animation: cardAppear 1s ease-out;
+            overflow: hidden;
+            text-align: center;
+        }
+        
+        .check-email-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 30px 30px 0 0;
+        }
+        
+        .check-email-card::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 32px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .check-email-card:hover::after {
+            opacity: 0.3;
+        }
+        
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .email-icon-container {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .email-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #56ab2f 0%, #a8edea 100%);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            color: white;
+            font-size: 3rem;
+            box-shadow: 0 20px 50px rgba(86, 171, 47, 0.4);
+            animation: emailFloat 4s ease-in-out infinite, emailPulse 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .email-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .email-icon:hover::before {
+            width: 150px;
+            height: 150px;
+        }
+        
+        @keyframes emailFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+        
+        @keyframes emailPulse {
+            0%, 100% { box-shadow: 0 20px 50px rgba(86, 171, 47, 0.4); }
+            50% { box-shadow: 0 25px 60px rgba(86, 171, 47, 0.6), 0 0 50px rgba(86, 171, 47, 0.3); }
+        }
+        
+        .check-mark {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            animation: checkMarkPop 1s ease-out 0.5s both;
+            box-shadow: 0 10px 30px rgba(40, 167, 69, 0.4);
+        }
+        
+        @keyframes checkMarkPop {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(0deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        .success-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #56ab2f 0%, #a8edea 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 1.5rem 0;
+            animation: titleShine 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleShine {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2) drop-shadow(0 0 10px rgba(86, 171, 47, 0.3)); }
+        }
+        
+        .success-subtitle {
+            color: #6c757d;
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .info-section {
+            background: linear-gradient(135deg, rgba(86, 171, 47, 0.1) 0%, rgba(168, 237, 234, 0.1) 100%);
+            border: 1px solid rgba(86, 171, 47, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #56ab2f 0%, #a8edea 100%);
+        }
+        
+        .info-content {
+            margin-left: 1rem;
+            text-align: left;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            gap: 1rem;
+        }
+        
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-icon {
+            color: #56ab2f;
+            font-size: 1.2rem;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+        
+        .info-text {
+            color: #495057;
+            margin: 0;
+            line-height: 1.6;
+            flex: 1;
+        }
+        
+        .info-text strong {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+        
+        .timer-section {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 138, 101, 0.1) 100%);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .timer-icon {
+            color: #ffc107;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer-text {
+            color: #495057;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .timer-countdown {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ffc107;
+            margin-top: 0.5rem;
+        }
+        
+        .actions-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .action-button {
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .action-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+            transition: left 0.3s ease;
+        }
+        
+        .action-button:hover::before {
+            left: 100%;
+        }
+        
+        .action-button:hover {
+            transform: translateY(-3px);
+            text-decoration: none;
+        }
+        
+        .primary-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .primary-button:hover {
+            color: white;
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
+        }
+        
+        .secondary-button {
+            background: rgba(108, 117, 125, 0.1);
+            color: #6c757d;
+            border: 2px solid rgba(108, 117, 125, 0.2);
+        }
+        
+        .secondary-button:hover {
+            color: #495057;
+            background: rgba(108, 117, 125, 0.2);
+            border-color: #6c757d;
+        }
+        
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .floating-element {
+            position: absolute;
+            color: rgba(86, 171, 47, 0.3);
+            animation: floatElement 15s infinite linear;
+        }
+        
+        .floating-element:nth-child(1) {
+            left: 20%;
+            font-size: 1.5rem;
+            animation-delay: 0s;
+        }
+        
+        .floating-element:nth-child(2) {
+            left: 80%;
+            font-size: 1.2rem;
+            animation-delay: 5s;
+        }
+        
+        .floating-element:nth-child(3) {
+            left: 60%;
+            font-size: 1rem;
+            animation-delay: 10s;
+        }
+        
+        @keyframes floatElement {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10%, 90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            border: 3px solid rgba(86, 171, 47, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseRing 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulseRing {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .check-email-container {
+                padding: 1rem;
+            }
+            
+            .check-email-card {
+                padding: 2rem 1.5rem;
+                border-radius: 25px;
+            }
+            
+            .success-title {
+                font-size: 2rem;
+            }
+            
+            .email-icon {
+                width: 90px;
+                height: 90px;
+                font-size: 2.5rem;
+            }
+            
+            .actions-section {
+                flex-direction: column;
+            }
+            
+            .action-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        .typing-effect {
+            overflow: hidden;
+            border-right: 3px solid #56ab2f;
+            white-space: nowrap;
+            animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #56ab2f; }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <!-- Card -->
-                <div class="card shadow-lg border-0 rounded-lg">
-                    <div class="card-body p-4">
-                        <!-- Titre -->
-                        <h3 class="text-center mb-4">Email de réinitialisation envoyé</h3>
+    <div class="check-email-container">
+        <!-- Éléments flottants -->
+        <div class="floating-elements">
+            <i class="floating-element fas fa-envelope"></i>
+            <i class="floating-element fas fa-check"></i>
+            <i class="floating-element fas fa-paper-plane"></i>
+        </div>
+        
+        <div class="check-email-card">
+            <!-- Icône email avec effet -->
+            <div class="email-icon-container">
+                <div class="pulse-ring"></div>
+                <div class="email-icon">
+                    <i class="fas fa-envelope-open-text"></i>
+                    <div class="check-mark">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Titre et sous-titre -->
+            <h1 class="success-title">Email envoyé avec succès !</h1>
+            <p class="success-subtitle typing-effect">
+                Vérifiez votre boîte de réception pour continuer
+            </p>
 
-                        <!-- Message -->
-                        <p class="text-muted text-center">
-                            Si un compte correspondant à votre adresse email existe, un email contenant un lien pour réinitialiser votre mot de passe a été envoyé.
+            <!-- Section d'information -->
+            <div class="info-section">
+                <div class="info-content">
+                    <div class="info-item">
+                        <i class="info-icon fas fa-paper-plane"></i>
+                        <p class="info-text">
+                            Si un compte correspondant à votre adresse email existe, un email contenant un <strong>lien sécurisé</strong> pour réinitialiser votre mot de passe a été envoyé.
                         </p>
-                        <p class="text-muted text-center">
-                            Ce lien expirera dans <strong>1 minute</strong>.
+                    </div>
+                    <div class="info-item">
+                        <i class="info-icon fas fa-shield-alt"></i>
+                        <p class="info-text">
+                            Ce lien est <strong>unique et sécurisé</strong>, généré spécialement pour votre demande de réinitialisation.
                         </p>
-
-                        <p class="text-muted text-center">
-                            Si vous ne recevez pas d'email, vérifiez votre dossier spam<a href="{{ path('app_forgot_password_request') }}">réessayez</a>.
+                    </div>
+                    <div class="info-item">
+                        <i class="info-icon fas fa-exclamation-triangle"></i>
+                        <p class="info-text">
+                            Si vous ne recevez pas d'email dans les prochaines minutes, pensez à <strong>vérifier votre dossier spam</strong> ou courrier indésirable.
                         </p>
                     </div>
                 </div>
             </div>
+            
+            <!-- Section timer -->
+            <div class="timer-section">
+                <div class="timer-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <p class="timer-text">Ce lien expirera dans :</p>
+                <div class="timer-countdown" id="countdown">
+                    <span id="minutes">60</span>:<span id="seconds">00</span>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="actions-section">
+                <a href="{{ path('app_login') }}" class="action-button primary-button">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Retour à la connexion
+                </a>
+                <a href="{{ path('app_forgot_password_request') }}" class="action-button secondary-button">
+                    <i class="fas fa-redo"></i>
+                    Renvoyer l'email
+                </a>
+            </div>
         </div>
     </div>
 
-    <style>
-        .card {
-            border-radius: 1rem;
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée
+            const card = document.querySelector('.check-email-card');
+            setTimeout(() => {
+                card.style.animation = 'cardAppear 1s ease-out forwards';
+            }, 100);
+            
+            // Countdown timer (60 minutes)
+            let totalSeconds = 60 * 60; // 60 minutes en secondes
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            
+            function updateCountdown() {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                
+                minutesElement.textContent = minutes.toString().padStart(2, '0');
+                secondsElement.textContent = seconds.toString().padStart(2, '0');
+                
+                if (totalSeconds <= 0) {
+                    clearInterval(countdownInterval);
+                    showExpiredMessage();
+                } else if (totalSeconds <= 300) { // 5 minutes restantes
+                    document.querySelector('.timer-countdown').style.color = '#dc3545';
+                    document.querySelector('.timer-section').style.borderColor = '#dc3545';
+                }
+                
+                totalSeconds--;
         }
 
-        .card-body {
-            background-color: #f8f9fa;
+            const countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown(); // Mise à jour immédiate
+            
+            // Message d'expiration
+            function showExpiredMessage() {
+                const timerSection = document.querySelector('.timer-section');
+                timerSection.innerHTML = `
+                    <div class="timer-icon" style="color: #dc3545;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <p class="timer-text" style="color: #dc3545;">Le lien a expiré !</p>
+                    <p style="color: #6c757d; margin: 0;">Veuillez faire une nouvelle demande de réinitialisation.</p>
+                `;
+                timerSection.style.background = 'linear-gradient(135deg, rgba(220, 53, 69, 0.1) 0%, rgba(255, 107, 107, 0.1) 100%)';
+                timerSection.style.borderColor = '#dc3545';
+            }
+            
+            // Animation de typing effect
+            setTimeout(() => {
+                const typingElement = document.querySelector('.typing-effect');
+                typingElement.style.borderRight = 'none';
+            }, 3000);
+            
+            // Effet de particules au clic
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.action-button') || e.target.closest('.email-icon')) {
+                    createParticles(e.pageX, e.pageY);
+                }
+            });
+            
+            function createParticles(x, y) {
+                for (let i = 0; i < 8; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: absolute;
+                        width: 6px;
+                        height: 6px;
+                        background: linear-gradient(135deg, #56ab2f 0%, #a8edea 100%);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 1000;
+                        left: ${x}px;
+                        top: ${y}px;
+                    `;
+                    
+                    document.body.appendChild(particle);
+                    
+                    const angle = (Math.PI * 2 * i) / 8;
+                    const distance = 50 + Math.random() * 50;
+                    
+                    particle.animate([
+                        {
+                            transform: 'translate(0, 0) scale(1)',
+                            opacity: 1
+                        },
+                        {
+                            transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: 1000,
+                        easing: 'ease-out'
+                    }).onfinish = () => particle.remove();
         }
-
-        .card-header {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
-            padding: 20px 0;
-            font-size: 1.25rem;
-            border-radius: 1rem 1rem 0 0;
-        }
-
-        a {
-            color: #007bff;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .container {
-            max-width: 600px;
-        }
-
-        .text-muted {
-            font-size: 1rem;
-        }
-    </style>
+            }
+            
+            // Animation au survol de l'icône email
+            const emailIcon = document.querySelector('.email-icon');
+            emailIcon.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.1) rotate(10deg)';
+            });
+            
+            emailIcon.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1) rotate(0deg)';
+            });
+            
+            // Notification de succès après 5 secondes
+            setTimeout(() => {
+                showSuccessNotification();
+            }, 5000);
+            
+            function showSuccessNotification() {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(135deg, #56ab2f 0%, #a8edea 100%);
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 15px;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+                    z-index: 10000;
+                    transform: translateX(100%);
+                    transition: all 0.3s ease;
+                    font-weight: 600;
+                `;
+                notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>N\'oubliez pas de vérifier vos spams !';
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(0)';
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.style.transform = 'translateX(100%)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+        });
+    </script>
 {% endblock %}

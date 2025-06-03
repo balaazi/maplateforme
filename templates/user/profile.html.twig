@@ -1,130 +1,754 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon Profil{% endblock %}
+{% block title %}Mon Profil - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .profile-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 30px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(102,126,234,0.2);
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .profile-avatar {
+            position: relative;
+        }
+        
+        .avatar-container {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(15px);
+            border: 4px solid rgba(255,255,255,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+        
+        .avatar-container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.3);
+        }
+        
+        .avatar-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        
+        .avatar-container i {
+            font-size: 3rem;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .user-badge {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+            box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+            font-size: 0.8rem;
+        }
+        
+        .profile-info h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 0.5rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .profile-info .user-title {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            display: inline-block;
+            backdrop-filter: blur(10px);
+        }
+        
+        .profile-actions {
+            margin-left: auto;
+        }
+        
+        .btn-edit {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(10px);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-edit:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        
+        .profile-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .info-section {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .info-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .info-section::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease;
+        }
+
+        .info-section:hover::after {
+            transform: scale(1);
+        }
+        
+        .info-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .section-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .info-section:hover .section-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(102,126,234,0.3);
+            box-shadow: 0 20px 40px rgba(102,126,234,0.2);
+        }
+        
+        .info-card:hover::before {
+            opacity: 1;
+        }
+
+        .info-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .info-label i {
+            color: #667eea;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .info-card:hover .info-label i {
+            transform: scale(1.2) rotate(10deg);
+        }
+        
+        .info-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+            position: relative;
+            z-index: 2;
+            line-height: 1.4;
+        }
+        
+        .empty-value {
+            color: #95a5a6;
+            font-style: italic;
+            font-weight: 400;
+        }
+        
+        .back-button {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(108,117,125,0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .stat-card:nth-child(1)::before {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .stat-card:nth-child(2)::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .stat-card:nth-child(3)::before {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:nth-child(1) .stat-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .stat-card:nth-child(2) .stat-icon {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .stat-card:nth-child(3) .stat-icon {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-container {
+                padding: 1rem;
+            }
+            
+            .profile-header {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+                gap: 1.5rem;
+            }
+            
+            .profile-info h1 {
+                font-size: 2rem;
+            }
+            
+            .avatar-container {
+                width: 120px;
+                height: 120px;
+            }
+            
+            .avatar-container i {
+                font-size: 2.5rem;
+            }
+            
+            .info-section {
+                padding: 2rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .info-card {
+                padding: 1.5rem;
+            }
+            
+            .profile-actions {
+                margin-left: 0;
+            }
+            
+            .btn-edit {
+                padding: 0.75rem 1.5rem;
+            }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <div class="container py-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <div class="card border-0 shadow-lg">
-                    <div class="card-header bg-gradient-primary text-white py-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-user fa-2x me-3"></i>
-                                <h2 class="h4 mb-0">Mon Profil</h2>
-                            </div>
-                            {% if app.user == user %}
-                                <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="text-white text-decoration-none">
-                                    <i class="fas fa-pen me-2"></i>Modifier mon profil
-                                </a>
+    <div class="profile-container">
+        <div class="container-fluid">
+            <!-- Bouton retour -->
+            {% if is_granted('ROLE_PARTICIPANT') %}
+                <a href="{{ path('participant_dashboard') }}" class="back-button fade-in">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour au Dashboard
+                </a>
+            {% elseif is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('admin_dashboard') }}" class="back-button fade-in">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour au Dashboard Admin
+                </a>
+            {% endif %}
+            
+            <!-- En-tête profil -->
+            <div class="profile-header fade-in">
+                <div class="header-content">
+                    <div class="profile-avatar">
+                        <div class="avatar-container">
+                            {% if user.photo %}
+                                <img src="{{ asset('uploads/photos/' ~ user.photo) }}" alt="Photo de profil">
+                            {% else %}
+                                <i class="fas fa-user"></i>
                             {% endif %}
+                            <div class="user-badge">
+                                <i class="fas fa-check"></i>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="card-body p-4">
-                        <div class="row align-items-center">
-                            <!-- Photo de profil -->
-                            <div class="col-md-4 text-center mb-4 mb-md-0">
-                                {% if user.photo %}
-                                    <img src="{{ asset('uploads/photos/' ~ user.photo) }}"
-                                         class="rounded-circle border shadow"
-                                         width="200"
-                                         height="200"
-                                         alt="Photo de profil"
-                                         style="object-fit: cover;">
-                                {% else %}
-                                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center border shadow"
-                                         style="width: 200px; height: 200px;">
-                                        <i class="fas fa-user text-secondary fa-4x"></i>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Informations du profil -->
-                            <div class="col-md-8">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-id-card me-2 text-primary"></i>Nom</p>
-                                            <p class="mb-0 h5">{{ user.nom }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-id-card me-2 text-primary"></i>Prénom</p>
-                                            <p class="mb-0 h5">{{ user.prenom }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-envelope me-2 text-primary"></i>Email</p>
-                                            <p class="mb-0 h5">{{ user.email }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-phone me-2 text-primary"></i>Téléphone</p>
-                                            <p class="mb-0 h5">{{ user.telephone }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-birthday-cake me-2 text-primary"></i>Date de naissance</p>
-                                            <p class="mb-0 h5">{{ user.dateNaissance ? user.dateNaissance|date('d/m/Y') : 'Non renseignée' }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-graduation-cap me-2 text-primary"></i>Spécialité</p>
-                                            <p class="mb-0 h5">{{ user.specialite }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-building me-2 text-primary"></i>Département</p>
-                                            <p class="mb-0 h5">{{ user.departement }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <div class="p-3 bg-light rounded">
-                                            <p class="mb-1 text-muted small"><i class="fas fa-briefcase me-2 text-primary"></i>Société</p>
-                                            <p class="mb-0 h5">{{ user.societe ?? 'Non renseignée' }}</p>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-
-
-
+                    
+                    <div class="profile-info">
+                        <h1>{{ user.prenom }} {{ user.nom }}</h1>
+                        <div class="user-title">
+                            <i class="fas fa-graduation-cap me-2"></i>
+                            {{ user.specialite ?? 'Utilisateur EventHub' }}
                         </div>
+                        {% if user.societe %}
+                            <div class="user-title">
+                                <i class="fas fa-building me-2"></i>
+                                {{ user.societe }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if app.user == user %}
+                        <div class="profile-actions">
+                            <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-edit">
+                                <i class="fas fa-edit"></i>
+                                Modifier le profil
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            
+
+                <!-- Informations personnelles -->
+                <div class="info-section fade-in" style="animation-delay: 0.2s;">
+                    <h3 class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        Informations Personnelles
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-id-card"></i>
+                                Nom complet
+                            </div>
+                            <div class="info-value">{{ user.nom }} {{ user.prenom }}</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-envelope"></i>
+                                Adresse e-mail
+                            </div>
+                            <div class="info-value">{{ user.email }}</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-phone"></i>
+                                Téléphone
+                            </div>
+                            <div class="info-value">{{ user.telephone ?? 'Non renseigné' }}</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-birthday-cake"></i>
+                                Date de naissance
+                            </div>
+                            <div class="info-value {% if not user.dateNaissance %}empty-value{% endif %}">
+                                {{ user.dateNaissance ? user.dateNaissance|date('d/m/Y') : 'Non renseignée' }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Informations professionnelles -->
+                <div class="info-section fade-in" style="animation-delay: 0.3s;">
+                    <h3 class="section-title">
+                        <div class="section-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        Informations Professionnelles
+                    </h3>
+                    
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-graduation-cap"></i>
+                                Spécialité
+                            </div>
+                            <div class="info-value">{{ user.specialite ?? 'Non renseignée' }}</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-building"></i>
+                                Département
+                            </div>
+                            <div class="info-value">{{ user.departement ?? 'Non renseigné' }}</div>
+                        </div>
+                        
+                        <div class="info-card">
+                            <div class="info-label">
+                                <i class="fas fa-city"></i>
+                                Société
+                            </div>
+                            <div class="info-value {% if not user.societe %}empty-value{% endif %}">
+                                {{ user.societe ?? 'Non renseignée' }}
+                            </div>
+                        </div>
+                        
+        
+                    
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
+{% endblock %}
 
-    <style>
-        .bg-gradient-primary {
-            background: linear-gradient(135deg, #3a7bd5 0%, #00d2ff 100%);
-        }
-        .rounded {
-            border-radius: 0.5rem !important;
-        }
-        .card {
-            border-radius: 1rem;
-        }
-        .badge {
-            font-size: 0.9rem;
-            padding: 0.35em 0.65em;
-        }
-    </style>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée progressive
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Animation des cartes d'information
+            const infoCards = document.querySelectorAll('.info-card');
+            infoCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index * 100) + 1000);
+            });
+            
+            // Animation des statistiques
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(50px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.8s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index * 200) + 500);
+            });
+            
+            // Animation de compteur pour les statistiques
+            function animateCounter(element, target) {
+                let current = 0;
+                const increment = target / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    
+                    if (target % 1 !== 0) {
+                        element.textContent = current.toFixed(1);
+                    } else {
+                        element.textContent = Math.floor(current);
+                    }
+                }, 20);
+            }
+            
+            // Lancer l'animation des compteurs après un délai
+            setTimeout(() => {
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach(stat => {
+                    const target = parseFloat(stat.textContent);
+                    stat.textContent = '0';
+                    animateCounter(stat, target);
+                });
+            }, 1500);
+            
+            // Effet de parallaxe subtil
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.profile-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+            
+            // Interaction avec l'avatar
+            const avatar = document.querySelector('.avatar-container');
+            if (avatar) {
+                avatar.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1) rotate(5deg)';
+                });
+                
+                avatar.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1) rotate(0deg)';
+                });
+            }
+        });
+    </script>
 {% endblock %}

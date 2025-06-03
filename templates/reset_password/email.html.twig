@@ -1,9 +1,198 @@
-<h1>Bonjour !</h1>
-
-<p>Pour réinitialiser votre mot de passe, veuillez cliquer sur le lien suivant :</p>
-
-<a href="{{ url('app_reset_password', {token: resetToken.token}) }}">{{ url('app_reset_password', {token: resetToken.token}) }}</a>
-
-<p>Ce lien expirera dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.</p>
-
-<p>À bientôt !</p>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialisation de votre mot de passe - EventHub</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8f9fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333333;">
+    
+    <!-- Container principal -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f8f9fa;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                
+                <!-- Container de l'email -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    
+                    <!-- Header avec gradient -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 40px 30px; text-align: center; position: relative;">
+                            
+                            <!-- Logo/Icône EventHub -->
+                            <div style="display: inline-block; width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2); border-radius: 20px; margin-bottom: 20px; position: relative;">
+                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px; font-weight: bold;">
+                                    📅
+                                </div>
+                            </div>
+                            
+                            <!-- Titre -->
+                            <h1 style="margin: 0 0 10px; color: white; font-size: 28px; font-weight: 900; text-align: center;">
+                                EventHub
+                            </h1>
+                            
+                            <!-- Sous-titre -->
+                            <p style="margin: 0; color: rgba(255, 255, 255, 0.9); font-size: 16px; font-weight: 500;">
+                                Réinitialisation de votre mot de passe
+                            </p>
+                            
+                            <!-- Motifs décoratifs -->
+                            <div style="position: absolute; top: 10px; right: 20px; width: 40px; height: 40px; border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 50%; opacity: 0.6;"></div>
+                            <div style="position: absolute; bottom: 15px; left: 30px; width: 20px; height: 20px; background: rgba(255, 255, 255, 0.2); border-radius: 50%;"></div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Contenu principal -->
+                    <tr>
+                        <td style="padding: 40px;">
+                            
+                            <!-- Icône de sécurité -->
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <div style="display: inline-block; width: 80px; height: 80px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; position: relative; margin-bottom: 20px;">
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 32px;">
+                                        🔐
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Salutation -->
+                            <h2 style="margin: 0 0 20px; color: #2c3e50; font-size: 24px; font-weight: 700; text-align: center;">
+                                Bonjour !
+                            </h2>
+                            
+                            <!-- Message principal -->
+                            <p style="margin: 0 0 25px; color: #495057; font-size: 16px; line-height: 1.6; text-align: center;">
+                                Vous avez demandé la réinitialisation de votre mot de passe sur <strong>EventHub</strong>. 
+                                Pour des raisons de sécurité, ce lien est unique et temporaire.
+                            </p>
+                            
+                            <!-- Box d'information sécurisée -->
+                            <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border: 1px solid rgba(102, 126, 234, 0.2); border-radius: 15px; padding: 20px; margin-bottom: 30px; position: relative;">
+                                <div style="border-left: 4px solid #667eea; padding-left: 15px;">
+                                    <p style="margin: 0; color: #495057; font-size: 14px; line-height: 1.5;">
+                                        <strong style="color: #2c3e50;">🛡️ Sécurité :</strong> Ce lien de réinitialisation est personnel et ne doit pas être partagé. 
+                                        Il expirera automatiquement dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <!-- Bouton d'action principal -->
+                            <div style="text-align: center; margin: 35px 0;">
+                                <a href="{{ url('app_reset_password', {token: resetToken.token}) }}" 
+                                   style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 18px 40px; border-radius: 50px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
+                                    🔑 Réinitialiser mon mot de passe
+                                </a>
+                            </div>
+                            
+                            <!-- Lien alternatif -->
+                            <div style="background: #f8f9fa; border-radius: 10px; padding: 20px; margin: 25px 0;">
+                                <p style="margin: 0 0 10px; color: #6c757d; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Problème avec le bouton ? Copiez ce lien :
+                                </p>
+                                <div style="background: white; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; word-break: break-all;">
+                                    <a href="{{ url('app_reset_password', {token: resetToken.token}) }}" 
+                                       style="color: #667eea; text-decoration: none; font-size: 13px; font-family: 'Courier New', monospace;">
+                                        {{ url('app_reset_password', {token: resetToken.token}) }}
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Informations importantes -->
+                            <div style="border-top: 2px solid #f1f3f4; padding-top: 25px; margin-top: 30px;">
+                                <h3 style="margin: 0 0 15px; color: #2c3e50; font-size: 18px; font-weight: 600;">
+                                    ⚠️ Informations importantes
+                                </h3>
+                                
+                                <ul style="margin: 0; padding-left: 20px; color: #495057; font-size: 14px; line-height: 1.6;">
+                                    <li style="margin-bottom: 8px;">
+                                        <strong>Validité :</strong> Ce lien expire dans {{ resetToken.expirationMessageKey|trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}
+                                    </li>
+                                    <li style="margin-bottom: 8px;">
+                                        <strong>Usage unique :</strong> Ce lien ne peut être utilisé qu'une seule fois
+                                    </li>
+                                    <li style="margin-bottom: 8px;">
+                                        <strong>Sécurité :</strong> Si vous n'avez pas demandé cette réinitialisation, ignorez cet email
+                                    </li>
+                                    <li style="margin-bottom: 0;">
+                                        <strong>Support :</strong> En cas de problème, contactez notre équipe
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background: #2c3e50; padding: 30px 40px; text-align: center;">
+                            
+                            <!-- Logo footer -->
+                            <div style="margin-bottom: 20px;">
+                                <div style="display: inline-block; color: white; font-size: 24px; font-weight: bold;">
+                                    📅 EventHub
+                                </div>
+                            </div>
+                            
+                            <!-- Message de remerciement -->
+                            <p style="margin: 0 0 15px; color: #ecf0f1; font-size: 16px; font-weight: 500;">
+                                Merci de faire confiance à EventHub !
+                            </p>
+                            
+                            <p style="margin: 0 0 20px; color: #bdc3c7; font-size: 14px;">
+                                Votre plateforme de gestion d'événements de confiance
+                            </p>
+                            
+                            <!-- Séparateur -->
+                            <div style="height: 1px; background: rgba(255, 255, 255, 0.2); margin: 20px 0;"></div>
+                            
+                            <!-- Informations légales -->
+                            <p style="margin: 0; color: #95a5a6; font-size: 12px; line-height: 1.4;">
+                                Cet email a été envoyé automatiquement par EventHub.<br>
+                                Pour des raisons de sécurité, ne partagez jamais ce lien.<br>
+                                © {{ 'now'|date('Y') }} EventHub - Tous droits réservés
+                            </p>
+                            
+                            <!-- Liens footer -->
+                            <div style="margin-top: 20px;">
+                                <a href="#" style="color: #3498db; text-decoration: none; font-size: 12px; margin: 0 10px;">Centre d'aide</a>
+                                <span style="color: #7f8c8d;">|</span>
+                                <a href="#" style="color: #3498db; text-decoration: none; font-size: 12px; margin: 0 10px;">Confidentialité</a>
+                                <span style="color: #7f8c8d;">|</span>
+                                <a href="#" style="color: #3498db; text-decoration: none; font-size: 12px; margin: 0 10px;">Contact</a>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                
+                <!-- Message de sécurité en bas -->
+                <div style="text-align: center; margin-top: 20px; padding: 0 20px;">
+                    <p style="margin: 0; color: #6c757d; font-size: 11px; line-height: 1.4;">
+                        🔒 <strong>Rappel de sécurité :</strong> EventHub ne vous demandera jamais votre mot de passe par email.<br>
+                        Si vous avez des doutes sur l'authenticité de cet email, contactez-nous directement.
+                    </p>
+                </div>
+            </td>
+        </tr>
+    </table>
+    
+    <!-- Support pour Outlook -->
+    <!--[if mso]>
+    <style type="text/css">
+        .gradient-bg {
+            background: #667eea !important;
+        }
+        .button-gradient {
+            background: #667eea !important;
+        }
+    </style>
+    <![endif]-->
+</body>
+</html>

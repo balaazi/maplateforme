@@ -15,31 +15,32 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\Participation;
+use App\Entity\User;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/organizer/invitations')]
+#[Route('/organizer')]
+#[IsGranted('ROLE_ORGANISATEUR')]
 class InvitationController extends AbstractController
 {
-    #[Route('/', name: 'invitation_index')]
-    public function index(InvitationRepository $invitationRepository): Response
-    {
-        return $this->render('invitation/index.html.twig', [
-            'invitations' => $invitationRepository->findAll(),
-        ]);
-    }
-
-    #[Route('/organizer/invitations/new/{eventId}', name: 'invitation_new')]
+    #[Route('/invitations/{eventId}/new', name: 'invitation_new', requirements: ['eventId' => '\d+'], methods: ['GET', 'POST'])]
     public function new(
         Request $request,
         int $eventId,
         EntityManagerInterface $entityManager,
         MailerInterface $mailer,
         EventRepository $eventRepository
-    ): Response{
+    ): Response {
         $event = $eventRepository->find($eventId);
 
         if (!$event) {
             $this->addFlash('error', 'Événement non trouvé');
-            return $this->redirectToRoute('event_index');
+            return $this->redirectToRoute('event_list');
+        }
+
+        // Vérifier si l'utilisateur est l'organisateur de l'événement
+        if ($event->getOrganizer() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à gérer les invitations de cet événement.');
         }
 
         $invitation = new Invitation();
@@ -49,7 +50,7 @@ class InvitationController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $invitation->setToken(bin2hex(random_bytes(32)))
                 ->setStatus('pending')
-                ->setCreatedAt(new \DateTimeImmutable())
+                ->setCreatedAt(new \DateTime())
                 ->setEvent($event);
 
             $entityManager->persist($invitation);
@@ -58,55 +59,95 @@ class InvitationController extends AbstractController
             $this->sendInvitationEmail($invitation, $mailer);
             $this->addFlash('success', 'Invitation envoyée avec succès');
 
-            return $this->redirectToRoute('invitation_list', ['eventId' => $eventId]);
+            return $this->redirectToRoute('invitation_index', ['eventId' => $eventId]);
         }
 
-        return $this->render('invitation/list.html.twig', [
-            'event' => $event, // Doit être passé explicitement
-            'invitations' => $invitation
+        return $this->render('invitation/new.html.twig', [
+            'form' => $form->createView(),
+            'event' => $event
         ]);
     }
 
-    #[Route('/list/{eventId}', name: 'invitation_list')]
-    public function list(
+    #[Route('/invitations/{eventId}', name: 'invitation_index', requirements: ['eventId' => '\d+'], methods: ['GET'])]
+    public function index(
         int $eventId,
+        Request $request,
         EventRepository $eventRepository,
         InvitationRepository $invitationRepository
     ): Response {
+        // Debug information
+        $user = $this->getUser();
+        $roles = $user ? $user->getRoles() : ['not authenticated'];
+        
+        // Log the request information
+        $this->addFlash('info', sprintf(
+            'Request Debug: Method: %s, Path: %s, EventId: %s',
+            $request->getMethod(),
+            $request->getPathInfo(),
+            $eventId
+        ));
+        
         $event = $eventRepository->find($eventId);
-
+        
         if (!$event) {
-            $this->addFlash('error', 'Événement non trouvé');
-            return $this->redirectToRoute('event_index');
+            $this->addFlash('error', sprintf(
+                'Événement non trouvé (ID: %d). Debug: User: %s, Roles: %s',
+                $eventId,
+                $user ? $user->getUserIdentifier() : 'none',
+                implode(', ', $roles)
+            ));
+            return $this->redirectToRoute('event_list');
         }
 
-        return $this->render('invitation/list.html.twig', [
+        // Debug information
+        if ($event->getOrganizer() !== $user) {
+            $this->addFlash('error', sprintf(
+                'Accès refusé. Organisateur attendu: %s, Utilisateur actuel: %s, Roles: %s',
+                $event->getOrganizer() ? $event->getOrganizer()->getUserIdentifier() : 'none',
+                $user ? $user->getUserIdentifier() : 'none',
+                implode(', ', $roles)
+            ));
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à voir les invitations de cet événement.');
+        }
+
+        $invitations = $invitationRepository->findBy(['event' => $event]);
+
+        return $this->render('invitation/index.html.twig', [
             'event' => $event,
-            'invitations' => $invitationRepository->findBy(['event' => $event]),
+            'invitations' => $invitations,
+            'debug' => [
+                'user' => $user ? $user->getUserIdentifier() : 'none',
+                'roles' => $roles,
+                'eventId' => $eventId,
+                'requestPath' => $request->getPathInfo(),
+                'requestMethod' => $request->getMethod()
+            ]
         ]);
     }
 
-    #[Route('/respond/{token}/{response}', name: 'invitation_respond')]
-    public function respond(
-        string $token,
-        string $response,
+    #[Route('/invitations/{id}/cancel', name: 'invitation_cancel', methods: ['GET'])]
+    public function cancel(
+        Invitation $invitation,
         EntityManagerInterface $entityManager
     ): Response {
-        $invitation = $entityManager->getRepository(Invitation::class)
-            ->findOneBy(['token' => $token]);
-
-        if (!$invitation) {
-            throw $this->createNotFoundException('Invitation non trouvée');
+        $event = $invitation->getEvent();
+        
+        // Check if the current user is the event organizer
+        if ($event->getOrganizer() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à annuler cette invitation.');
         }
 
-        $invitation->setStatus($response)
-            ->setUpdatedAt(new \DateTimeImmutable());
+        // Only pending invitations can be cancelled
+        if ($invitation->getStatus() !== 'pending') {
+            $this->addFlash('error', 'Seules les invitations en attente peuvent être annulées.');
+            return $this->redirectToRoute('invitation_index', ['eventId' => $event->getId()]);
+        }
+
+        $entityManager->remove($invitation);
         $entityManager->flush();
 
-        return $this->render('invitation/response.html.twig', [
-            'response' => $response,
-            'invitation' => $invitation,
-        ]);
+        $this->addFlash('success', 'L\'invitation a été annulée avec succès.');
+        return $this->redirectToRoute('invitation_index', ['eventId' => $event->getId()]);
     }
 
     private function sendInvitationEmail(Invitation $invitation, MailerInterface $mailer): void

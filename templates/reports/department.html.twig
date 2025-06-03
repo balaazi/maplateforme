@@ -1,0 +1,493 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analyse par Département{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .analysis-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(to right, #4facfe, #00f2fe);
+            border-radius: 3px;
+        }
+
+        .department-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .department-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .department-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .department-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .department-body {
+            padding: 2rem;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .performance-indicators {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .indicator {
+            text-align: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .indicator-attendance {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            color: white;
+        }
+
+        .indicator-response {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .indicator-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .indicator-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+            padding: 1rem;
+        }
+
+        .table tbody td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .ranking-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .rank-1 { background: #ffd700; color: #8b6914; }
+        .rank-2 { background: #c0c0c0; color: #5a5a5a; }
+        .rank-3 { background: #cd7f32; color: #6b4423; }
+        .rank-other { background: #e9ecef; color: #6c757d; }
+
+        .progress-mini {
+            height: 0.5rem;
+            border-radius: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div class="container">
+            <h1 class="h2 mb-3">🏢 Analyse par Département et Spécialité</h1>
+            <p class="mb-0">Comparez les performances organisationnelles et identifiez les tendances</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Analyse par Département -->
+        <div class="analysis-section">
+            <h3 class="section-title">📊 Performance par Département</h3>
+            
+            {% if departmentStats is not empty %}
+                <!-- Graphiques de Comparaison -->
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h5 class="mb-3">Taux de Présence par Département</h5>
+                        <canvas id="departmentAttendanceChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h5 class="mb-3">Volume de Participation</h5>
+                        <canvas id="departmentVolumeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Cartes Détaillées par Département -->
+                <div class="row">
+                    {% for department, stats in departmentStats %}
+                        <div class="col-lg-6">
+                            <div class="department-card">
+                                <div class="department-header">
+                                    <h4 class="department-name">{{ department }}</h4>
+                                </div>
+                                <div class="department-body">
+                                    <div class="stats-row">
+                                        <div class="stat-box">
+                                            <div class="stat-number">{{ stats.total_participations }}</div>
+                                            <div class="stat-label">Participations</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">{{ stats.present }}</div>
+                                            <div class="stat-label">Présents</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">{{ stats.absent }}</div>
+                                            <div class="stat-label">Absents</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-number">{{ stats.accepted }}</div>
+                                            <div class="stat-label">Acceptées</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="performance-indicators">
+                                        <div class="indicator indicator-attendance">
+                                            <div class="indicator-value">{{ stats.attendance_rate }}%</div>
+                                            <div class="indicator-label">Taux de Présence</div>
+                                        </div>
+                                        <div class="indicator indicator-response">
+                                            <div class="indicator-value">{{ stats.response_rate }}%</div>
+                                            <div class="indicator-label">Taux de Réponse</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Tableau de Classement -->
+                <div class="comparison-table">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Rang</th>
+                                    <th>Département</th>
+                                    <th>Participations</th>
+                                    <th>Taux de Présence</th>
+                                    <th>Taux de Réponse</th>
+                                    <th>Performance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set sortedDepartments = departmentStats|sort_by_key('attendance_rate')|reverse %}
+                                {% for department, stats in sortedDepartments %}
+                                    <tr>
+                                        <td>
+                                            <span class="ranking-badge 
+                                                {% if loop.index == 1 %}rank-1
+                                                {% elseif loop.index == 2 %}rank-2
+                                                {% elseif loop.index == 3 %}rank-3
+                                                {% else %}rank-other
+                                                {% endif %}">
+                                                #{{ loop.index }}
+                                            </span>
+                                        </td>
+                                        <td><strong>{{ department }}</strong></td>
+                                        <td>{{ stats.total_participations }}</td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2">{{ stats.attendance_rate }}%</span>
+                                                <div class="progress progress-mini flex-grow-1">
+                                                    <div class="progress-bar bg-success" style="width: {{ stats.attendance_rate }}%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <span class="me-2">{{ stats.response_rate }}%</span>
+                                                <div class="progress progress-mini flex-grow-1">
+                                                    <div class="progress-bar bg-info" style="width: {{ stats.response_rate }}%"></div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% set average = (stats.attendance_rate + stats.response_rate) / 2 %}
+                                            <span class="badge 
+                                                {% if average >= 80 %}bg-success
+                                                {% elseif average >= 60 %}bg-info
+                                                {% elseif average >= 40 %}bg-warning
+                                                {% else %}bg-danger
+                                                {% endif %}">
+                                                {% if average >= 80 %}Excellent
+                                                {% elseif average >= 60 %}Bon
+                                                {% elseif average >= 40 %}Moyen
+                                                {% else %}À améliorer
+                                                {% endif %}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                    <p>Aucune donnée de département disponible</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Analyse par Spécialité -->
+        <div class="analysis-section">
+            <h3 class="section-title">🎯 Performance par Spécialité</h3>
+            
+            {% if specialtyStats is not empty %}
+                <div class="chart-container mb-4">
+                    <h5 class="mb-3">Répartition par Spécialité</h5>
+                    <canvas id="specialtyChart"></canvas>
+                </div>
+
+                <div class="row">
+                    {% for specialty, stats in specialtyStats %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="department-card">
+                                <div class="department-header">
+                                    <h6 class="department-name">{{ specialty }}</h6>
+                                </div>
+                                <div class="department-body">
+                                    <div class="text-center">
+                                        <div class="stat-number">{{ stats.total_participations }}</div>
+                                        <div class="stat-label mb-3">Participations</div>
+                                        
+                                        <div class="performance-indicators">
+                                            <div class="indicator indicator-attendance">
+                                                <div class="indicator-value">{{ stats.attendance_rate }}%</div>
+                                                <div class="indicator-label">Présence</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-briefcase fa-3x mb-3"></i>
+                    <p>Aucune donnée de spécialité disponible</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ path('reports_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour aux Rapports
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Données des départements
+            const departmentData = {{ departmentStats|json_encode|raw }};
+            const departments = Object.keys(departmentData);
+            
+            if (departments.length > 0) {
+                // Graphique des taux de présence
+                const attendanceRates = departments.map(dept => departmentData[dept].attendance_rate);
+                const attendanceCtx = document.getElementById('departmentAttendanceChart').getContext('2d');
+                new Chart(attendanceCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: departments,
+                        datasets: [{
+                            label: 'Taux de présence (%)',
+                            data: attendanceRates,
+                            backgroundColor: '#4facfe',
+                            borderColor: '#00f2fe',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // Graphique du volume de participation
+                const volumes = departments.map(dept => departmentData[dept].total_participations);
+                const volumeCtx = document.getElementById('departmentVolumeChart').getContext('2d');
+                new Chart(volumeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: departments,
+                        datasets: [{
+                            data: volumes,
+                            backgroundColor: [
+                                '#4facfe', '#00f2fe', '#667eea', '#764ba2',
+                                '#f093fb', '#f5576c', '#43e97b', '#38f9d7'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Graphique des spécialités
+            const specialtyData = {{ specialtyStats|json_encode|raw }};
+            const specialties = Object.keys(specialtyData);
+            
+            if (specialties.length > 0) {
+                const specialtyVolumes = specialties.map(spec => specialtyData[spec].total_participations);
+                const specialtyCtx = document.getElementById('specialtyChart').getContext('2d');
+                new Chart(specialtyCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: specialties,
+                        datasets: [{
+                            data: specialtyVolumes,
+                            backgroundColor: [
+                                'rgba(79, 172, 254, 0.8)', 'rgba(0, 242, 254, 0.8)',
+                                'rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)',
+                                'rgba(240, 147, 251, 0.8)', 'rgba(245, 87, 108, 0.8)',
+                                'rgba(67, 233, 123, 0.8)', 'rgba(56, 249, 215, 0.8)'
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %} 

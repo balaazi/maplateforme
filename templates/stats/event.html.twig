@@ -1,0 +1,778 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques de l'événement - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .stats-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 30px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102,126,234,0.2);
+        }
+        
+        .stats-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        .stats-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .stats-icon {
+            background: rgba(255,255,255,0.25);
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        .stats-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .event-title {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-top: 1.5rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 3rem;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .info-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
+            transform: scale(0);
+            transition: transform 0.6s ease;
+        }
+        
+        .info-card:hover::after {
+            transform: scale(1);
+        }
+        
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .card-title-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(102,126,234,0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102,126,234,0.1);
+        }
+        
+        .info-item-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+        
+        .info-item-content {
+            flex: 1;
+        }
+        
+        .info-item-label {
+            font-weight: 700;
+            color: #2c3e50;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-item-value {
+            font-size: 1.1rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        
+        .stat-card.total::before {
+            background: linear-gradient(90deg, #6c757d, #495057);
+        }
+        
+        .stat-card.accepted::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .stat-card.refused::before {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        .stat-card.pending::before {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card.present::before {
+            background: linear-gradient(90deg, #17a2b8, #138496);
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            opacity: 0.1;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card.total::after {
+            background: radial-gradient(circle, #6c757d, transparent);
+        }
+        
+        .stat-card.accepted::after {
+            background: radial-gradient(circle, #28a745, transparent);
+        }
+        
+        .stat-card.refused::after {
+            background: radial-gradient(circle, #dc3545, transparent);
+        }
+        
+        .stat-card.pending::after {
+            background: radial-gradient(circle, #ffc107, transparent);
+        }
+        
+        .stat-card.present::after {
+            background: radial-gradient(circle, #17a2b8, transparent);
+        }
+        
+        .stat-card:hover::after {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .stat-card.total .stat-icon {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+        
+        .stat-card.accepted .stat-icon {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .stat-card.refused .stat-icon {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .stat-card.pending .stat-icon {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+        }
+        
+        .stat-card.present .stat-icon {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+        }
+        
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .stat-card.total .stat-number {
+            color: #6c757d;
+        }
+        
+        .stat-card.accepted .stat-number {
+            color: #28a745;
+        }
+        
+        .stat-card.refused .stat-number {
+            color: #dc3545;
+        }
+        
+        .stat-card.pending .stat-number {
+            color: #ffc107;
+        }
+        
+        .stat-card.present .stat-number {
+            color: #17a2b8;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .back-button-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 3rem;
+        }
+        
+        .btn-back {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 1.25rem 2.5rem;
+            border-radius: 15px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 1rem;
+            min-width: 200px;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(108,117,125,0.3);
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(108,117,125,0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-container {
+                padding: 1rem;
+            }
+            
+            .stats-header {
+                padding: 2.5rem 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .stats-header h1 {
+                font-size: 2rem;
+            }
+            
+            .info-card {
+                padding: 2rem;
+                border-radius: 20px;
+            }
+            
+            .card-title {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .card-title-icon {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+                gap: 1.5rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+            
+            .stat-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .btn-back {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .progress-ring {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .progress-ring svg {
+            transform: rotate(-90deg);
+            width: 100%;
+            height: 100%;
+        }
+        
+        .progress-ring-background {
+            fill: none;
+            stroke: #e9ecef;
+            stroke-width: 8;
+        }
+        
+        .progress-ring-progress {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dasharray 0.5s ease;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="stats-container">
+        <div class="container-fluid">
+            <!-- En-tête des statistiques -->
+            <div class="stats-header fade-in">
+                <div class="header-content">
+                    <div class="stats-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h1>Statistiques de l'événement</h1>
+                    <div class="event-title">
+                        <i class="fas fa-calendar-alt"></i> {{ event.title }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informations générales -->
+            <div class="info-card fade-in" style="animation-delay: 0.1s;">
+                <div class="card-title">
+                    <div class="card-title-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    Informations générales
+                </div>
+                
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-item-icon">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Date & Heure</div>
+                            <div class="info-item-value">{{ event.dateHeure|date('d/m/Y H:i', 'Europe/Paris') }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-item-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Lieu</div>
+                            <div class="info-item-value">{{ event.lieu }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-item">
+                        <div class="info-item-icon">
+                            <i class="fas fa-user-crown"></i>
+                        </div>
+                        <div class="info-item-content">
+                            <div class="info-item-label">Organisateur</div>
+                            <div class="info-item-value">{{ event.organizer.email }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques de participation -->
+            <div class="stats-grid fade-in" style="animation-delay: 0.2s;">
+                <div class="stat-card total">
+                    <div class="stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.total }}</div>
+                    <div class="stat-label">Total des invitations</div>
+                </div>
+                
+                <div class="stat-card accepted">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.accepted }}</div>
+                    <div class="stat-label">Acceptées</div>
+                </div>
+                
+                <div class="stat-card refused">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.refused }}</div>
+                    <div class="stat-label">Refusées</div>
+                </div>
+                
+                <div class="stat-card pending">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.pending }}</div>
+                    <div class="stat-label">En attente</div>
+                </div>
+                
+                <div class="stat-card present">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.present }}</div>
+                    <div class="stat-label">Présents</div>
+                </div>
+            </div>
+
+            <!-- Bouton retour -->
+            <div class="back-button-container fade-in" style="animation-delay: 0.3s;">
+                <a href="{{ path('event_list') }}" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour à la liste des événements
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation d'entrée progressive
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            // Observer les éléments avec animation
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+            
+            // Animation des cartes de statistiques
+            const statCards = document.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8) translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1) translateY(0)';
+                }, (index * 150) + 800);
+            });
+            
+            // Animation des éléments d'information
+            const infoItems = document.querySelectorAll('.info-item');
+            infoItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-30px)';
+                
+                setTimeout(() => {
+                    item.style.transition = 'all 0.5s ease-out';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, (index * 200) + 1000);
+            });
+            
+            // Effet de parallaxe subtil
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.stats-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+            
+            // Animation au hover des cartes de statistiques
+            statCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    const number = this.querySelector('.stat-number');
+                    if (number) {
+                        number.style.transform = 'scale(1.1)';
+                    }
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    const number = this.querySelector('.stat-number');
+                    if (number) {
+                        number.style.transform = 'scale(1)';
+                    }
+                });
+            });
+            
+            // Animation de compteur pour les nombres
+            const animateNumbers = () => {
+                const numbers = document.querySelectorAll('.stat-number');
+                numbers.forEach(number => {
+                    const target = parseInt(number.textContent);
+                    let current = 0;
+                    const increment = target / 50;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            number.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            number.textContent = Math.floor(current);
+                        }
+                    }, 30);
+                });
+            };
+            
+            // Démarrer l'animation des nombres après un délai
+            setTimeout(animateNumbers, 1500);
+            
+            // Effet de pulsation pour les icônes
+            const icons = document.querySelectorAll('.stat-icon, .info-item-icon');
+            icons.forEach(icon => {
+                icon.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1) rotate(5deg)';
+                });
+                
+                icon.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1) rotate(0deg)';
+                });
+            });
+            
+            // Animation de rotation continue pour l'icône principale
+            const mainIcon = document.querySelector('.stats-icon i');
+            if (mainIcon) {
+                setInterval(() => {
+                    mainIcon.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                        mainIcon.style.transform = 'rotate(0deg)';
+                    }, 1000);
+                }, 5000);
+            }
+        });
+    </script>
+{% endblock %} 

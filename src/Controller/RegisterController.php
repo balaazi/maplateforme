@@ -18,13 +18,11 @@ class RegisterController extends AbstractController
 {
     private $entityManager;
     private $passwordHasher;
-    private $photosDirectory;
 
-    public function __construct(EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher, ParameterBagInterface $params)
+    public function __construct(EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher)
     {
         $this->entityManager = $entityManager;
         $this->passwordHasher = $passwordHasher;
-        $this->photosDirectory = $params->get('photos_directory'); // ✅ Récupération du paramètre photos_directory
     }
 
     #[Route('/register', name: 'app_register')]

@@ -1,0 +1,354 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Analyse des Participations{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .stats-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .stats-card h3 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+        }
+
+        .progress {
+            height: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .event-type-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .event-type-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .event-type-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+
+        .event-type-body {
+            padding: 1.5rem;
+        }
+
+        .rate-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .rate-excellent { background: #d4edda; color: #155724; }
+        .rate-good { background: #d1ecf1; color: #0c5460; }
+        .rate-average { background: #fff3cd; color: #856404; }
+        .rate-poor { background: #f8d7da; color: #721c24; }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div class="container">
+            <h1 class="h2 mb-3">👥 Analyse des Participations</h1>
+            <p class="mb-0">Découvrez les tendances de réponse et d'engagement de vos participants</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Statistiques Globales -->
+        <div class="stats-card">
+            <h3>📊 Vue d'Ensemble Globale</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">{{ participationStats.total_events }}</div>
+                    <div class="stat-label">Événements</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ participationStats.total_invitations }}</div>
+                    <div class="stat-label">Invitations</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ participationStats.accepted }}</div>
+                    <div class="stat-label">Acceptées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ participationStats.declined }}</div>
+                    <div class="stat-label">Refusées</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">{{ participationStats.pending }}</div>
+                    <div class="stat-label">En Attente</div>
+                </div>
+            </div>
+
+            <!-- Barres de Progression Globales -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="progress-card">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Taux de Réponse Global</span>
+                            <span class="fw-bold">{{ participationStats.response_rate }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-info" style="width: {{ participationStats.response_rate }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="progress-card">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Taux d'Acceptation Global</span>
+                            <span class="fw-bold">{{ participationStats.acceptance_rate }}%</span>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar bg-success" style="width: {{ participationStats.acceptance_rate }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphiques de Répartition -->
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">📈 Répartition des Réponses</h5>
+                    <canvas id="responseChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="mb-3">📊 Performance par Type d'Événement</h5>
+                    <canvas id="eventTypeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analyse par Type d'Événement -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-4">🎯 Analyse Détaillée par Type d'Événement</h4>
+            </div>
+            {% for eventType, stats in eventTypeStats %}
+                <div class="col-lg-6">
+                    <div class="event-type-card">
+                        <div class="event-type-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>{{ eventType }}</span>
+                                <small>{{ stats.total_events }} événement(s)</small>
+                            </div>
+                        </div>
+                        <div class="event-type-body">
+                            <div class="row text-center mb-3">
+                                <div class="col-4">
+                                    <div class="stat-value text-success">{{ stats.accepted }}</div>
+                                    <div class="stat-label">Acceptées</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value text-danger">{{ stats.declined }}</div>
+                                    <div class="stat-label">Refusées</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="stat-value text-warning">{{ stats.pending }}</div>
+                                    <div class="stat-label">En Attente</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <span class="rate-badge 
+                                            {% if stats.response_rate >= 80 %}rate-excellent
+                                            {% elseif stats.response_rate >= 60 %}rate-good
+                                            {% elseif stats.response_rate >= 40 %}rate-average
+                                            {% else %}rate-poor
+                                            {% endif %}">
+                                            {{ stats.response_rate }}% Réponse
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <span class="rate-badge 
+                                            {% if stats.acceptance_rate >= 80 %}rate-excellent
+                                            {% elseif stats.acceptance_rate >= 60 %}rate-good
+                                            {% elseif stats.acceptance_rate >= 40 %}rate-average
+                                            {% else %}rate-poor
+                                            {% endif %}">
+                                            {{ stats.acceptance_rate }}% Acceptation
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="col-12">
+                    <div class="text-center text-muted py-4">
+                        Aucun type d'événement spécifique trouvé
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ path('reports_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour aux Rapports
+            </a>
+            <a href="{{ path('reports_export', {type: 'participation'}) }}" class="btn btn-success ms-2">
+                <i class="fas fa-download me-2"></i>Exporter les Données
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graphique en cercle pour la répartition des réponses
+            const responseCtx = document.getElementById('responseChart').getContext('2d');
+            new Chart(responseCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Acceptées', 'Refusées', 'En Attente'],
+                    datasets: [{
+                        data: [
+                            {{ participationStats.accepted }},
+                            {{ participationStats.declined }},
+                            {{ participationStats.pending }}
+                        ],
+                        backgroundColor: [
+                            '#28a745',
+                            '#dc3545',
+                            '#ffc107'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Graphique en barres pour les performances par type d'événement
+            const eventTypeData = {{ eventTypeStats|json_encode|raw }};
+            const eventTypes = Object.keys(eventTypeData);
+            const acceptanceRates = eventTypes.map(type => eventTypeData[type].acceptance_rate);
+
+            const eventTypeCtx = document.getElementById('eventTypeChart').getContext('2d');
+            new Chart(eventTypeCtx, {
+                type: 'bar',
+                data: {
+                    labels: eventTypes,
+                    datasets: [{
+                        label: 'Taux d\'acceptation (%)',
+                        data: acceptanceRates,
+                        backgroundColor: '#667eea',
+                        borderColor: '#4f46e5',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

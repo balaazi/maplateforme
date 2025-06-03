@@ -3,6 +3,9 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
             algorithm: auto
 
+    role_hierarchy:
+        ROLE_ADMIN: [ROLE_ORGANISATEUR, ROLE_PARTICIPANT]
+
     providers:
         user_provider:
             entity:
@@ -13,17 +16,12 @@ security:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-            
+
         main:
             lazy: true
             provider: user_provider
-            entry_point: App\Security\AppAuthenticator  # Point d'entrée spécifié
+            entry_point: App\Security\AppAuthenticator
             custom_authenticator: App\Security\AppAuthenticator
-            form_login:
-                login_path: app_login
-                check_path: app_login
-                enable_csrf: true
-                default_target_path: redirect_after_login
             logout:
                 path: /logout
                 target: app_home
@@ -32,9 +30,14 @@ security:
                 invalidate_session: true
 
     access_control:
+        - { path: ^/organizer/invitations/respond, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/organizer, roles: ROLE_ORGANISATEUR }
         - { path: ^/organisateur, roles: ROLE_ORGANISATEUR }
         - { path: ^/participant, roles: ROLE_PARTICIPANT }
+        - { path: ^/dashboard, roles: ROLE_PARTICIPANT }
+        - { path: ^/mes-evenements, roles: ROLE_PARTICIPANT }
+        - { path: ^/event/\d+/presence, roles: ROLE_PARTICIPANT }
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
         - { path: ^/reset-password, roles: PUBLIC_ACCESS }

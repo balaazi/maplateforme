@@ -26,11 +26,16 @@ class EventFormType extends AbstractType
             ->add('lieu', TextType::class, ['label' => 'Lieu'])
             ->add('dateHeure', DateTimeType::class, [
                 'label' => 'Date et heure',
-                'widget' => 'single_text',  
+                'widget' => 'single_text',
+                'input' => 'datetime',
+                'model_timezone' => 'Europe/Paris',
+                'view_timezone' => 'Europe/Paris',
+                'with_seconds' => false,
+                'html5' => true,
                 'attr' => [
                     'class' => 'form-control',
-                    'type' => 'datetime-local', 
                 ],
+                'input_format' => 'Y-m-d H:i',
             ])
             ->add('duree', IntegerType::class, ['label' => 'Durée (minutes)'])
             ->add('category', ChoiceType::class, [
@@ -44,13 +49,14 @@ class EventFormType extends AbstractType
                 ],
             ])
             ->add('etherpadUrl', UrlType::class, [
-            'label' => 'Lien Etherpad (collaboratif)',
-             'required' => false,
-                     'attr' => [
-            'placeholder' => 'https://etherpad.example.com/p/ton-pad'
-        ]
-
+                'label' => 'URL Etherpad',
+                'required' => false,
+                'attr' => [
+                    'placeholder' => 'https://etherpad.example.com/p/ton-pad'
+                ]
             ])
+
+            
             ->add('imageFile', VichFileType::class, [
                 'required' => false,
                 'allow_delete' => true,
@@ -69,7 +75,7 @@ class EventFormType extends AbstractType
                 ]
             ])
         ;
-}
+    }
 
     public function configureOptions(OptionsResolver $resolver): void
     {

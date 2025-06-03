@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Repository\EventRepository;
 use App\Service\EmailService;
-use App\Service\SmsService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -20,7 +19,6 @@ class SendEventRemindersCommand extends Command
     public function __construct(
         private EventRepository $eventRepository,
         private EmailService $emailService,
-        private SmsService $smsService,
         private EntityManagerInterface $em
     ) {
         parent::__construct();
@@ -47,15 +45,10 @@ class SendEventRemindersCommand extends Command
                 if ($user->isNotifyByEmail()) {
                     $this->emailService->sendReminder($user, $event);
                 }
-
-                // ✅ Envoie SMS si numéro dispo
-                if ($user->getPhone()) {
-                    $this->smsService->sendReminder($user, $event);
-                }
             }
         }
 
-        $output->writeln('✅ Rappels envoyés pour les événements de demain.');
+        $output->writeln('✅ Rappels envoyés par email pour les événements de demain.');
 
         return Command::SUCCESS;
     }

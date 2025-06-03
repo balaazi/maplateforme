@@ -8,8 +8,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Validator\Constraints\File;
@@ -26,8 +26,12 @@ class UserType extends AbstractType
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe',
-                'mapped' => false,  // Empêche Doctrine de lier ce champ à l'entité User
                 'required' => true,
+                'mapped' => false,
+                'attr' => [
+                    'autocomplete' => 'new-password',
+                    'placeholder' => 'Choisissez un mot de passe sécurisé'
+                ],
             ])
             ->add('nom', TextType::class, [
                 'label' => 'Nom',
@@ -53,17 +57,8 @@ class UserType extends AbstractType
                 'label' => 'Société',
                 'required'=>false,
             ])
-            ->add('roles', ChoiceType::class, [
-                'choices' => [
-                    'Admin' => 'ROLE_ADMIN',
-                    'Participant' => 'ROLE_PARTICIPANT',
-                    'Organisateur' => 'ROLE_ORGANISATEUR',
-                ],
-                'expanded' => false,
-                'multiple' => true,
-                'label' => 'Rôles',
-                'placeholder' => 'Sélectionner un rôle',
-            ])
+           
+        
             ->add('dateNaissance', DateType::class, [
                 'widget' => 'single_text',
                 'required' => false,
@@ -75,7 +70,7 @@ class UserType extends AbstractType
            
             ->add('photoFile', FileType::class, [
                 'label' => 'Photo de profil',
-                'mapped' => false, // Ce champ ne doit pas être mappé à l’entité User
+                'mapped' => false, // Ce champ ne doit pas être mappé à l'entité User
                 'required' => false,
                 'constraints' => [
                     new File([

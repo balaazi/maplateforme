@@ -1,8 +1,21 @@
 {
+  "name": "maplateforme",
+  "version": "1.0.0",
+  "description": "Application de gestion d'événements",
+  "scripts": {
+    "dev": "encore dev",
+    "watch": "encore dev --watch",
+    "build": "encore production --progress"
+  },
   "dependencies": {
     "@fullcalendar/core": "^6.1.17",
     "@fullcalendar/daygrid": "^6.1.17",
     "@fullcalendar/interaction": "^6.1.17",
-    "@fullcalendar/timegrid": "^6.1.17"
+    "@fullcalendar/timegrid": "^6.1.17",
+    "@symfony/webpack-encore": "^4.7.0",
+    "core-js": "^3.42.0"
+  },
+  "devDependencies": {
+    "webpack-notifier": "^1.15.0"
   }
 }

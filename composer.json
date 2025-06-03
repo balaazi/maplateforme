@@ -13,6 +13,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.4",
         "doctrine/orm": ">=3.3.2",
         "google/apiclient": "^2.18",
+        "knplabs/knp-time-bundle": "^2.4",
         "knpuniversity/oauth2-client-bundle": "*",
         "league/oauth2-google": "*",
         "monolog/monolog": "3.0",
@@ -45,7 +46,7 @@
         "symfony/security-bundle": "7.2.*",
         "symfony/security-core": "7.2.*",
         "symfony/serializer": "7.2.*",
-        "symfony/stimulus-bundle": "^2.24",
+        "symfony/stimulus-bundle": "*",
         "symfony/string": "7.2.*",
         "symfony/translation": "7.2.*",
         "symfony/twig-bundle": "7.2.*",
@@ -57,8 +58,8 @@
         "symfonycasts/reset-password-bundle": "^1.23.1",
         "twig/extra-bundle": "^2.12|^3.20",
         "twig/twig": "^2.12|^3.20",
-        "twilio/sdk": "^8.5",
-        "vich/uploader-bundle": "^2.6"
+        "twilio/sdk": "^8.6",
+        "vich/uploader-bundle": "*"
     },
     "config": {
         "allow-plugins": {

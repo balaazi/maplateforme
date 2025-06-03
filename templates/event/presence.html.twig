@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Marquer votre présence - {{ event.title }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Marquer votre présence</h1>
+    <h2 class="mb-4">{{ event.title }}</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Informations de l'événement</h5>
+            <p><strong>Date :</strong> {{ event.dateHeure|date('d/m/Y H:i') }}</p>
+            <p><strong>Lieu :</strong> {{ event.lieu }}</p>
+            
+            <div class="mt-4">
+                <h5>Votre présence</h5>
+                <div class="btn-group" role="group" aria-label="Marquer présence">
+                    <button type="button" 
+                            class="btn {% if participation.isPresent %}btn-success active{% else %}btn-outline-success{% endif %}" 
+                            onclick="updatePresence(true)"
+                            id="btnPresent">
+                        ✅ Je serai présent
+                    </button>
+                    <button type="button" 
+                            class="btn {% if not participation.isPresent %}btn-danger active{% else %}btn-outline-danger{% endif %}" 
+                            onclick="updatePresence(false)"
+                            id="btnAbsent">
+                        ❌ Je serai absent
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block javascripts %}
+<script>
+function updatePresence(isPresent) {
+    fetch('{{ path('mark_presence', {'id': event.id}) }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: 'is_present=' + isPresent
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mettre à jour l'interface
+            const btnPresent = document.getElementById('btnPresent');
+            const btnAbsent = document.getElementById('btnAbsent');
+            
+            if (data.isPresent) {
+                btnPresent.classList.remove('btn-outline-success');
+                btnPresent.classList.add('btn-success', 'active');
+                btnAbsent.classList.remove('btn-danger', 'active');
+                btnAbsent.classList.add('btn-outline-danger');
+            } else {
+                btnAbsent.classList.remove('btn-outline-danger');
+                btnAbsent.classList.add('btn-danger', 'active');
+                btnPresent.classList.remove('btn-success', 'active');
+                btnPresent.classList.add('btn-outline-success');
+            }
+            
+            // Afficher un message de confirmation
+            alert(data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        alert('Une erreur est survenue lors de la mise à jour de votre présence.');
+    });
+}
+</script>
+{% endblock %}
+
+{% endblock %} 

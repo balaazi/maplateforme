@@ -1,0 +1,328 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Rapport de Fréquentation{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        .filter-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .stats-overview {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .attendance-table {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .attendance-rate {
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.875rem;
+        }
+
+        .rate-excellent { background: #d4edda; color: #155724; }
+        .rate-good { background: #d1ecf1; color: #0c5460; }
+        .rate-average { background: #fff3cd; color: #856404; }
+        .rate-poor { background: #f8d7da; color: #721c24; }
+
+        .chart-container {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #43e97b, #38f9d7);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(67, 233, 123, 0.3);
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="page-header">
+        <div class="container">
+            <h1 class="h2 mb-3">📈 Rapport de Fréquentation</h1>
+            <p class="mb-0">Analysez les taux de participation et d'assiduité de vos événements</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtres -->
+        <div class="filter-card">
+            <h5 class="mb-3">🔍 Filtres de Recherche</h5>
+            <form method="GET" action="{{ path('reports_attendance') }}">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label for="start_date" class="form-label">Date de début</label>
+                        <input type="date" id="start_date" name="start_date" class="form-control" 
+                               value="{{ filters.start_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="end_date" class="form-label">Date de fin</label>
+                        <input type="date" id="end_date" name="end_date" class="form-control" 
+                               value="{{ filters.end_date }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="event_type" class="form-label">Type d'événement</label>
+                        <select id="event_type" name="event_type" class="form-select">
+                            <option value="">Tous les types</option>
+                            <option value="Formation" {{ filters.event_type == 'Formation' ? 'selected' : '' }}>Formation</option>
+                            <option value="Réunion" {{ filters.event_type == 'Réunion' ? 'selected' : '' }}>Réunion</option>
+                            <option value="Séminaire" {{ filters.event_type == 'Séminaire' ? 'selected' : '' }}>Séminaire</option>
+                            <option value="Workshop" {{ filters.event_type == 'Workshop' ? 'selected' : '' }}>Workshop</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-2"></i>Appliquer les Filtres
+                        </button>
+                        <a href="{{ path('reports_attendance') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>Réinitialiser
+                        </a>
+                        <a href="{{ path('reports_export', {type: 'attendance'}) }}" class="btn btn-export ms-2">
+                            <i class="fas fa-download me-2"></i>Exporter CSV
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Statistiques Globales -->
+        <div class="stats-overview">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ totalInvited }}</div>
+                        <div>Total Invités</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ totalPresent }}</div>
+                        <div>Total Présents</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ totalAbsent }}</div>
+                        <div>Total Absents</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ globalAttendanceRate }}%</div>
+                        <div>Taux Global</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Graphique de Tendance -->
+        <div class="chart-container">
+            <h5 class="mb-3">📊 Évolution de la Fréquentation</h5>
+            <canvas id="attendanceChart" height="400"></canvas>
+        </div>
+
+        <!-- Tableau Détaillé -->
+        <div class="attendance-table">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Événement</th>
+                            <th>Date</th>
+                            <th>Lieu</th>
+                            <th>Invités</th>
+                            <th>Présents</th>
+                            <th>Absents</th>
+                            <th>Taux de Présence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in attendanceData %}
+                            <tr>
+                                <td>
+                                    <strong>{{ data.event.title }}</strong>
+                                    {% if data.event.typeEvenement %}
+                                        <small class="text-muted d-block">{{ data.event.typeEvenement }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ data.event.dateHeure|date('d/m/Y H:i') }}</td>
+                                <td>{{ data.event.lieu }}</td>
+                                <td><span class="badge bg-primary">{{ data.invited }}</span></td>
+                                <td><span class="badge bg-success">{{ data.present }}</span></td>
+                                <td><span class="badge bg-danger">{{ data.absent }}</span></td>
+                                <td>
+                                    <span class="attendance-rate 
+                                        {% if data.attendance_rate >= 80 %}rate-excellent
+                                        {% elseif data.attendance_rate >= 60 %}rate-good
+                                        {% elseif data.attendance_rate >= 40 %}rate-average
+                                        {% else %}rate-poor
+                                        {% endif %}">
+                                        {{ data.attendance_rate }}%
+                                    </span>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    Aucun événement trouvé pour les critères sélectionnés
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ path('reports_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour aux Rapports
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Préparation des données pour le graphique
+            const attendanceData = {{ attendanceData|json_encode|raw }};
+            
+            const labels = attendanceData.map(item => {
+                const date = new Date(item.event.dateHeure.date);
+                return date.toLocaleDateString('fr-FR', { 
+                    day: '2-digit', 
+                    month: '2-digit' 
+                });
+            });
+            
+            const attendanceRates = attendanceData.map(item => item.attendance_rate);
+            
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Taux de présence (%)',
+                        data: attendanceRates,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#667eea',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#667eea',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

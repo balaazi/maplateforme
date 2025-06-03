@@ -14,6 +14,9 @@ framework:
         cookie_lifetime: 3600
         enabled: true
 
+    assets:
+        base_path: '/'
+
 when@test:
     framework:
         test: true

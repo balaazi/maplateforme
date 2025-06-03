@@ -3,10 +3,71 @@
 {% block title %}Réinitialisez votre mot de passe{% endblock %}
 
 {% block body %}
-    <h1>Réinitialisez votre mot de passe</h1>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow border-0 rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        <h2 class="text-center mb-4 fw-bold">Réinitialisation</h2>
+                        <p class="text-center text-muted mb-4">Choisissez votre nouveau mot de passe</p>
 
-    {{ form_start(resetForm) }}
-    {{ form_row(resetForm.plainPassword) }}
-    <button class="btn btn-primary">Réinitialiser le mot de passe</button>
-    {{ form_end(resetForm) }}
+                        {{ form_start(resetForm, {'attr': {'class': 'needs-validation'}}) }}
+                            <div class="mb-4">
+                                <label for="{{ resetForm.plainPassword.vars.id }}" class="form-label text-muted small fw-semibold">
+                                    Nouveau mot de passe
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="fas fa-lock text-muted"></i>
+                                    </span>
+                                    {{ form_widget(resetForm.plainPassword, {
+                                        'attr': {
+                                            'class': 'form-control border-start-0 ps-0',
+                                            'placeholder': 'Entrez votre nouveau mot de passe'
+                                        }
+                                    }) }}
+                                </div>
+                                <div class="form-text text-danger">
+                                    {{ form_errors(resetForm.plainPassword) }}
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-3 text-white">
+                                    Réinitialiser le mot de passe
+                                </button>
+                                <a href="{{ path('app_login') }}" class="btn btn-link text-decoration-none text-muted">
+                                    Retour à la connexion
+                                </a>
+                            </div>
+                        {{ form_end(resetForm) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+        }
+        .input-group-text {
+            border-radius: 0.5rem 0 0 0.5rem;
+        }
+        .input-group .form-control {
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .btn-primary {
+            padding: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+        }
+    </style>
 {% endblock %}

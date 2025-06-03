@@ -42,17 +42,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             throw new BadCredentialsException('Email et mot de passe doivent être renseignés.');
         }
 
-        // Vérifier si l'utilisateur existe
-        $user = $this->userRepository->findOneByEmail($email);
-        if (!$user) {
-            throw new BadCredentialsException('Utilisateur non trouvé.');
-        }
-
-        // Vérifier la correspondance du mot de passe
-        if (!password_verify($password, $user->getPassword())) {
-            throw new BadCredentialsException('Mot de passe incorrect.');
-        }
-
+        // Laisser Symfony gérer la vérification du mot de passe
         return new Passport(
             new UserBadge($email),
             new PasswordCredentials($password),
@@ -74,12 +64,16 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
-        // Redirection basée sur le rôle de l'utilisateur
+        // Récupérer l'utilisateur depuis la base pour avoir ses rôles réels
+        $userFromDb = $this->userRepository->findOneByEmail($user->getUserIdentifier());
+        $realRoles = $userFromDb ? $userFromDb->getRoles() : $user->getRoles();
+
+        // Redirection basée sur le rôle RÉEL de l'utilisateur (pas les rôles hérités)
         $redirectRoute = match (true) {
-            in_array('ROLE_ADMIN', $user->getRoles()) => 'admin_dashboard',
-            in_array('ROLE_PARTICIPANT', $user->getRoles()) => 'participant_dashboard',
-            in_array('ROLE_ORGANISATEUR', $user->getRoles()) => 'organisateur_dashboard',
-            default => 'default_dashboard', // Redirection par défaut si aucun rôle spécifique
+            in_array('ROLE_ADMIN', $realRoles) => 'admin_dashboard',
+            in_array('ROLE_ORGANISATEUR', $realRoles) => 'organisateur_dashboard',
+            in_array('ROLE_PARTICIPANT', $realRoles) => 'participant_dashboard',
+            default => 'user_home',
         };
 
         return new RedirectResponse($this->router->generate($redirectRoute));

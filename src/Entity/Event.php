@@ -27,7 +27,7 @@ class Event
     private ?string $lieu = null;
 
     #[ORM\Column(type: 'datetime')]
-    private ?\DateTimeInterface $dateHeure = null;
+    private ?\DateTime $dateHeure = null;
 
     #[ORM\Column(type: 'integer')]
     private ?int $duree = null;
@@ -60,23 +60,30 @@ class Event
     #[ORM\Column(type: 'json', nullable: true)]
     private ?array $uploadedDocuments = [];
 
-
-
     #[Vich\UploadableField(mapping: 'documents', fileNameProperty: 'fileName')]
     private ?File $imageFile = null;
 
     #[ORM\Column(nullable: true)]
     private ?string $fileName = null;
 
-
-
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
- 
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Participation::class, orphanRemoval: true)]
+    private Collection $participations;
+
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: EventFile::class, cascade: ['persist', 'remove'])]
+    private Collection $files;
+
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: CollaborativeNote::class, cascade: ['persist', 'remove'])]
+    private Collection $collaborativeNotes;
+
     public function __construct()
     {
         $this->invitations = new ArrayCollection();
         $this->documents = new ArrayCollection(); 
+        $this->participations = new ArrayCollection();
+        $this->files = new ArrayCollection();
+        $this->collaborativeNotes = new ArrayCollection();
     }
 
     /**
@@ -110,8 +117,32 @@ class Event
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
     public function getLieu(): ?string { return $this->lieu; }
     public function setLieu(string $lieu): self { $this->lieu = $lieu; return $this; }
-    public function getDateHeure(): ?\DateTimeInterface { return $this->dateHeure; }
-    public function setDateHeure(\DateTimeInterface $dateHeure): self { $this->dateHeure = $dateHeure; return $this; }
+    public function getDateHeure(): ?\DateTime 
+    { 
+        if ($this->dateHeure === null) {
+            return null;
+        }
+        
+        // Retourner une copie de la date dans le fuseau horaire de Paris
+        $date = clone $this->dateHeure;
+        $date->setTimezone(new \DateTimeZone('Europe/Paris'));
+        return $date;
+    }
+    public function setDateHeure(?\DateTimeInterface $dateHeure): self 
+    { 
+        if ($dateHeure === null) {
+            $this->dateHeure = null;
+            return $this;
+        }
+
+        // Créer une nouvelle instance DateTime dans le fuseau horaire de Paris
+        $this->dateHeure = new \DateTime(
+            $dateHeure->format('Y-m-d H:i:s'),
+            new \DateTimeZone('Europe/Paris')
+        );
+        
+        return $this; 
+    }
     public function getDuree(): ?int { return $this->duree; }
     public function setDuree(int $duree): self { $this->duree = $duree; return $this; }
     public function getCategory(): ?string { return $this->category; }
@@ -190,6 +221,78 @@ class Event
     {
     $this->uploadedDocuments = $uploadedDocuments;
 
+    return $this;
+}
+
+public function getFiles(): Collection
+{
+    return $this->files;
+}
+
+public function addFile(EventFile $file): self
+{
+    if (!$this->files->contains($file)) {
+        $this->files[] = $file;
+        $file->setEvent($this);
+    }
+    return $this;
+}
+
+public function removeFile(EventFile $file): self
+{
+    if ($this->files->removeElement($file)) {
+        if ($file->getEvent() === $this) {
+            $file->setEvent(null);
+        }
+    }
+    return $this;
+}
+
+public function getCollaborativeNotes(): Collection
+{
+    return $this->collaborativeNotes;
+}
+
+public function addCollaborativeNote(CollaborativeNote $note): self
+{
+    if (!$this->collaborativeNotes->contains($note)) {
+        $this->collaborativeNotes[] = $note;
+        $note->setEvent($this);
+    }
+    return $this;
+}
+
+public function removeCollaborativeNote(CollaborativeNote $note): self
+{
+    if ($this->collaborativeNotes->removeElement($note)) {
+        if ($note->getEvent() === $this) {
+            $note->setEvent(null);
+        }
+    }
+    return $this;
+}
+
+public function getParticipations(): Collection
+{
+    return $this->participations;
+}
+
+public function addParticipation(Participation $participation): self
+{
+    if (!$this->participations->contains($participation)) {
+        $this->participations[] = $participation;
+        $participation->setEvent($this);
+    }
+    return $this;
+}
+
+public function removeParticipation(Participation $participation): self
+{
+    if ($this->participations->removeElement($participation)) {
+        if ($participation->getEvent() === $this) {
+            $participation->setEvent(null);
+        }
+    }
     return $this;
 }
 }

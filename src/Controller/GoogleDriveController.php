@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class GoogleDriveController extends AbstractController
 {
-    #[Route('/google/connect', name: 'google_drive_connect')]
+    #[Route('/google-drive/auth', name: 'google_drive_connect')]
     public function connect(GoogleDriveService $driveService): Response
     {
         $client = $driveService->getClient();
@@ -20,18 +20,22 @@ class GoogleDriveController extends AbstractController
         return $this->redirect($authUrl);
     }
 
-    #[Route('/drive-google/callback', name: 'google_drive_callback')]
+    #[Route('/google-drive/callback', name: 'google_drive_callback')]
     public function callback(Request $request, GoogleDriveService $driveService, SessionInterface $session): Response
     {
         $client = $driveService->getClient();
         $code = $request->query->get('code');
 
         if ($code) {
-            $accessToken = $client->fetchAccessTokenWithAuthCode($code);
-            $session->set('google_access_token', $accessToken);
+            try {
+                $accessToken = $client->fetchAccessTokenWithAuthCode($code);
+                $session->set('google_access_token', $accessToken);
 
-            $this->addFlash('success', 'Connexion à Google Drive réussie.');
-            return $this->redirectToRoute('event_list'); // ou n'importe quelle route
+                $this->addFlash('success', 'Connexion à Google Drive réussie.');
+                return $this->redirectToRoute('event_list');
+            } catch (\Exception $e) {
+                $this->addFlash('error', 'Erreur lors de l\'authentification avec Google: ' . $e->getMessage());
+            }
         }
 
         $this->addFlash('error', 'Erreur lors de l\'authentification avec Google.');

@@ -1,0 +1,286 @@
+/* Variables de couleurs */
+:root {
+    --primary-color: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --success-color: #10b981;
+    --success-dark: #059669;
+    --background-light: #f8fafc;
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+}
+
+/* Styles pour le calendrier */
+.agenda-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background: linear-gradient(to bottom, #ffffff, var(--background-light));
+    border-radius: 20px;
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.08);
+}
+
+.agenda-container h1 {
+    font-size: 2.5rem;
+    background: linear-gradient(45deg, var(--text-dark), var(--primary-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 2rem;
+    font-weight: 700;
+    text-align: center;
+    transition: transform 0.3s ease;
+    padding: 2rem 0;
+}
+
+.agenda-container h1:hover {
+    transform: scale(1.02);
+}
+
+/* Personnalisation du calendrier FullCalendar */
+#calendar {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.1);
+    margin: 2rem 0;
+    border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+/* En-tête du calendrier */
+.fc .fc-toolbar {
+    margin-bottom: 2rem !important;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.75rem !important;
+    color: var(--text-dark);
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+/* Boutons du calendrier */
+.fc .fc-button-primary {
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-dark)) !important;
+    border: none !important;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 0.7rem 1.2rem !important;
+    transition: all 0.3s ease;
+    border-radius: 8px !important;
+}
+
+.fc .fc-button-primary:hover {
+    background: linear-gradient(45deg, var(--primary-dark), var(--primary-color)) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Cellules du calendrier */
+.fc td, .fc th {
+    border: 1px solid rgba(99, 102, 241, 0.1) !important;
+}
+
+.fc .fc-daygrid-day {
+    transition: all 0.2s ease;
+    min-height: 100px;
+}
+
+.fc .fc-daygrid-day:hover {
+    background-color: var(--background-light);
+    transform: scale(1.02);
+    z-index: 1;
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.05);
+}
+
+/* Événements */
+.fc-event {
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    font-size: 0.9em !important;
+    transition: all 0.2s ease;
+    border: none !important;
+    background: linear-gradient(45deg, var(--primary-color), var(--primary-dark)) !important;
+    margin: 2px 0 !important;
+}
+
+.fc-event:hover {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 3px 8px rgba(99, 102, 241, 0.2);
+}
+
+/* Boutons d'action */
+.btn-primary, .btn-success {
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: none;
+    background-size: 200% auto;
+}
+
+.btn-primary {
+    background-image: linear-gradient(45deg, var(--primary-color), var(--primary-dark), var(--primary-color));
+}
+
+.btn-success {
+    background-image: linear-gradient(45deg, var(--success-color), var(--success-dark), var(--success-color));
+}
+
+.btn-primary:hover, .btn-success:hover {
+    background-position: right center;
+    transform: translateY(-3px);
+    box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
+}
+
+/* Messages flash */
+.alert {
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    padding: 1.2rem 1.5rem;
+    border: none;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    border-left: 5px solid;
+    animation: slideIn 0.5s ease-out;
+}
+
+.alert-success {
+    border-left-color: var(--success-color);
+}
+
+.alert-danger {
+    border-left-color: #ef4444;
+}
+
+.alert-warning {
+    border-left-color: #f59e0b;
+}
+
+.alert-info {
+    border-left-color: var(--primary-color);
+}
+
+.alert-dismissible .btn-close {
+    padding: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.alert-dismissible .btn-close:hover {
+    transform: rotate(90deg);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .agenda-container {
+        margin: 1rem;
+        padding: 0.5rem;
+    }
+
+    .agenda-container h1 {
+        font-size: 2rem;
+        padding: 1.5rem 0;
+    }
+    
+    .fc .fc-toolbar-title {
+        font-size: 1.4rem !important;
+    }
+    
+    .btn-primary, .btn-success {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 0.6rem 1.2rem;
+    }
+    
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    #calendar {
+        padding: 15px;
+        margin: 1rem 0;
+    }
+
+    .fc .fc-daygrid-day {
+        min-height: 80px;
+    }
+}
+
+/* Ajout d'animations pour les transitions de vue */
+.fc .fc-view {
+    transition: opacity 0.3s ease;
+}
+
+.fc .fc-view-harness {
+    background: white;
+    border-radius: 12px;
+}
+
+/* Style pour aujourd'hui */
+.fc .fc-day-today {
+    background: rgba(99, 102, 241, 0.05) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.fc .fc-day-today::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-color), var(--primary-dark));
+}
+
+/* Style pour les en-têtes de semaine */
+.fc .fc-col-header-cell {
+    background: var(--background-light);
+    padding: 1rem 0;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* Style pour les numéros de semaine */
+.fc .fc-daygrid-day-number {
+    font-weight: 600;
+    color: var(--text-dark);
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.fc .fc-daygrid-day-number:hover {
+    color: var(--primary-color);
+}
+
+/* Weekend styling */
+.fc .fc-day-sat, .fc .fc-day-sun {
+    background-color: rgba(99, 102, 241, 0.02);
+}
+
+/* Past days styling */
+.fc .fc-day-past {
+    background-color: rgba(203, 213, 225, 0.1);
+}
+
+/* Future days styling */
+.fc .fc-day-future:hover {
+    background-color: rgba(99, 102, 241, 0.05);
+} 

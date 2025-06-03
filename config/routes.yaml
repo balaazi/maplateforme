@@ -1,40 +1,57 @@
 controllers:
     resource: ../src/Controller/
     type: attribute
+
 event_create:
     path: /event/create
     controller: App\Controller\EventController::create
+
 invitation_send:
     path: /inviter
     controller: App\Controller\InvitationController::sendInvitation
+
 app_send_invitation:
     path: /invitation/send
     controller: App\Controller\InvitationController::sendInvitation
+
 google_add_event:
-  path: /google/add-event
-  controller: App\Controller\GoogleController::addEvent
-google_calendar_callback:
-    path: /calendar/google-callback
-    controller: App\Controller\CalendarController::googleCallback
+    path: /google/add-event
+    controller: App\Controller\GoogleController::addEvent
+
+google_drive_callback:
+    path: /google-drive/callback
+    controller: App\Controller\GoogleDriveController::callback
     methods: GET
-invitation_index:
-    path: /organizer/invitations
-    controller: App\Controller\InvitationController::index
 
-invitation_new:
-    path: /organizer/invitations/new
-    controller: App\Controller\InvitationController::new
+google_drive_auth:
+    path: /google-drive/auth
+    controller: App\Controller\GoogleDriveController::connect
+    methods: GET
 
-invitation_respond:
-    path: /invitation/respond/{token}/{response}
-    controller: App\Controller\InvitationController::respond
-    requirements:
-        response: accepted|declined
+google_calendar_callback:
+    path: /oauth/callback
+    controller: App\Controller\CalendarController::handleCallback
+    methods: [GET]
 
-google_calendar_auth:
-  path: /google/connect
-  controller: App\Controller\GoogleCalendarController::connect
+google_calendar_connect:
+    path: /oauth/connect
+    controller: App\Controller\CalendarController::connectGoogle
+    methods: [GET]
+
 document_upload:
     path: /document/upload/{id}
     controller: App\Controller\DocumentController::upload
     methods: [GET, POST]
+
+event_attendance:
+  path: /event/{id}/attendance
+  controller: App\Controller\EventController::attendance
+  requirements:
+    id: '\d+'
+
+invitation_respond:
+    path: /respond/invitation/{token}/{response}
+    controller: App\Controller\InvitationResponseController::respond
+    methods: GET
+    requirements:
+        response: accepted|declined

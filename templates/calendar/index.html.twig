@@ -1,43 +1,1095 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Agenda Partagé{% endblock %}
+{% block title %}Agenda Partagé - EventHub{% endblock %}
 
 {% block stylesheets %}
+    {{ parent() }}
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.css" rel="stylesheet">
+    <style>
+        body {
+            overflow-x: hidden;
+        }
+        
+        .calendar-container {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+        }
+        
+        /* Header spectaculaire avec parallaxe */
+        .calendar-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: -90px;
+            padding-top: 90px;
+        }
+        
+        .calendar-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 60%, rgba(102, 126, 234, 0.2) 0%, transparent 50%);
+            animation: heroAnimation 15s ease-in-out infinite;
+        }
+        
+        @keyframes heroAnimation {
+            0%, 100% { 
+                background: 
+                    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 40% 60%, rgba(102, 126, 234, 0.2) 0%, transparent 50%);
+            }
+            50% { 
+                background: 
+                    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 20% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 60% 40%, rgba(118, 75, 162, 0.25) 0%, transparent 50%);
+            }
+        }
+        
+        /* Particles flottantes dans le header */
+        .hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .hero-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: floatHeroParticle 20s infinite linear;
+        }
+        
+        .hero-particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+        .hero-particle:nth-child(2) { left: 25%; animation-delay: 4s; }
+        .hero-particle:nth-child(3) { left: 40%; animation-delay: 8s; }
+        .hero-particle:nth-child(4) { left: 60%; animation-delay: 12s; }
+        .hero-particle:nth-child(5) { left: 75%; animation-delay: 16s; }
+        .hero-particle:nth-child(6) { left: 90%; animation-delay: 2s; }
+        
+        @keyframes floatHeroParticle {
+            0% {
+                transform: translateY(100vh) rotate(0deg) scale(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) rotate(45deg) scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(10vh) rotate(315deg) scale(1);
+            }
+            100% {
+                transform: translateY(-10vh) rotate(360deg) scale(0);
+                opacity: 0;
+            }
+        }
+        
+        .hero-content {
+            text-align: center;
+            color: white;
+            z-index: 10;
+            position: relative;
+            max-width: 800px;
+            padding: 0 2rem;
+        }
+        
+        .hero-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 3rem;
+            color: white;
+            animation: iconFloat 4s ease-in-out infinite, iconPulse 3s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .hero-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            transform: translate(-50%, -50%);
+        }
+        
+        .hero-icon:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+        
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% { box-shadow: 0 20px 40px rgba(255, 255, 255, 0.2); }
+            50% { box-shadow: 0 25px 50px rgba(255, 255, 255, 0.4), 0 0 50px rgba(255, 255, 255, 0.2); }
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: titleSlideIn 1s ease-out;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            font-weight: 500;
+            opacity: 0.95;
+            animation: subtitleSlideIn 1s ease-out 0.3s both;
+            line-height: 1.6;
+        }
+        
+        @keyframes titleSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes subtitleSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 0.95;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Contenu principal avec glassmorphism */
+        .calendar-content {
+            position: relative;
+            z-index: 20;
+            margin-top: -60px;
+            padding: 0 2rem 3rem;
+        }
+        
+        .calendar-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+        
+        /* Sidebar gauche */
+        .calendar-sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px) saturate(150%);
+            border-radius: 25px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.1),
+                0 10px 30px rgba(102, 126, 234, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: sticky;
+            top: 2rem;
+            animation: sidebarSlideIn 0.8s ease-out 0.5s both;
+        }
+        
+        @keyframes sidebarSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+        
+        .sidebar-section {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+        
+        .sidebar-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .btn-sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-sidebar:hover::before {
+            left: 100%;
+        }
+        
+        .btn-sidebar:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .btn-sidebar.btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-sidebar.btn-success:hover {
+            box-shadow: 0 12px 30px rgba(40, 167, 69, 0.4);
+        }
+        
+        /* Filtres et légendes */
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-item:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateX(5px);
+        }
+        
+        .filter-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        
+        .filter-count {
+            margin-left: auto;
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        /* Mini calendrier */
+        .mini-calendar {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .mini-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .mini-calendar-title {
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .mini-calendar-nav {
+            background: none;
+            border: none;
+            color: #667eea;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        
+        .mini-calendar-nav:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.1);
+        }
+        
+        /* Calendrier principal */
+        .calendar-main {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px) saturate(150%);
+            border-radius: 25px;
+            box-shadow: 
+                0 30px 80px rgba(0, 0, 0, 0.15),
+                0 15px 50px rgba(102, 126, 234, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            animation: mainSlideIn 0.8s ease-out 0.7s both;
+        }
+        
+        .calendar-main::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #4ecdc4, #45b7d1);
+            background-size: 300% 100%;
+            animation: shimmer 6s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes mainSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .calendar-header {
+            padding: 2rem 2rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .calendar-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.5rem;
+            border-radius: 15px;
+        }
+        
+        .view-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .view-btn.active,
+        .view-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .calendar-body {
+            padding: 2rem;
+        }
+        
+        /* Wrapper calendrier */
+        .calendar-wrapper {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Customisation FullCalendar Premium */
+        .fc {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+        }
+        
+        .fc-header-toolbar {
+            margin-bottom: 1.5rem !important;
+            padding: 1rem !important;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%) !important;
+            border-radius: 15px !important;
+            border: 1px solid rgba(102, 126, 234, 0.15) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        .fc-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.6rem 1rem !important;
+            font-weight: 700 !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.3) !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.3px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .fc-button:hover {
+            transform: translateY(-2px) scale(1.05) !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+        }
+        
+        .fc-button:disabled {
+            opacity: 0.6 !important;
+            transform: none !important;
+        }
+        
+        .fc-button-active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4) !important;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 1.8rem !important;
+            font-weight: 900 !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+            text-shadow: none !important;
+        }
+        
+        .fc-daygrid-day {
+            transition: all 0.3s ease !important;
+            position: relative !important;
+        }
+        
+        .fc-daygrid-day:hover {
+            background: rgba(102, 126, 234, 0.06) !important;
+            transform: scale(1.01) !important;
+        }
+        
+        .fc-daygrid-day-number {
+            color: #495057 !important;
+            font-weight: 700 !important;
+            padding: 0.6rem !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .fc-day-today {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%) !important;
+            border: 2px solid #667eea !important;
+            transform: scale(1.01) !important;
+        }
+        
+        .fc-day-today .fc-daygrid-day-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            border-radius: 50% !important;
+            width: 32px !important;
+            height: 32px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin: auto !important;
+            box-shadow: 0 3px 12px rgba(102, 126, 234, 0.4) !important;
+        }
+        
+        .fc-event {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 0.3rem 0.6rem !important;
+            margin: 0.1rem 0 !important;
+            box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3) !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            cursor: pointer !important;
+            position: relative !important;
+            overflow: hidden !important;
+        }
+        
+        .fc-event::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.4s ease;
+        }
+        
+        .fc-event:hover::before {
+            left: 100%;
+        }
+        
+        .fc-event:hover {
+            transform: translateY(-2px) scale(1.02) !important;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4) !important;
+            z-index: 1000 !important;
+        }
+        
+        .fc-event-title {
+            font-weight: 700 !important;
+            color: white !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .fc-col-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.04) 0%, rgba(118, 75, 162, 0.04) 100%) !important;
+            backdrop-filter: blur(10px) !important;
+        }
+        
+        .fc-col-header-cell {
+            border: 1px solid rgba(102, 126, 234, 0.08) !important;
+            padding: 1rem 0.6rem !important;
+        }
+        
+        .fc-col-header-cell-cushion {
+            color: #495057 !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            font-size: 0.85rem !important;
+            letter-spacing: 0.8px !important;
+        }
+        
+        .fc-daygrid-day-frame {
+            min-height: 100px !important;
+        }
+        
+        .fc-scrollgrid {
+            border: 1px solid rgba(102, 126, 234, 0.12) !important;
+            border-radius: 15px !important;
+            overflow: hidden !important;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06) !important;
+        }
+        
+        /* Messages d'alerte premium */
+        .alert {
+            border-radius: 15px;
+            border: none;
+            margin-bottom: 1.5rem;
+            padding: 1.25rem 2rem;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            animation: alertSlideIn 0.6s ease-out;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            border-radius: 0 15px 15px 0;
+        }
+        
+        .alert-success {
+            background: rgba(212, 237, 218, 0.9);
+            color: #155724;
+        }
+        
+        .alert-success::before {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .alert-danger {
+            background: rgba(248, 215, 218, 0.9);
+            color: #721c24;
+        }
+        
+        .alert-danger::before {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        @keyframes alertSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        /* Loading overlay premium */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            z-index: 1000;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive premium */
+        @media (max-width: 1200px) {
+            .calendar-layout {
+                grid-template-columns: 280px 1fr;
+                gap: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .calendar-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .calendar-sidebar {
+                position: static;
+                order: 2;
+            }
+            
+            .calendar-main {
+                order: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-container {
+                padding: 0;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .hero-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 2.5rem;
+            }
+            
+            .calendar-content {
+                padding: 0 1rem 2rem;
+                margin-top: -40px;
+            }
+            
+            .calendar-layout {
+                gap: 1rem;
+            }
+            
+            .sidebar-section {
+                padding: 1.5rem;
+            }
+            
+            .calendar-body {
+                padding: 1.5rem;
+            }
+            
+            .calendar-wrapper {
+                padding: 1rem;
+            }
+            
+            .fc-toolbar {
+                flex-direction: column !important;
+                gap: 1rem !important;
+            }
+            
+            .fc-toolbar-chunk {
+                display: flex !important;
+                justify-content: center !important;
+            }
+            
+            .fc-toolbar-title {
+                font-size: 1.5rem !important;
+            }
+            
+            .fc-button {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.8rem !important;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 2rem;
+            }
+            
+            .fc-daygrid-day-frame {
+                min-height: 80px !important;
+            }
+            
+            .sidebar-section {
+                padding: 1rem;
+            }
+            
+            .calendar-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .view-controls {
+                justify-content: center;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-    <div>
-        {# Flash messages #}
+    <div class="calendar-container">
+        <!-- Hero Section Compact -->
+        <div class="calendar-hero">
+            <!-- Particules flottantes -->
+            <div class="hero-particles">
+                <div class="hero-particle"></div>
+                <div class="hero-particle"></div>
+                <div class="hero-particle"></div>
+                <div class="hero-particle"></div>
+                <div class="hero-particle"></div>
+                <div class="hero-particle"></div>
+            </div>
+            
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <h1 class="hero-title">Agenda Partagé</h1>
+                <p class="hero-subtitle">Organisation et planification intelligente de vos événements</p>
+            </div>
+        </div>
+        
+        <!-- Contenu Principal -->
+        <div class="calendar-content">
+            <div class="container-fluid">
+                <!-- Messages Flash -->
         {% for label, messages in app.flashes %}
             {% for message in messages %}
                 <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                            <i class="fas fa-{{ label == 'success' ? 'check-circle' : (label == 'danger' ? 'exclamation-circle' : (label == 'warning' ? 'exclamation-triangle' : 'info-circle')) }} me-2"></i>
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             {% endfor %}
         {% endfor %}
-    </div>
-    <div class="agenda-container">
-        <h1>🗓️ Agenda Partagé</h1>
 
-        <div class="mb-3">
-            <a href="{{ path('event_create') }}" class="btn btn-primary">
-                + Ajouter un événement
-            </a>
-            <!-- Ajouter le bouton de synchronisation ici -->
-            <a href="{{ path('calendar_sync') }}" class="btn btn-success ms-2">
-                🔄 Synchroniser l’agenda
-            </a>
+                <!-- Layout Principal avec Sidebar -->
+                <div class="calendar-layout">
+                    <!-- Sidebar Gauche -->
+                    <div class="calendar-sidebar">
+                        <!-- Actions Rapides -->
+                        <div class="sidebar-section">
+                            <h3 class="sidebar-title">Actions Rapides</h3>
+                            <div class="quick-actions">
+                                <a href="{{ path('event_create') }}" class="btn-sidebar">
+                                    <i class="fas fa-plus"></i>
+                                    Nouvel Événement
+                                </a>
+                                <a href="{{ path('calendar_sync') }}" class="btn-sidebar btn-success">
+                                    <i class="fas fa-sync-alt"></i>
+                                    Synchroniser
+                                </a>
+                                {% if is_granted('ROLE_ORGANISATEUR') %}
+                                <a href="{{ path('organisateur_statistics') }}" class="btn-sidebar">
+                                    <i class="fas fa-chart-line"></i>
+                                    Statistiques
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Filtres par Type -->
+                        <div class="sidebar-section">
+                            <h3 class="sidebar-title">Types d'Événements</h3>
+                            <div class="filter-group">
+                                <div class="filter-item" data-filter="formation">
+                                    <div class="filter-color" style="background: linear-gradient(135deg, #28a745, #20c997);"></div>
+                                    <span class="filter-label">Formations</span>
+                                    <span class="filter-count" id="formation-count">0</span>
+                                </div>
+                                <div class="filter-item" data-filter="reunion">
+                                    <div class="filter-color" style="background: linear-gradient(135deg, #007bff, #0056b3);"></div>
+                                    <span class="filter-label">Réunions</span>
+                                    <span class="filter-count" id="reunion-count">0</span>
+                                </div>
+                                <div class="filter-item" data-filter="conference">
+                                    <div class="filter-color" style="background: linear-gradient(135deg, #ffc107, #e0a800);"></div>
+                                    <span class="filter-label">Conférences</span>
+                                    <span class="filter-count" id="conference-count">0</span>
+                                </div>
+                                <div class="filter-item" data-filter="atelier">
+                                    <div class="filter-color" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
+                                    <span class="filter-label">Ateliers</span>
+                                    <span class="filter-count" id="atelier-count">0</span>
+                                </div>
+                                <div class="filter-item" data-filter="seminaire">
+                                    <div class="filter-color" style="background: linear-gradient(135deg, #6f42c1, #563d7c);"></div>
+                                    <span class="filter-label">Séminaires</span>
+                                    <span class="filter-count" id="seminaire-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Calendrier de Navigation -->
+                        <div class="sidebar-section">
+                            <h3 class="sidebar-title">Navigation Rapide</h3>
+                            <div class="mini-calendar">
+                                <div class="mini-calendar-header">
+                                    <button class="mini-calendar-nav" id="prevMonth">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </button>
+                                    <span class="mini-calendar-title" id="currentMonth"></span>
+                                    <button class="mini-calendar-nav" id="nextMonth">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="text-center">
+                                    <button class="btn-sidebar" style="font-size: 0.8rem; padding: 0.5rem 1rem;" id="todayBtn">
+                                        <i class="fas fa-calendar-day"></i>
+                                        Aujourd'hui
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Calendrier Principal -->
+                    <div class="calendar-main">
+                        <div class="calendar-header">
+                            <h2 class="calendar-title">Planning des Événements</h2>
+                            <div class="view-controls">
+                                <button class="view-btn active" data-view="dayGridMonth">Mois</button>
+                                <button class="view-btn" data-view="timeGridWeek">Semaine</button>
+                                <button class="view-btn" data-view="timeGridDay">Jour</button>
+                                <button class="view-btn" data-view="listMonth">Liste</button>
+                            </div>
+                        </div>
+                        
+                        <div class="calendar-body">
+                            <div class="calendar-wrapper">
+                                <div class="loading-overlay" id="loadingOverlay">
+                                    <div class="loading-spinner"></div>
+                                </div>
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div id="calendar"></div>
     </div>
+{% endblock %}
 
+{% block javascripts %}
+    {{ parent() }}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/index.global.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const calendarEl = document.getElementById('calendar');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            let allEvents = [];
+            let activeFilters = new Set();
+            
+            // Afficher le spinner de chargement
+            function showLoading() {
+                loadingOverlay.style.display = 'flex';
+            }
+
+            // Masquer le spinner de chargement
+            function hideLoading() {
+                loadingOverlay.style.display = 'none';
+            }
+
+            // Mettre à jour les compteurs par type
+            function updateEventCounts() {
+                const counts = {
+                    formation: 0,
+                    reunion: 0,
+                    conference: 0,
+                    atelier: 0,
+                    seminaire: 0
+                };
+
+                allEvents.forEach(event => {
+                    const type = event.extendedProps?.type || 'formation';
+                    if (counts.hasOwnProperty(type)) {
+                        counts[type]++;
+                    }
+                });
+
+                Object.keys(counts).forEach(type => {
+                    const countEl = document.getElementById(`${type}-count`);
+                    if (countEl) {
+                        countEl.textContent = counts[type];
+                    }
+                });
+            }
+
+            // Mettre à jour le mini calendrier
+            function updateMiniCalendar() {
+                const now = new Date();
+                const monthNames = [
+                    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+                ];
+                
+                const currentMonthEl = document.getElementById('currentMonth');
+                if (currentMonthEl) {
+                    currentMonthEl.textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+                }
+            }
+
+            // Filtrer les événements
+            function filterEvents() {
+                if (activeFilters.size === 0) {
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(allEvents);
+                } else {
+                    const filteredEvents = allEvents.filter(event => {
+                        const type = event.extendedProps?.type || 'formation';
+                        return activeFilters.has(type);
+                    });
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(filteredEvents);
+                }
+            }
+
+            // Déterminer la couleur selon le type
+            function getEventColor(type) {
+                const colors = {
+                    formation: 'linear-gradient(135deg, #28a745, #20c997)',
+                    reunion: 'linear-gradient(135deg, #007bff, #0056b3)',
+                    conference: 'linear-gradient(135deg, #ffc107, #e0a800)',
+                    atelier: 'linear-gradient(135deg, #dc3545, #c82333)',
+                    seminaire: 'linear-gradient(135deg, #6f42c1, #563d7c)'
+                };
+                return colors[type] || colors.formation;
+            }
+
+            showLoading();
 
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
@@ -45,12 +1097,283 @@
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listMonth'
                 },
-                events: '/api/events',
+                height: 'auto',
+                contentHeight: 'auto',
+                aspectRatio: 1.8,
+                events: function(info, successCallback, failureCallback) {
+                    fetch('/api/events')
+                        .then(response => response.json())
+                        .then(events => {
+                            // Enrichir les événements avec des types et couleurs
+                            allEvents = events.map(event => ({
+                                ...event,
+                                backgroundColor: getEventColor(event.extendedProps?.type || 'formation'),
+                                borderColor: 'transparent',
+                                textColor: 'white'
+                            }));
+                            
+                            updateEventCounts();
+                            updateMiniCalendar();
+                            successCallback(allEvents);
+                            hideLoading();
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors du chargement des événements:', error);
+                            failureCallback(error);
+                            hideLoading();
+                        });
+                },
+                eventClick: function(info) {
+                    info.jsEvent.preventDefault();
+                    
+                    // Animation spectaculaire au clic
+                    info.el.style.transform = 'scale(0.9)';
+                    info.el.style.transition = 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    
+                    setTimeout(() => {
+                        info.el.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            info.el.style.transform = 'scale(1)';
+                            
+                            // Redirection avec effet
+                            if (info.event.url) {
+                                window.location.href = info.event.url;
+                            }
+                        }, 150);
+                    }, 100);
+                },
+                eventMouseEnter: function(info) {
+                    info.el.style.transform = 'translateY(-3px) scale(1.03)';
+                    info.el.style.zIndex = '1000';
+                    
+                    // Créer des particules au survol
+                    createEventParticles(info.el);
+                },
+                eventMouseLeave: function(info) {
+                    info.el.style.transform = 'translateY(0) scale(1)';
+                    info.el.style.zIndex = 'auto';
+                },
+                loading: function(isLoading) {
+                    if (isLoading) {
+                        showLoading();
+                    } else {
+                        hideLoading();
+                    }
+                },
+                eventDidMount: function(info) {
+                    // Animation d'apparition des événements
+                    info.el.style.opacity = '0';
+                    info.el.style.transform = 'scale(0.8)';
+                    
+                    setTimeout(() => {
+                        info.el.style.transition = 'all 0.4s ease-out';
+                        info.el.style.opacity = '1';
+                        info.el.style.transform = 'scale(1)';
+                    }, Math.random() * 500 + 200);
+                }
             });
 
             calendar.render();
+
+            // Gestionnaires d'événements pour les contrôles de vue
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Retirer active de tous les boutons
+                    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+                    // Ajouter active au bouton cliqué
+                    this.classList.add('active');
+                    
+                    // Changer la vue du calendrier
+                    const view = this.getAttribute('data-view');
+                    calendar.changeView(view);
+                });
+            });
+
+            // Gestionnaires pour les filtres
+            document.querySelectorAll('.filter-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const filterType = this.getAttribute('data-filter');
+                    
+                    if (activeFilters.has(filterType)) {
+                        activeFilters.delete(filterType);
+                        this.style.background = '';
+                        this.style.transform = '';
+                    } else {
+                        activeFilters.add(filterType);
+                        this.style.background = 'rgba(102, 126, 234, 0.1)';
+                        this.style.transform = 'translateX(8px)';
+                    }
+                    
+                    filterEvents();
+                });
+            });
+
+            // Gestionnaires pour le mini calendrier
+            const prevBtn = document.getElementById('prevMonth');
+            const nextBtn = document.getElementById('nextMonth');
+            const todayBtn = document.getElementById('todayBtn');
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    calendar.prev();
+                    updateMiniCalendar();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    calendar.next();
+                    updateMiniCalendar();
+                });
+            }
+
+            if (todayBtn) {
+                todayBtn.addEventListener('click', () => {
+                    calendar.today();
+                    updateMiniCalendar();
+                });
+            }
+
+            // Fonction pour créer des particules sur les événements
+            function createEventParticles(element) {
+                const rect = element.getBoundingClientRect();
+                
+                for (let i = 0; i < 3; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: fixed;
+                        width: 4px;
+                        height: 4px;
+                        background: rgba(255, 255, 255, 0.8);
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 10000;
+                        left: ${rect.left + Math.random() * rect.width}px;
+                        top: ${rect.top + Math.random() * rect.height}px;
+                    `;
+                    
+                    document.body.appendChild(particle);
+                    
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = 30 + Math.random() * 20;
+                    
+                    particle.animate([
+                        {
+                            transform: 'translate(0, 0) scale(1)',
+                            opacity: 1
+                        },
+                        {
+                            transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: 800,
+                        easing: 'ease-out'
+                    }).onfinish = () => particle.remove();
+                }
+            }
+
+            // Effet de parallaxe sur les particules du hero
+            window.addEventListener('mousemove', function(e) {
+                const particles = document.querySelectorAll('.hero-particle');
+                const mouseX = e.clientX / window.innerWidth;
+                const mouseY = e.clientY / window.innerHeight;
+
+                particles.forEach((particle, index) => {
+                    const speed = (index + 1) * 0.3;
+                    const x = mouseX * speed * 15;
+                    const y = mouseY * speed * 15;
+                    particle.style.transform += ` translate(${x}px, ${y}px)`;
+                });
+            });
+
+            // Animation spectaculaire du hero icon au clic
+            const heroIcon = document.querySelector('.hero-icon');
+            if (heroIcon) {
+                heroIcon.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.9) rotate(-10deg)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.1) rotate(10deg)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1) rotate(0deg)';
+                        }, 200);
+                    }, 100);
+                    
+                    // Créer explosion de particules
+                    createExplosion(this);
+                });
+            }
+
+            // Fonction pour créer une explosion de particules
+            function createExplosion(element) {
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                for (let i = 0; i < 10; i++) {
+                    const particle = document.createElement('div');
+                    particle.style.cssText = `
+                        position: fixed;
+                        width: 6px;
+                        height: 6px;
+                        background: white;
+                        border-radius: 50%;
+                        pointer-events: none;
+                        z-index: 10000;
+                        left: ${centerX}px;
+                        top: ${centerY}px;
+                    `;
+                    
+                    document.body.appendChild(particle);
+                    
+                    const angle = (Math.PI * 2 * i) / 10;
+                    const distance = 60 + Math.random() * 30;
+                    
+                    particle.animate([
+                        {
+                            transform: 'translate(0, 0) scale(1)',
+                            opacity: 1
+                        },
+                        {
+                            transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                            opacity: 0
+                        }
+                    ], {
+                        duration: 1000,
+                        easing: 'ease-out'
+                    }).onfinish = () => particle.remove();
+                }
+            }
+
+            // Auto-suppression des alertes après 5 secondes
+            setTimeout(() => {
+                const alerts = document.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    alert.style.animation = 'alertSlideOut 0.5s ease-out forwards';
+                    setTimeout(() => alert.remove(), 500);
+                });
+            }, 5000);
+
+            // Initialiser le mini calendrier
+            updateMiniCalendar();
         });
+        
+        // Animation slideOut pour les alertes
+        const alertStyle = document.createElement('style');
+        alertStyle.textContent = `
+            @keyframes alertSlideOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(0) scale(1);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-30px) scale(0.95);
+                }
+            }
+        `;
+        document.head.appendChild(alertStyle);
     </script>
 {% endblock %}

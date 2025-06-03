@@ -3,32 +3,39 @@
 namespace App\Controller;
 
 use App\Entity\Event;
+use App\Entity\CalendarEvent;
 use App\Form\EventFormType;
 use App\Repository\EventRepository;
+use App\Repository\ParticipationRepository;
 use App\Service\EventNotificationService;
-use App\Service\GoogleDriveService;
+use App\Service\GoogleCalendarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\String\Slugger\SluggerInterface;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-
+#[IsGranted('ROLE_ORGANISATEUR')]
 class EventController extends AbstractController
 {
-    private $notificationService;
+    private EventNotificationService $notificationService;
 
     public function __construct(EventNotificationService $notificationService)
     {
         $this->notificationService = $notificationService;
     }
 
-    public function create(Request $request, EntityManagerInterface $entityManager, SluggerInterface $slugger, GoogleDriveService $driveService, SessionInterface $session): Response
-    {
+    #[Route('/event/create', name: 'event_create')]
+    public function create(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+        GoogleCalendarService $calendarService,
+        SessionInterface $session
+    ): Response {
         $event = new Event();
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
@@ -36,47 +43,38 @@ class EventController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setOrganizer($this->getUser());
 
-            $token = $session->get('google_access_token');
-            if ($token) {
-                $_SESSION['google_access_token'] = $token;
+            $calendarEvent = new CalendarEvent();
+            $calendarEvent->setTitle($event->getTitle());
+            $calendarEvent->setDescription($event->getDescription());
+            $calendarEvent->setStart($event->getDateHeure());
 
-                $folderId = $driveService->createFolder('Event_' . $event->getTitle());
-                if ($folderId) {
-                    $event->setGoogleDriveUrl('https://drive.google.com/drive/folders/' . $folderId);
-                }
-            }
-
-         /*   /** @var UploadedFile[] $documents */
-        /*    $documents = $form->get('documents')->getData();
-
-            $uploadedFileNames = []; // مصفوفة لتخزين أسماء الملفات
-
-            if ($documents) {
-                foreach ($documents as $document) {
-                    $originalFilename = pathinfo($document->getClientOriginalName(), PATHINFO_FILENAME);
-                    $safeFilename = $slugger->slug($originalFilename);
-                    $newFilename = $safeFilename . '-' . uniqid() . '.' . $document->guessExtension();
-
-                    try {
-                        $document->move(
-                            $this->getParameter('documents_directory'),
-                            $newFilename
-                        );
-                        $uploadedFileNames[] = $newFilename; // خزّن اسم الملف
-                    } catch (FileException $e) {
-                        $this->addFlash('error', 'Erreur lors du téléchargement de ' . $document->getClientOriginalName());
-                    }
-                }
-            }
-
-            // خزّن أسماء الملفات في الكائن Event
-            $event->setUploadedDocuments($uploadedFileNames);*/
+            $end = (clone $event->getDateHeure())->modify('+' . $event->getDuree() . ' minutes');
+            $calendarEvent->setEnd($end);
 
             $entityManager->persist($event);
+            $entityManager->persist($calendarEvent);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Événement créé avec succès !');
-            return $this->redirectToRoute('calendar_page');
+            try {
+                if (!$calendarService->isAuthenticated()) {
+                    $session->set('intended_route', 'event_create');
+                    return $this->redirectToRoute('google_calendar_connect');
+                }
+
+                $calendarService->exportToGoogleCalendar($calendarEvent);
+                $calendarService->synchronizeCalendars();
+
+                $this->addFlash('success', 'Événement créé et synchronisé dans les deux sens avec Google Calendar.');
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'Invalid token format') || str_contains($e->getMessage(), 'Token has expired')) {
+                    $session->set('intended_route', 'event_create');
+                    return $this->redirectToRoute('google_calendar_connect');
+                }
+
+                $this->addFlash('warning', 'Événement créé mais problème de synchronisation : ' . $e->getMessage());
+            }
+
+            return $this->redirectToRoute('event_list');
         }
 
         return $this->render('event/create.html.twig', [
@@ -84,30 +82,42 @@ class EventController extends AbstractController
         ]);
     }
 
-
     #[Route('/event/list', name: 'event_list')]
     public function list(EntityManagerInterface $em): Response
     {
-        $events = $em->getRepository(Event::class)->findAll();
+        $events = $em->getRepository(Event::class)
+            ->createQueryBuilder('e')
+            ->select('e')
+            ->where('e.organizer = :organizer')
+            ->setParameter('organizer', $this->getUser())
+            ->orderBy('e.dateHeure', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('event/list.html.twig', [
             'events' => $events,
         ]);
     }
 
-    #[Route('/event/{id}/edit', name: 'event_edit')]
-    public function edit(Event $event, Request $request, EntityManagerInterface $em): Response
+    #[Route('/event/{id}/edit', name: 'event_edit', requirements: ['id' => '\d+'])]
+    public function edit(int $id, Request $request, EntityManagerInterface $em): Response
     {
+        $event = $em->getRepository(Event::class)->find($id);
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+
+        if ($event->getOrganizer() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé.');
+        }
+
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-
             $this->notificationService->sendEventUpdateNotification($event);
-
             $this->addFlash('success', 'Événement modifié avec succès.');
-
             return $this->redirectToRoute('event_list');
         }
 
@@ -117,86 +127,91 @@ class EventController extends AbstractController
         ]);
     }
 
-    #[Route('/event/{id}/cancel', name: 'event_cancel')]
+    #[Route('/event/{id}/cancel', name: 'event_cancel', requirements: ['id' => '\d+'])]
     public function cancelEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em): Response
     {
         $event = $eventRepository->find($id);
-
         if (!$event) {
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-        $event->setStatus('annulé');
+        if ($event->getOrganizer() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé.');
+        }
 
+        $event->setStatus('annulé');
         $em->flush();
 
-        $this->notificationService->sendEventCancelNotification($event);  // Appel de la méthode d'annulation
-
+        $this->notificationService->sendEventCancelNotification($event);
         $this->addFlash('success', 'Événement annulé avec succès.');
         return $this->redirectToRoute('event_list');
     }
 
-    #[Route('/event', name: 'event_index')]
-    public function index(EventRepository $eventRepository): Response
-    {
-        $events = $eventRepository->findAll();
-
-        return $this->render('event/list.html.twig', [
-            'events' => $events,
-        ]);
+#[Route('/event/{id}', name: 'event_show', requirements: ['id' => '\d+'])]
+public function showEvent(
+    int $id,
+    EventRepository $eventRepository,
+    ParticipationRepository $participationRepository
+): Response {
+    $event = $eventRepository->find($id);
+    if (!$event) {
+        throw $this->createNotFoundException('Événement non trouvé.');
     }
 
-    #[Route('/calendar', name: 'calendar_page')]
-    public function calendar(): Response
-    {
-        return $this->render('calendar/index.html.twig');
+    $user = $this->getUser();
+    if (!$user) {
+        throw $this->createAccessDeniedException("Vous devez être connecté pour accéder à cet événement.");
     }
 
-    public function showEvent(Event $event)
+    $isOrganizer = $event->getOrganizer() && $event->getOrganizer()->getId() === $user->getId();
+    $isParticipant = $participationRepository->findOneBy([
+        'event' => $event,
+        'user' => $user,
+    ]) !== null;
+
+    if (!$isOrganizer && !$isParticipant) {
+        throw $this->createAccessDeniedException("Vous n'êtes pas inscrit à cet événement.");
+    }
+
+    return $this->render('event/show.html.twig', [
+        'event' => $event,
+        'isOrganizer' => $isOrganizer,
+    ]);
+}
+
+
+    #[Route('/event/{id}/attendance', name: 'event_attendance', requirements: ['id' => '\d+'])]
+    public function attendance(int $id, EventRepository $eventRepository, ParticipationRepository $participationRepository): Response
     {
-        return $this->render('event/show.html.twig', [
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+
+        if ($event->getOrganizer() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé.');
+        }
+
+        $participations = $participationRepository->findBy(['event' => $event]);
+        $going = [];
+        $notGoing = [];
+        $pending = [];
+
+        foreach ($participations as $participation) {
+            $user = $participation->getUser();
+            $status = $participation->getInvitationStatus();
+            match ($status) {
+                'accepté' => $going[] = $user,
+                'refusé' => $notGoing[] = $user,
+                default => $pending[] = $user,
+            };
+        }
+
+        return $this->render('event/attendance.html.twig', [
             'event' => $event,
-            'googleDriveUrl' => 'https://drive.google.com/embeddedfolderview?id=ID_DOSSIER_GOOGLE',
-            'notionUrl' => 'https://www.notion.so/LIEN_DE_TA_PAGE_NOTION',
-            'etherpadUrl' => 'https://etherpad.domain.tld/p/ID_PAD_EVENT',
+            'going' => $going,
+            'notGoing' => $notGoing,
+            'pending' => $pending,
         ]);
     }
-
-    #[Route('/event/{id}/fichiers', name: 'event_files')]
-    public function listFiles(Event $event, Request $request, GoogleDriveService $driveService): Response
-    {
-        $token = $request->getSession()->get('google_access_token');
-
-        if (!$token) {
-            return $this->redirectToRoute('google_drive_connect');
-        }
-
-        $client = $driveService->getClient();
-        $client->setAccessToken($token);
-
-        if ($client->isAccessTokenExpired()) {
-            return $this->redirectToRoute('google_drive_connect');
-        }
-
-        $drive = $driveService->getDriveService();
-
-        preg_match('/\/folders\/([^\/\?]+)/', $event->getGoogleDriveUrl(), $matches);
-        $folderId = $matches[1] ?? null;
-
-        if (!$folderId) {
-            return new Response("Lien du dossier Google Drive invalide.");
-        }
-
-        $files = $drive->files->listFiles([
-            'q' => "'$folderId' in parents and trashed = false",
-            'fields' => 'files(id, name, mimeType, webViewLink)'
-        ]);
-
-        return $this->render('event/files.html.twig', [
-            'event' => $event,
-            'files' => $files->getFiles(),
-        ]);
-    }
-
-
 }

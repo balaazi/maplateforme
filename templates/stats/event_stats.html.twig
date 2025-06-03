@@ -1,0 +1,351 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques de l'Événement{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --success: #10b981;
+            --success-dark: #059669;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --info: #0ea5e9;
+            --info-dark: #0284c7;
+            --surface: #ffffff;
+            --text-light: #f8fafc;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at top right, rgba(99, 102, 241, 0.15), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.15), transparent 50%),
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.8), transparent 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .container {
+            animation: fadeIn 0.5s ease-out;
+            padding: 2rem;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Titre */
+        h1 {
+            color: #1e293b;
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 2.5rem;
+            position: relative;
+            display: inline-block;
+            animation: slideIn 0.6s ease-out;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        h1 strong {
+            color: var(--primary);
+            position: relative;
+            background: linear-gradient(120deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 strong::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--primary), transparent);
+            animation: expandWidth 0.8s ease-out forwards;
+        }
+
+        @keyframes expandWidth {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            transform: translateY(0);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
+            animation: cardFloat 0.8s ease-out forwards;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        @keyframes cardFloat {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .card.bg-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%) !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+
+        .card.bg-success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%) !important;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .card.bg-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%) !important;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .card.bg-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%) !important;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .card.bg-info {
+            background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%) !important;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .card-body {
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .card-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+            z-index: -1;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover .card-body::before {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.95);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .display-6 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            margin: 0;
+            color: var(--text-light);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: -1px;
+            position: relative;
+        }
+
+        /* Animation delay for cards */
+        .row > div:nth-child(1) .card { animation-delay: 0.1s; }
+        .row > div:nth-child(2) .card { animation-delay: 0.2s; }
+        .row > div:nth-child(3) .card { animation-delay: 0.3s; }
+        .row > div:nth-child(4) .card { animation-delay: 0.4s; }
+        .row > div:nth-child(5) .card { animation-delay: 0.5s; }
+
+        /* Button styles */
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            color: #1e293b;
+            font-weight: 600;
+            padding: 0.875rem 2.5rem;
+            border-radius: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-secondary:hover {
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-secondary:hover::before {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+                margin-bottom: 2rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .display-6 {
+                font-size: 2.25rem;
+            }
+
+            .btn-secondary {
+                width: 100%;
+                margin-top: 1rem;
+                padding: 0.75rem 1.5rem;
+            }
+        }
+
+        /* Additional decorative elements */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            transform: rotate(30deg);
+            pointer-events: none;
+            transition: all 0.6s ease;
+            z-index: 0;
+        }
+
+        .card:hover::after {
+            transform: rotate(60deg);
+        }
+
+        /* Smooth scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--primary-dark));
+            border-radius: 6px;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--primary-dark), var(--primary));
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <h1 class="mb-4">📈 Statistiques pour : <strong>{{ event.title }}</strong></h1>
+
+    <div class="row">
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-white bg-primary mb-4 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Total d'invitations</h5>
+                    <p class="display-6">{{ stats.total ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-white bg-success mb-4 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Acceptées</h5>
+                    <p class="display-6">{{ stats.accepted ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-white bg-danger mb-4 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Refusées</h5>
+                    <p class="display-6">{{ stats.refused ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <div class="card text-white bg-warning mb-4 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">En attente</h5>
+                    <p class="display-6">{{ stats.pending ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12 col-lg-4 offset-lg-4">
+            <div class="card text-white bg-info mb-4 shadow rounded-4">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Présents</h5>
+                    <p class="display-6">{{ stats.present ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="{{ path('app_home') }}" class="btn btn-secondary mt-4">⬅ Retour à l'accueil</a>
+    </div>
+</div>
+{% endblock %}

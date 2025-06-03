@@ -1,0 +1,637 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Documents - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            overflow-x: hidden;
+        }
+
+        .documents-container {
+            min-height: 100vh;
+            padding: 2rem 0;
+            position: relative;
+        }
+
+        /* Header premium */
+        .documents-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            border-radius: 30px;
+            padding: 3rem 2rem;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
+            animation: headerSlideIn 1s ease-out;
+        }
+
+        .documents-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            animation: headerAnimation 10s ease-in-out infinite;
+        }
+
+        @keyframes headerAnimation {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        @keyframes headerSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            color: white;
+        }
+
+        .header-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 3rem;
+            color: white;
+            animation: iconFloat 4s ease-in-out infinite;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .header-stat {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-stat-number {
+            font-size: 1.8rem;
+            font-weight: 900;
+            display: block;
+        }
+
+        .header-stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Sections */
+        .section-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: sectionSlideIn 0.8s ease-out both;
+        }
+
+        .section-container:nth-child(1) { animation-delay: 0.2s; }
+        .section-container:nth-child(2) { animation-delay: 0.4s; }
+        .section-container:nth-child(3) { animation-delay: 0.6s; }
+
+        @keyframes sectionSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 2rem;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .section-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .section-body {
+            padding: 2rem;
+        }
+
+        /* Cartes de documents */
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .document-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .document-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            transition: left 0.3s ease;
+        }
+
+        .document-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.2);
+        }
+
+        .document-card:hover::before {
+            left: 0;
+        }
+
+        .document-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .document-type-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .document-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .document-event {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .document-content {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .document-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .document-date {
+            font-size: 0.85rem;
+            color: #999;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-document {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-document:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        /* États vides */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: #667eea;
+        }
+
+        .empty-state-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .empty-state-text {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .documents-container {
+                padding: 1rem;
+            }
+
+            .documents-header {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+
+            .header-title {
+                font-size: 2rem;
+            }
+
+            .header-stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .documents-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .section-header {
+                padding: 1.5rem;
+            }
+
+            .section-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="documents-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="documents-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h1 class="header-title">Mes Documents</h1>
+                    <p class="header-subtitle">Accédez à tous vos documents partagés et notes collaboratives</p>
+                    
+                    <div class="header-stats">
+                        <div class="header-stat">
+                            <span class="header-stat-number">{{ events|length }}</span>
+                            <span class="header-stat-label">Événements</span>
+                        </div>
+                        <div class="header-stat">
+                            <span class="header-stat-number">{{ collaborativeNotes|length }}</span>
+                            <span class="header-stat-label">Documents</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Collaboratives -->
+            {% if collaborativeNotes|length > 0 %}
+                <div class="section-container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            Notes Collaboratives
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="documents-grid">
+                            {% for note in collaborativeNotes %}
+                                <div class="document-card" onclick="window.location.href='{{ path('app_collaborative_notes_list', {'id': note.event.id}) }}'">
+                                    <div class="document-header">
+                                        <div class="document-type-icon">
+                                            <i class="fas fa-sticky-note"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="document-title">{{ note.title }}</h3>
+                                            <div class="document-event">{{ note.event.title }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="document-content">
+                                        {{ note.content|length > 150 ? note.content|slice(0, 150) ~ '...' : note.content }}
+                                    </div>
+                                    
+                                    <div class="document-meta">
+                                        <div class="document-date">
+                                            <i class="fas fa-clock"></i>
+                                            {{ note.updatedAt ? note.updatedAt|date('d/m/Y H:i') : note.createdAt|date('d/m/Y H:i') }}
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="{{ path('app_collaborative_notes_list', {'id': note.event.id}) }}" class="btn-document">
+                                                <i class="fas fa-eye"></i>
+                                                Voir
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Mes Événements avec Documents -->
+            {% if events|length > 0 %}
+                <div class="section-container">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <div class="section-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            Événements avec Documents
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="documents-grid">
+                            {% for event in events %}
+                                <div class="document-card" onclick="window.location.href='{{ path('event_show', {'id': event.id}) }}'">
+                                    <div class="document-header">
+                                        <div class="document-type-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="document-title">{{ event.title }}</h3>
+                                            <div class="document-event">{{ event.type|title }}</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="document-content">
+                                        {{ event.description|length > 150 ? event.description|slice(0, 150) ~ '...' : event.description }}
+                                    </div>
+                                    
+                                    <div class="document-meta">
+                                        <div class="document-date">
+                                            <i class="fas fa-calendar"></i>
+                                            {{ event.dateHeure|date('d/m/Y H:i') }}
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="{{ path('event_show', {'id': event.id}) }}" class="btn-document">
+                                                <i class="fas fa-eye"></i>
+                                                Voir
+                                            </a>
+                                            {% if event.collaborativeNotes|length > 0 %}
+                                                <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" class="btn-document" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                                                    <i class="fas fa-sticky-note"></i>
+                                                    Notes
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- État vide si aucun document -->
+            {% if collaborativeNotes|length == 0 and events|length == 0 %}
+                <div class="section-container">
+                    <div class="section-body">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="empty-state-title">Aucun document disponible</h3>
+                            <p class="empty-state-text">
+                                Vous n'avez pas encore participé à des événements avec des documents partagés.<br>
+                                Les notes collaboratives et documents apparaîtront ici lorsque vous participerez à des événements.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des cartes au scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observer les cartes
+            document.querySelectorAll('.document-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'all 0.6s ease-out';
+                observer.observe(card);
+            });
+
+            // Animation de l'icône du header
+            const headerIcon = document.querySelector('.header-icon');
+            if (headerIcon) {
+                headerIcon.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.9) rotate(-10deg)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.1) rotate(10deg)';
+                        setTimeout(() => {
+                            this.style.transform = 'scale(1) rotate(0deg)';
+                        }, 200);
+                    }, 100);
+                });
+            }
+
+            // Effets de survol avancés pour les cartes
+            document.querySelectorAll('.document-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    // Créer des particules au survol
+                    const rect = this.getBoundingClientRect();
+                    for (let i = 0; i < 3; i++) {
+                        const particle = document.createElement('div');
+                        particle.style.cssText = `
+                            position: fixed;
+                            width: 4px;
+                            height: 4px;
+                            background: rgba(102, 126, 234, 0.6);
+                            border-radius: 50%;
+                            pointer-events: none;
+                            z-index: 10000;
+                            left: ${rect.left + Math.random() * rect.width}px;
+                            top: ${rect.top + Math.random() * rect.height}px;
+                        `;
+                        
+                        document.body.appendChild(particle);
+                        
+                        const angle = Math.random() * Math.PI * 2;
+                        const distance = 30 + Math.random() * 20;
+                        
+                        particle.animate([
+                            {
+                                transform: 'translate(0, 0) scale(1)',
+                                opacity: 1
+                            },
+                            {
+                                transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0)`,
+                                opacity: 0
+                            }
+                        ], {
+                            duration: 800,
+                            easing: 'ease-out'
+                        }).onfinish = () => particle.remove();
+                    }
+                });
+            });
+
+            // Animation des statistiques dans le header
+            const statNumbers = document.querySelectorAll('.header-stat-number');
+            statNumbers.forEach(stat => {
+                const targetValue = parseInt(stat.textContent);
+                stat.textContent = '0';
+                
+                let currentValue = 0;
+                const increment = targetValue / 30;
+                const timer = setInterval(() => {
+                    currentValue += increment;
+                    if (currentValue >= targetValue) {
+                        currentValue = targetValue;
+                        clearInterval(timer);
+                    }
+                    stat.textContent = Math.floor(currentValue);
+                }, 50);
+            });
+        });
+    </script>
+{% endblock %} 

@@ -28,7 +28,7 @@ class DocumentController extends AbstractController
         $event = $eventRepo->find($id);
         if (!$event) {
             $this->addFlash('error', 'Événement introuvable');
-            return $this->redirectToRoute('event_index');
+            return $this->redirectToRoute('event_list');
         }
 
         $document = new Document();

@@ -42,17 +42,18 @@ $this->mailer->send($email);
 }
 public function sendEventCancelNotification(Event $event): void
 {
-     /**
-     * @var $invit Invitation
-     */
+    /** @var Invitation $invit */
     foreach ($event->getInvitations() as $invit) {
-         if ($invit->getEmail()) {
+        if ($invit->getEmail()) {
+            $participant = $invit->getParticipant();
+            $participantName = $participant ? $participant->getName() : 'Invité(e)';
+
             $email = (new Email())
                 ->from('nadiabalaazi@gmail.com')
                 ->to($invit->getEmail())
                 ->subject('❌ Événement annulé : ' . $event->getTitle())
                 ->html("
-                    <p>Bonjour {$invit->getParticipant()->getName()}},</p>
+                    <p>Bonjour {$participantName},</p>
                     <p>Nous vous informons que l'événement <strong>{$event->getTitle()}</strong> prévu le <strong>{$event->getDateHeure()->format('d/m/Y H:i')}</strong> a été <strong>annulé</strong>.</p>
                     <p>Merci de votre compréhension.</p>
                 ");

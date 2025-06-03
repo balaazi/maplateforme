@@ -105,6 +105,25 @@ return $this->render('user/list.html.twig', [
 ]);
 }
 
+#[Route('/user/home', name: 'user_home')]
+public function home(): Response
+{
+$user = $this->getUser();
+
+if (!$user) {
+return $this->redirectToRoute('app_login');
+}
+
+// Redirect based on user role
+if (in_array('ROLE_ADMIN', $user->getRoles())) {
+return $this->redirectToRoute('admin_dashboard');
+} elseif (in_array('ROLE_ORGANISATEUR', $user->getRoles())) {
+return $this->redirectToRoute('organisateur_dashboard');
+} else {
+return $this->redirectToRoute('participant_dashboard');
+}
+}
+
 private function getUserByToken(string $token)
 {
 // Implémente la logique pour récupérer l'utilisateur avec le token

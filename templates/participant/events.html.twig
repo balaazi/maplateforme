@@ -1,0 +1,350 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Événements{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --success-light: #34d399;
+            --success-dark: #059669;
+            --danger: #ef4444;
+            --danger-light: #f87171;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --warning-light: #fbbf24;
+            --warning-dark: #d97706;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.1), transparent 50%);
+            min-height: 100vh;
+        }
+
+        .container {
+            animation: fadeIn 0.5s ease-out;
+            padding: 2rem 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Titre principal */
+        h1 {
+            color: var(--text-primary);
+            font-size: 2.25rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 i {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 0.5rem;
+        }
+
+        /* Bouton Agenda */
+        .btn-outline-primary {
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            padding: 0.75rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-outline-primary:hover {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Alertes */
+        .alert {
+            border: none;
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--success-light), var(--success));
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-light), var(--danger));
+            color: white;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .alert-info h4 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Cards */
+        .card {
+            border: none;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            animation: cardFloat 0.8s ease-out forwards;
+        }
+
+        @keyframes cardFloat {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            padding: 1.5rem;
+            border: none;
+        }
+
+        .card-header.bg-success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%) !important;
+        }
+
+        .card-header.bg-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, var(--warning-dark) 100%) !important;
+        }
+
+        .badge {
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-body {
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .card-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .card-text i {
+            width: 24px;
+            color: var(--primary);
+            margin-right: 0.5rem;
+        }
+
+        .card-text strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Boutons de présence */
+        .btn-group {
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-lg {
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, var(--success-dark) 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dark) 100%);
+        }
+
+        .btn-outline-success {
+            border: 2px solid var(--success);
+            color: var(--success);
+            background: transparent;
+        }
+
+        .btn-outline-danger {
+            border: 2px solid var(--danger);
+            color: var(--danger);
+            background: transparent;
+        }
+
+        .btn-lg:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Animation des cartes */
+        .col-md-6:nth-child(odd) .card { animation-delay: 0.1s; }
+        .col-md-6:nth-child(even) .card { animation-delay: 0.2s; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .btn-lg {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .card-header {
+                padding: 1.25rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--primary-dark));
+            border-radius: 6px;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--primary-dark), var(--primary));
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-calendar-check"></i> Mes Événements</h1>
+        <a href="{{ path('calendar_index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-calendar-alt"></i> Voir mon agenda
+        </a>
+    </div>
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row mt-4">
+        {% for participation in participations %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 {% if participation.isPresent %}border-success{% else %}border-warning{% endif %}">
+                    <div class="card-header {% if participation.isPresent %}bg-success{% else %}bg-warning{% endif %} text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ participation.event.title }}</h5>
+                            <span class="badge bg-white {% if participation.isPresent %}text-success{% else %}text-warning{% endif %}">
+                                {% if participation.isPresent %}
+                                    <i class="fas fa-check-circle"></i> Présence confirmée
+                                {% else %}
+                                    <i class="fas fa-exclamation-circle"></i> Présence à confirmer
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <p class="card-text">
+                                <i class="fas fa-clock text-muted"></i> <strong>Date :</strong> {{ participation.event.dateHeure|date('d/m/Y H:i') }}<br>
+                                <i class="fas fa-map-marker-alt text-muted"></i> <strong>Lieu :</strong> {{ participation.event.lieu }}<br>
+                                <i class="fas fa-user text-muted"></i> <strong>Organisateur :</strong> {{ participation.event.organizer.email }}
+                            </p>
+                        </div>
+                        <div class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ path('event_presence', {'id': participation.event.id}) }}" 
+                                   class="btn {% if participation.isPresent %}btn-outline-success{% else %}btn-success{% endif %} btn-lg">
+                                    <i class="fas fa-check-circle"></i> Je serai présent(e)
+                                </a>
+                                <a href="{{ path('event_presence', {'id': participation.event.id}) }}" 
+                                   class="btn {% if not participation.isPresent %}btn-outline-danger{% else %}btn-danger{% endif %} btn-lg">
+                                    <i class="fas fa-times-circle"></i> Je serai absent(e)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <h4 class="alert-heading"><i class="fas fa-info-circle"></i> Aucun événement</h4>
+                    <p>Vous n'êtes inscrit(e) à aucun événement pour le moment.</p>
+                    <hr>
+                    <p class="mb-0">Consultez l'agenda pour voir les événements disponibles.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 

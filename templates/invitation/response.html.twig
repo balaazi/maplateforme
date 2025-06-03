@@ -2,20 +2,39 @@
 
 {% extends 'base.html.twig' %}
 
-{% block title %}Merci pour votre réponse{% endblock %}
+{% block title %}Réponse à l'invitation{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <h1>Merci pour votre réponse</h1>
-        
-        {% if response == 'accepted' %}
-            <div class="alert alert-success">
-                Vous avez accepté l'invitation. Nous avons hâte de vous voir!
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if response == 'accepted' %}
+                    <h2 class="text-success">
+                        <i class="fas fa-check-circle"></i>
+                        Invitation acceptée
+                    </h2>
+                    <p>Vous avez accepté l'invitation à l'événement : <strong>{{ invitation.event.title }}</strong></p>
+                {% else %}
+                    <h2 class="text-danger">
+                        <i class="fas fa-times-circle"></i>
+                        Invitation refusée
+                    </h2>
+                    <p>Vous avez refusé l'invitation à l'événement : <strong>{{ invitation.event.title }}</strong></p>
+                {% endif %}
+
+                {% if isNewUser is defined and isNewUser %}
+                    <div class="alert alert-info mt-4">
+                        <h4><i class="fas fa-user-plus"></i> Bienvenue !</h4>
+                        <p>Un compte a été créé pour vous. Veuillez vérifier votre email pour obtenir vos identifiants de connexion.</p>
             </div>
-        {% else %}
-            <div class="alert alert-info">
-                Vous avez décliné l'invitation. Merci de nous avoir informé.
+                {% endif %}
+
+                <div class="mt-4">
+                    <a href="{{ path('event_list') }}" class="btn btn-primary">
+                        <i class="fas fa-calendar"></i> Voir mes événements
+                    </a>
             </div>
-        {% endif %}
+            </div>
+            </div>
     </div>
 {% endblock %}
