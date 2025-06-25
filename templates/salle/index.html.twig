@@ -1,0 +1,725 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des salles{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            border-radius: 25px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+        }
+
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .role-badge {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            margin-right: 15px;
+            margin-bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .role-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Styles pour le tableau moderne */
+        .rooms-table-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 30px;
+        }
+
+        .rooms-table {
+            width: 100%;
+            margin-bottom: 0;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .rooms-table thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px 15px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            position: relative;
+        }
+
+        .rooms-table thead th:first-child {
+            border-top-left-radius: 0;
+        }
+
+        .rooms-table thead th:last-child {
+            border-top-right-radius: 0;
+        }
+
+        .rooms-table tbody tr {
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .rooms-table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03), rgba(118, 75, 162, 0.03));
+            transform: scale(1.005);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
+        }
+
+        .rooms-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .rooms-table tbody td {
+            padding: 20px 15px;
+            vertical-align: middle;
+            border: none;
+        }
+
+        .room-name-cell {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+
+        .room-capacity-cell {
+            color: #718096;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .room-schedule-cell {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .status-libre {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .status-occupee {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+        }
+
+        .status-libre_temporaire {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+        }
+
+        .status-desactivee {
+            background: linear-gradient(135deg, #a0aec0, #718096);
+            color: white;
+            box-shadow: 0 4px 15px rgba(160, 174, 192, 0.3);
+        }
+
+        .status-info {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .status-info.occupied {
+            color: #f56565;
+        }
+
+        .status-info.available {
+            color: #48bb78;
+        }
+
+        .status-info.temporary {
+            color: #ed8936;
+        }
+
+        .room-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 2px solid;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-calendar {
+            border-color: #4299e1;
+            color: #4299e1;
+        }
+
+        .btn-calendar:hover {
+            background: #4299e1;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-edit {
+            border-color: #ed8936;
+            color: #ed8936;
+        }
+
+        .btn-edit:hover {
+            background: #ed8936;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(237, 137, 54, 0.3);
+        }
+
+        .btn-toggle {
+            border-color: #718096;
+            color: #718096;
+        }
+
+        .btn-toggle:hover {
+            background: #718096;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(113, 128, 150, 0.3);
+        }
+
+        .btn-delete {
+            border-color: #f56565;
+            color: #f56565;
+        }
+
+        .btn-delete:hover {
+            background: #f56565;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.3);
+        }
+
+        .add-room-btn {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
+        }
+
+        .add-room-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(72, 187, 120, 0.4);
+            background: linear-gradient(135deg, #38a169, #2f855a);
+            color: white;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 0;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-actions .btn {
+            border-radius: 12px;
+            font-weight: 600;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .header-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .empty-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #718096;
+            margin: 0 auto 20px;
+        }
+
+        @media (max-width: 768px) {
+            .rooms-table-container {
+                overflow-x: auto;
+            }
+            
+            .hero-section {
+                padding: 25px;
+                text-align: center;
+            }
+            
+            .room-actions {
+                justify-content: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .add-room-btn {
+                justify-content: center;
+            }
+        }
+
+        /* Animation pour les lignes */
+        .rooms-table tbody tr {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .rooms-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+        .rooms-table tbody tr:nth-child(2) { animation-delay: 0.2s; }
+        .rooms-table tbody tr:nth-child(3) { animation-delay: 0.3s; }
+        .rooms-table tbody tr:nth-child(4) { animation-delay: 0.4s; }
+        .rooms-table tbody tr:nth-child(5) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        {# Hero Section moderne #}
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <div class="hero-icon">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <h1 class="display-4 fw-bold mb-3">Gestion des Salles</h1>
+                        <p class="lead mb-4">Centre de contrôle pour la gestion intelligente de vos espaces de réunion</p>
+                        <div class="mb-3">
+                            <span class="role-badge">
+                                <i class="fas fa-user-cog"></i>
+                                Organisateur
+                            </span>
+                            <span class="role-badge">
+                                <i class="fas fa-user-shield"></i>
+                                Administrateur
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-user-circle me-2"></i>
+                            <span>Connecté en tant que : 
+                                {% if is_granted('ROLE_ADMIN') %}
+                                    <strong>Administrateur</strong>
+                                {% elseif is_granted('ROLE_ORGANISATEUR') %}
+                                    <strong>Organisateur</strong>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div style="font-size: 8rem; opacity: 0.3;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        {# Section des Salles avec tableau moderne #}
+        <div class="section-header">
+            <h2 class="section-title">Vos Salles</h2>
+            <div class="header-actions">
+                <a href="{{ path('app_salle_calendar') }}" class="btn btn-outline-info me-2">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Calendrier
+                </a>
+                <a href="{{ path('app_salle_stats') }}" class="btn btn-outline-secondary me-2">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Statistiques
+                </a>
+                <a href="{{ path('app_salle_new') }}" class="add-room-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Ajouter une salle</span>
+                </a>
+            </div>
+        </div>
+
+        {% if salles_avec_statut|length > 0 %}
+            <div class="rooms-table-container">
+                <table class="table rooms-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">
+                                <i class="fas fa-door-open me-2"></i>
+                                Nom de la salle
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-users me-2"></i>
+                                Capacité
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-clock me-2"></i>
+                                Horaires
+                            </th>
+                            <th scope="col">
+                                <i class="fas fa-traffic-light me-2"></i>
+                                Statut
+                            </th>
+                            <th scope="col" class="text-center">
+                                <i class="fas fa-cogs me-2"></i>
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in salles_avec_statut %}
+                            {% set salle = item.salle %}
+                            {% set statut = item.statut %}
+                            <tr>
+                                <td class="room-name-cell">
+                                    {{ salle.nom }}
+                                </td>
+                                <td class="room-capacity-cell">
+                                    <i class="fas fa-users"></i>
+                                    {{ salle.capacite }} personnes
+                                </td>
+                                <td class="room-schedule-cell">
+                                    <div>
+                                        <i class="fas fa-clock text-primary me-1"></i>
+                                        {{ salle.debutReservation|date('H:i') }} - {{ salle.finReservation|date('H:i') }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <span class="status-badge status-{{ statut.statut }}">
+                                            <i class="fas fa-circle"></i>
+                                            {{ statut.libelle }}
+                                        </span>
+                                        {% if statut.statut == 'occupee' %}
+                                            <div class="status-info occupied">
+                                                <i class="fas fa-user me-1"></i>{{ statut.reservation.reservePar }}
+                                                <br><i class="fas fa-clock me-1"></i>Libre à {{ statut.fin_occupation|date('H:i') }}
+                                            </div>
+                                        {% elseif statut.statut == 'libre_temporaire' %}
+                                            <div class="status-info temporary">
+                                                <i class="fas fa-calendar me-1"></i>Réservée à {{ statut.debut_occupation|date('H:i') }}
+                                                <br><i class="fas fa-user me-1"></i>{{ statut.prochaine_reservation.reservePar }}
+                                            </div>
+                                        {% elseif statut.statut == 'libre' %}
+                                            <div class="status-info available">
+                                                <i class="fas fa-check-circle me-1"></i>Disponible maintenant
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="room-actions">
+                                        <a href="{{ path('app_salle_disponibilite', {id: salle.id}) }}" 
+                                           class="action-btn btn-calendar"
+                                           title="Voir le planning">
+                                            <i class="fas fa-calendar-alt"></i>
+                                        </a>
+                                        <a href="{{ path('app_salle_edit', {id: salle.id}) }}" 
+                                           class="action-btn btn-edit"
+                                           title="Modifier la salle">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        
+                                        {% if salle.disponible %}
+                                            <button type="button" 
+                                                    class="action-btn btn-toggle"
+                                                    title="Désactiver la salle"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#disableModal{{ salle.id }}">
+                                                <i class="fas fa-pause"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="button" 
+                                                    class="action-btn btn-toggle"
+                                                    title="Activer la salle"
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#enableModal{{ salle.id }}">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        {% endif %}
+                                        
+                                        <button type="button" 
+                                                class="action-btn btn-delete"
+                                                title="Supprimer la salle"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ salle.id }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Modales (restent identiques) #}
+            {% for item in salles_avec_statut %}
+                {% set salle = item.salle %}
+                
+                <!-- Modal de désactivation -->
+                {% if salle.disponible %}
+                <div class="modal fade" id="disableModal{{ salle.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-pause text-warning me-2"></i>
+                                    Désactiver la salle
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Voulez-vous désactiver la salle <strong>"{{ salle.nom }}"</strong> ?</p>
+                                <p class="text-muted"><small>Elle ne sera plus disponible pour de nouvelles réservations.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Annuler
+                                </button>
+                                <form method="post" action="{{ path('app_salle_disable', {id: salle.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('disable' ~ salle.id) }}">
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="fas fa-pause me-1"></i>Désactiver
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Modal d'activation -->
+                {% if not salle.disponible %}
+                <div class="modal fade" id="enableModal{{ salle.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-play text-success me-2"></i>
+                                    Activer la salle
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Voulez-vous activer la salle <strong>"{{ salle.nom }}"</strong> ?</p>
+                                <p class="text-muted"><small>Elle sera à nouveau disponible pour de nouvelles réservations.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Annuler
+                                </button>
+                                <form method="post" action="{{ path('app_salle_enable', {id: salle.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('enable' ~ salle.id) }}">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-play me-1"></i>Activer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Modal de confirmation de suppression -->
+                <div class="modal fade" id="deleteModal{{ salle.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    Confirmer la suppression
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Êtes-vous sûr de vouloir supprimer la salle <strong>"{{ salle.nom }}"</strong> ?</p>
+                                <p class="text-muted"><small>Cette action est irréversible si aucune dépendance n'existe.</small></p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-1"></i>Annuler
+                                </button>
+                                <form method="post" action="{{ path('app_salle_delete', {id: salle.id}) }}" style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ salle.id) }}">
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash me-1"></i>Supprimer
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <i class="fas fa-door-closed"></i>
+                </div>
+                <h3 class="mb-3">Aucune salle enregistrée</h3>
+                <p class="text-muted mb-4">Commencez par créer votre première salle pour gérer vos espaces de réunion</p>
+                <a href="{{ path('app_salle_new') }}" class="add-room-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Créer ma première salle</span>
+                </a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %} 

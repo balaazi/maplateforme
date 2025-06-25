@@ -49,9 +49,27 @@ class UserType extends AbstractType
                 'label' => 'Spécialité',
                 'required' => true,
             ])
-            ->add('departement', TextType::class, [
+            ->add('departement', ChoiceType::class, [
                 'label' => 'Département',
                 'required' => true,
+                'choices' => [
+                    'Choisissez votre département' => '',
+                    'Ressources Humaines' => 'Ressources Humaines',
+                    'Informatique' => 'Informatique',
+                    'Finance' => 'Finance',
+                    'Marketing' => 'Marketing',
+                    'Commercial' => 'Commercial',
+                    'Production' => 'Production',
+                    'Logistique' => 'Logistique',
+                    'Qualité' => 'Qualité',
+                    'Recherche et Développement' => 'Recherche et Développement',
+                    'Support Client' => 'Support Client',
+                    'Administration' => 'Administration',
+                    'Communication' => 'Communication',
+                    'Sécurité' => 'Sécurité',
+                   
+                ],
+                'placeholder' => 'Choisissez votre département',
             ])
             ->add('societe', TextType::class, [
                 'label' => 'Société',

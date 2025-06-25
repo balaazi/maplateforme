@@ -105,6 +105,116 @@
             color: white;
             text-decoration: none;
         }
+
+        .notifications-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .notification-item {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .notification-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .notification-item.unread {
+            border-left: 4px solid #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .notification-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .notification-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .notification-message {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .notification-time {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notification-type {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .mark-all-read-btn {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .mark-all-read-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            color: white;
+            text-decoration: none;
+        }
     </style>
 {% endblock %}
 
@@ -121,20 +231,67 @@
             </div>
 
             <!-- Contenu -->
-            <div class="empty-state">
-                <div class="empty-state-icon">
-                    <i class="fas fa-bell-slash"></i>
+            {% if notifications|length > 0 %}
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>{{ notifications|length }} notification{{ notifications|length > 1 ? 's' : '' }}</h3>
+                    <a href="#" class="mark-all-read-btn">
+                        <i class="fas fa-check-double"></i>
+                        Tout marquer comme lu
+                    </a>
                 </div>
-                <h3 class="empty-state-title">Aucune notification</h3>
-                <p class="empty-state-text">
-                    Vous n'avez pas encore de notifications.<br>
-                    Les invitations aux événements, rappels et messages importants apparaîtront ici.
-                </p>
-                <a href="{{ path('participant_dashboard') }}" class="btn-back">
-                    <i class="fas fa-arrow-left"></i>
-                    Retour au Dashboard
-                </a>
-            </div>
+
+                <div class="notifications-list">
+                    {% for notification in notifications %}
+                        <div class="notification-item {{ not notification.isRead ? 'unread' : '' }}">
+                            <div class="notification-header">
+                                <div class="notification-icon" style="background: {{ notification.typeColor }};">
+                                    <i class="{{ notification.icon }}"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <h4 class="notification-title">{{ notification.title }}</h4>
+                                    {% if not notification.isRead %}
+                                        <span class="badge bg-primary">Nouveau</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="notification-message">
+                                {{ notification.message }}
+                            </div>
+                            <div class="notification-meta">
+                                <div class="notification-time">
+                                    <i class="fas fa-clock"></i>
+                                    {{ notification.timeAgo }}
+                                </div>
+                                <div class="notification-type">
+                                    {{ notification.type|replace({'_': ' '})|title }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ path('participant_dashboard') }}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour au Dashboard
+                    </a>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-bell-slash"></i>
+                    </div>
+                    <h3 class="empty-state-title">Aucune notification</h3>
+                    <p class="empty-state-text">
+                        Vous n'avez pas encore de notifications.<br>
+                        Les invitations aux événements, rappels et messages importants apparaîtront ici.
+                    </p>
+                    <a href="{{ path('participant_dashboard') }}" class="btn-back">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour au Dashboard
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %} 

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\CalendarEvent;
+use App\Entity\User;
 use App\Form\EventFormType;
 use App\Repository\EventRepository;
 use App\Repository\ParticipationRepository;
@@ -18,7 +19,6 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[IsGranted('ROLE_ORGANISATEUR')]
 class EventController extends AbstractController
 {
     private EventNotificationService $notificationService;
@@ -29,6 +29,7 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/create', name: 'event_create')]
+    #[IsGranted('ROLE_PARTICIPANT')]
     public function create(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -66,12 +67,21 @@ class EventController extends AbstractController
 
                 $this->addFlash('success', 'Événement créé et synchronisé dans les deux sens avec Google Calendar.');
             } catch (\Exception $e) {
-                if (str_contains($e->getMessage(), 'Invalid token format') || str_contains($e->getMessage(), 'Token has expired')) {
+                if (str_contains($e->getMessage(), 'Invalid token format') || 
+                    str_contains($e->getMessage(), 'Token has expired')) {
                     $session->set('intended_route', 'event_create');
                     return $this->redirectToRoute('google_calendar_connect');
                 }
 
+                if (str_contains($e->getMessage(), 'EntityManager is closed')) {
+                    $this->addFlash('warning', 'Événement créé mais problème de synchronisation : Erreur de base de données. Veuillez réessayer la synchronisation plus tard.');
+                } elseif (str_contains($e->getMessage(), 'cascade persist')) {
+                    $this->addFlash('warning', 'Événement créé mais problème de synchronisation : Erreur de persistance des données. Veuillez réessayer la synchronisation plus tard.');
+                } elseif (str_contains($e->getMessage(), 'Integrity constraint violation') || str_contains($e->getMessage(), 'cannot be null')) {
+                    $this->addFlash('warning', 'Événement créé mais problème de synchronisation : Données manquantes. Veuillez réessayer la synchronisation plus tard.');
+                } else {
                 $this->addFlash('warning', 'Événement créé mais problème de synchronisation : ' . $e->getMessage());
+                }
             }
 
             return $this->redirectToRoute('event_list');
@@ -83,6 +93,7 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/list', name: 'event_list')]
+    #[IsGranted('ROLE_ORGANISATEUR')]
     public function list(EntityManagerInterface $em): Response
     {
         $events = $em->getRepository(Event::class)
@@ -100,6 +111,7 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/{id}/edit', name: 'event_edit', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ORGANISATEUR')]
     public function edit(int $id, Request $request, EntityManagerInterface $em): Response
     {
         $event = $em->getRepository(Event::class)->find($id);
@@ -128,6 +140,7 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/{id}/cancel', name: 'event_cancel', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ORGANISATEUR')]
     public function cancelEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em): Response
     {
         $event = $eventRepository->find($id);
@@ -148,6 +161,7 @@ class EventController extends AbstractController
     }
 
 #[Route('/event/{id}', name: 'event_show', requirements: ['id' => '\d+'])]
+#[IsGranted('ROLE_USER')]
 public function showEvent(
     int $id,
     EventRepository $eventRepository,
@@ -163,6 +177,7 @@ public function showEvent(
         throw $this->createAccessDeniedException("Vous devez être connecté pour accéder à cet événement.");
     }
 
+    /** @var User $user */
     $isOrganizer = $event->getOrganizer() && $event->getOrganizer()->getId() === $user->getId();
     $isParticipant = $participationRepository->findOneBy([
         'event' => $event,
@@ -181,6 +196,7 @@ public function showEvent(
 
 
     #[Route('/event/{id}/attendance', name: 'event_attendance', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ORGANISATEUR')]
     public function attendance(int $id, EventRepository $eventRepository, ParticipationRepository $participationRepository): Response
     {
         $event = $eventRepository->find($id);

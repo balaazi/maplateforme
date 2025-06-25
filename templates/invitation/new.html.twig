@@ -180,7 +180,32 @@
             background: #fff;
             font-family: inherit;
             position: relative;
-            z-index: 2;
+            z-index: 1000 !important;
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            user-select: text !important;
+            cursor: text !important;
+        }
+        
+        /* Sécurité supplémentaire pour l'interaction */
+        .form-control:disabled,
+        .form-control[readonly] {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            cursor: text !important;
+        }
+        
+        .form-field * {
+            pointer-events: auto !important;
+        }
+        
+        /* Force l'affichage immédiat des champs de formulaire */
+        .form-field,
+        .form-actions {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            visibility: visible !important;
+            display: block !important;
         }
         
         .form-control:focus {
@@ -461,37 +486,19 @@
                     
                     {{ form_start(form, {'attr': {'class': 'invitation-form', 'novalidate': true}}) }}
                     
-                        <div class="form-field fade-in" style="animation-delay: 0.2s;">
-                            {{ form_widget(form.name, {
-                                'attr': {
-                                    'class': 'form-control',
-                                    'placeholder': ' '
-                                }
-                            }) }}
-                            <label class="form-label">{{ form_label(form.name) }}</label>
-                            {% if form_errors(form.name) %}
-                                <div class="form-errors">
+                        <div class="form-field" style="opacity: 1; transform: translateY(0); margin-bottom: 1.5rem;">
+                            {{ form_label(form.name, null, {'attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.name) }}
                                     {{ form_errors(form.name) }}
-                                </div>
-                            {% endif %}
                         </div>
                         
-                        <div class="form-field fade-in" style="animation-delay: 0.3s;">
-                            {{ form_widget(form.email, {
-                                'attr': {
-                                    'class': 'form-control',
-                                    'placeholder': ' '
-                                }
-                            }) }}
-                            <label class="form-label">{{ form_label(form.email) }}</label>
-                            {% if form_errors(form.email) %}
-                                <div class="form-errors">
+                        <div class="form-field" style="opacity: 1; transform: translateY(0); margin-bottom: 1.5rem;">
+                            {{ form_label(form.email, null, {'attr': {'class': 'form-label'}}) }}
+                            {{ form_widget(form.email) }}
                                     {{ form_errors(form.email) }}
-                                </div>
-                            {% endif %}
                         </div>
                         
-                        <div class="form-actions fade-in" style="animation-delay: 0.4s;">
+                        <div class="form-actions" style="opacity: 1; transform: translateY(0);">
                             <button type="submit" class="btn btn-primary" id="submit-btn">
                                 <i class="fas fa-paper-plane"></i>
                                 Envoyer l'invitation
@@ -517,167 +524,71 @@
     {{ parent() }}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Animation d'entrée progressive
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
+            console.log('Page chargée - Initialisation des champs');
             
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
-                });
-            }, observerOptions);
-            
-            // Observer les éléments avec animation
-            document.querySelectorAll('.fade-in').forEach(el => {
-                observer.observe(el);
-            });
-            
-            // Gestion des labels flottants
-            const formControls = document.querySelectorAll('.form-control');
-            formControls.forEach(control => {
-                // Vérifier si le champ a une valeur au chargement
-                if (control.value && control.value.trim() !== '') {
-                    control.nextElementSibling?.classList.add('has-value');
-                }
+            // SIMPLIFICATION TOTALE - Supprimer tous les événements problématiques
+            const allInputs = document.querySelectorAll('input, textarea, select, button');
+            allInputs.forEach(input => {
+                // Nettoyer tous les attributs bloquants
+                input.removeAttribute('disabled');
+                input.removeAttribute('readonly');
+                input.style.pointerEvents = 'auto';
+                input.style.opacity = '1';
+                input.style.zIndex = '1000';
+                input.tabIndex = 0;
                 
-                control.addEventListener('blur', function() {
-                    if (this.value && this.value.trim() !== '') {
-                        this.nextElementSibling?.classList.add('has-value');
-                    } else {
-                        this.nextElementSibling?.classList.remove('has-value');
-                    }
-                });
-                
-                control.addEventListener('input', function() {
-                    if (this.value && this.value.trim() !== '') {
-                        this.nextElementSibling?.classList.add('has-value');
-                    } else {
-                        this.nextElementSibling?.classList.remove('has-value');
-                    }
-                });
+                console.log('Champ activé:', input.type || input.tagName);
             });
             
-            // Validation en temps réel
-            formControls.forEach(control => {
-                control.addEventListener('input', function() {
-                    // Supprimer les styles d'erreur précédents
-                    this.style.borderColor = '';
-                    
-                    // Validation simple
-                    if (this.type === 'email') {
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (this.value && !emailRegex.test(this.value)) {
-                            this.style.borderColor = '#dc3545';
-                        } else if (this.value) {
-                            this.style.borderColor = '#28a745';
-                        }
-                    } else if (this.required) {
-                        if (this.value.trim() === '') {
-                            this.style.borderColor = '#dc3545';
-                        } else {
-                            this.style.borderColor = '#28a745';
-                        }
-                    }
+            // Test simple pour vérifier que la saisie fonctionne
+            const nameInput = document.querySelector('input[name*="name"]');
+            const emailInput = document.querySelector('input[name*="email"]');
+            
+            if (nameInput) {
+                nameInput.addEventListener('input', function() {
+                    console.log('Saisie dans le champ nom:', this.value);
                 });
-            });
+                nameInput.focus();
+                console.log('Focus placé sur le champ nom');
+            }
             
-            // Animation des champs de formulaire
-            const formFields = document.querySelectorAll('.form-field');
-            formFields.forEach((field, index) => {
-                field.style.opacity = '0';
-                field.style.transform = 'translateX(-30px)';
-                
-                setTimeout(() => {
-                    field.style.transition = 'all 0.6s ease-out';
-                    field.style.opacity = '1';
-                    field.style.transform = 'translateX(0)';
-                }, (index * 200) + 1000);
-            });
+            if (emailInput) {
+                emailInput.addEventListener('input', function() {
+                    console.log('Saisie dans le champ email:', this.value);
+                });
+            }
             
-            // Gestion de la soumission du formulaire
+            // Gestion simple du formulaire
             const form = document.querySelector('.invitation-form');
             const submitBtn = document.getElementById('submit-btn');
             
-            form.addEventListener('submit', function(e) {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
-                
-                // Validation finale
-                let isValid = true;
-                formControls.forEach(control => {
-                    if (control.required && control.value.trim() === '') {
-                        isValid = false;
-                        control.style.borderColor = '#dc3545';
-                        control.focus();
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    console.log('Bouton cliqué');
+                    if (nameInput && !nameInput.value.trim()) {
+                        e.preventDefault();
+                        alert('Veuillez entrer un nom');
+                        nameInput.focus();
+                        return;
                     }
-                    
-                    if (control.type === 'email' && control.value) {
-                        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                        if (!emailRegex.test(control.value)) {
-                            isValid = false;
-                            control.style.borderColor = '#dc3545';
-                            control.focus();
-                        }
-                    }
-                });
-                
-                if (!isValid) {
+                    if (emailInput && !emailInput.value.trim()) {
                     e.preventDefault();
-                    submitBtn.classList.remove('loading');
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Envoyer l\'invitation';
-                }
-            });
-            
-            // Effet de parallaxe subtil
-            window.addEventListener('scroll', function() {
-                const scrolled = window.pageYOffset;
-                const header = document.querySelector('.invitation-header');
-                if (header) {
-                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
-                }
-            });
-            
-            // Détection de changements non sauvegardés
-            let hasUnsavedChanges = false;
-            
-            formControls.forEach(control => {
-                control.addEventListener('input', function() {
-                    hasUnsavedChanges = true;
-                });
-            });
-            
-            // Avertissement avant de quitter la page
-            window.addEventListener('beforeunload', function(e) {
-                if (hasUnsavedChanges) {
-                    e.preventDefault();
-                    e.returnValue = 'Vous avez des modifications non sauvegardées. Voulez-vous vraiment quitter ?';
-                    return e.returnValue;
-                }
-            });
-            
-            // Supprimer l'avertissement lors de la soumission
-            form.addEventListener('submit', function() {
-                hasUnsavedChanges = false;
-            });
-            
-            // Animation de succès pour les champs valides
-            formControls.forEach(control => {
-                control.addEventListener('blur', function() {
-                    if (this.value && this.style.borderColor === 'rgb(40, 167, 69)') {
-                        this.parentElement.classList.add('success-animation');
-                        setTimeout(() => {
-                            this.parentElement.classList.remove('success-animation');
-                        }, 600);
+                        alert('Veuillez entrer un email');
+                        emailInput.focus();
+                        return;
                     }
+                    console.log('Envoi du formulaire...');
                 });
-            });
+            }
+            
+            // Test de focus immédiat
+            setTimeout(() => {
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.click();
+                    console.log('Focus forcé sur le champ nom après 500ms');
+                }
+            }, 500);
         });
     </script>
 {% endblock %}

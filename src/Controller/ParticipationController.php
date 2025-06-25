@@ -23,6 +23,33 @@ class ParticipationController extends AbstractController
     ): Response {
         $user = $this->getUser();
         
+        // Vérifier si l'utilisateur est l'organisateur de l'événement
+        if ($event->getOrganizer() === $user) {
+            // L'organisateur peut voir sa propre présence
+            // Créer une participation fictive pour l'organisateur s'il n'en a pas
+            $participation = $participationRepository->findOneBy([
+                'event' => $event,
+                'user' => $user
+            ]);
+            
+            if (!$participation) {
+                $participation = new Participation();
+                $participation->setUser($user);
+                $participation->setEvent($event);
+                $participation->setInvitationStatus('accepté');
+                $participation->setIsPresent(true); // L'organisateur est présent par défaut
+                $participation->setCreatedAt(new \DateTime());
+                
+                $entityManager->persist($participation);
+                $entityManager->flush();
+            }
+            
+            return $this->render('event/presence.html.twig', [
+                'event' => $event,
+                'participation' => $participation
+            ]);
+        }
+        
         // Vérifier d'abord s'il existe une participation
         $participation = $participationRepository->findOneBy([
             'event' => $event,
@@ -69,6 +96,39 @@ class ParticipationController extends AbstractController
         InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
+        
+        // Vérifier si l'utilisateur est l'organisateur de l'événement
+        if ($event->getOrganizer() === $user) {
+            // L'organisateur peut marquer sa propre présence
+            $participation = $participationRepository->findOneBy([
+                'event' => $event,
+                'user' => $user
+            ]);
+            
+            if (!$participation) {
+                $participation = new Participation();
+                $participation->setUser($user);
+                $participation->setEvent($event);
+                $participation->setInvitationStatus('accepté');
+                $participation->setCreatedAt(new \DateTime());
+                $entityManager->persist($participation);
+            }
+            
+            // Récupérer la valeur de présence du formulaire
+            $isPresent = $request->request->get('is_present') === 'true';
+            
+            // Mettre à jour la présence
+            $participation->setIsPresent($isPresent);
+            
+            $entityManager->flush();
+
+            // Retourner une réponse JSON
+            return $this->json([
+                'success' => true,
+                'message' => $isPresent ? 'Présence confirmée' : 'Absence confirmée',
+                'isPresent' => $isPresent
+            ]);
+        }
         
         // Trouver la participation de l'utilisateur pour cet événement
         $participation = $participationRepository->findOneBy([

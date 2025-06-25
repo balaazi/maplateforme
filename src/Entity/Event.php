@@ -23,8 +23,12 @@ class Event
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $lieu = null;
+
+    #[ORM\ManyToOne(targetEntity: Salle::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Salle $salle = null;
 
     #[ORM\Column(type: 'datetime')]
     private ?\DateTime $dateHeure = null;
@@ -116,7 +120,10 @@ class Event
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
     public function getLieu(): ?string { return $this->lieu; }
-    public function setLieu(string $lieu): self { $this->lieu = $lieu; return $this; }
+    public function setLieu(?string $lieu): self { $this->lieu = $lieu; return $this; }
+    
+    public function getSalle(): ?Salle { return $this->salle; }
+    public function setSalle(?Salle $salle): self { $this->salle = $salle; return $this; }
     public function getDateHeure(): ?\DateTime 
     { 
         if ($this->dateHeure === null) {

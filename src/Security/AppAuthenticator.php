@@ -73,7 +73,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
             in_array('ROLE_ADMIN', $realRoles) => 'admin_dashboard',
             in_array('ROLE_ORGANISATEUR', $realRoles) => 'organisateur_dashboard',
             in_array('ROLE_PARTICIPANT', $realRoles) => 'participant_dashboard',
-            default => 'user_home',
+            default => 'calendar_index', // Redirection vers le calendrier par défaut au lieu de user_home
         };
 
         return new RedirectResponse($this->router->generate($redirectRoute));

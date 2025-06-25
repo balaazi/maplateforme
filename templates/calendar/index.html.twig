@@ -896,6 +896,35 @@
             {% endfor %}
         {% endfor %}
 
+        <!-- Informations sur le filtrage par rôle -->
+        <div class="alert alert-info" role="alert" style="background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(13, 202, 240, 0.1)); border: 1px solid rgba(13, 110, 253, 0.2); border-radius: 15px; margin-bottom: 2rem;">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-filter me-3" style="font-size: 1.5rem; color: #0d6efd;"></i>
+                <div>
+                    <h5 class="mb-1">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        Vue personnalisée selon votre rôle : 
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <span class="badge bg-danger">Administrateur</span>
+                        {% elseif is_granted('ROLE_ORGANISATEUR') %}
+                            <span class="badge bg-primary">Organisateur</span>
+                        {% else %}
+                            <span class="badge bg-success">Participant</span>
+                        {% endif %}
+                    </h5>
+                    <p class="mb-0">
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <strong>Vous voyez tous les événements</strong> de la plateforme en tant qu'administrateur.
+                        {% elseif is_granted('ROLE_ORGANISATEUR') %}
+                            <strong>Vous voyez uniquement les événements que vous organisez</strong> et ceux auxquels vous participez.
+                        {% else %}
+                            <strong>Vous voyez uniquement les événements auxquels vous participez</strong> ou êtes invité(e).
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
                 <!-- Layout Principal avec Sidebar -->
                 <div class="calendar-layout">
                     <!-- Sidebar Gauche -->
@@ -904,18 +933,43 @@
                         <div class="sidebar-section">
                             <h3 class="sidebar-title">Actions Rapides</h3>
                             <div class="quick-actions">
+                                {% if is_granted('ROLE_ORGANISATEUR') %}
                                 <a href="{{ path('event_create') }}" class="btn-sidebar">
                                     <i class="fas fa-plus"></i>
                                     Nouvel Événement
                                 </a>
+                                {% endif %}
+                                
+                                {% if is_granted('ROLE_PARTICIPANT') and not is_granted('ROLE_ORGANISATEUR') %}
+                                <a href="{{ path('event_create') }}" class="btn-sidebar">
+                                    <i class="fas fa-plus"></i>
+                                    Nouvel Événement
+                                </a>
+                                {% endif %}
+                                
                                 <a href="{{ path('calendar_sync') }}" class="btn-sidebar btn-success">
                                     <i class="fas fa-sync-alt"></i>
                                     Synchroniser
                                 </a>
+                                
                                 {% if is_granted('ROLE_ORGANISATEUR') %}
                                 <a href="{{ path('organisateur_statistics') }}" class="btn-sidebar">
                                     <i class="fas fa-chart-line"></i>
                                     Statistiques
+                                </a>
+                                {% endif %}
+                                
+                                {% if is_granted('ROLE_PARTICIPANT') and not is_granted('ROLE_ORGANISATEUR') %}
+                                <a href="{{ path('participant_statistics') }}" class="btn-sidebar">
+                                    <i class="fas fa-chart-line"></i>
+                                    Statistiques
+                                </a>
+                                {% endif %}
+                                
+                                {% if is_granted('ROLE_PARTICIPANT') %}
+                                <a href="{{ path('participant_events') }}" class="btn-sidebar">
+                                    <i class="fas fa-calendar-day"></i>
+                                    Mes Événements
                                 </a>
                                 {% endif %}
                             </div>
@@ -1103,7 +1157,7 @@
                 contentHeight: 'auto',
                 aspectRatio: 1.8,
                 events: function(info, successCallback, failureCallback) {
-                    fetch('/api/events')
+                    fetch('/api/calendar-events')
                         .then(response => response.json())
                         .then(events => {
                             // Enrichir les événements avec des types et couleurs
@@ -1128,6 +1182,42 @@
                 eventClick: function(info) {
                     info.jsEvent.preventDefault();
                     
+                    // Vérifier si l'utilisateur a accès à cet événement
+                    if (!info.event.url) {
+                        // Afficher une notification que l'utilisateur ne peut pas accéder à cet événement
+                        const notification = document.createElement('div');
+                        notification.style.cssText = `
+                            position: fixed;
+                            top: 20px;
+                            right: 20px;
+                            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                            color: white;
+                            padding: 15px 20px;
+                            border-radius: 10px;
+                            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+                            z-index: 10000;
+                            font-weight: bold;
+                            opacity: 0;
+                            transform: translateX(100%);
+                            transition: all 0.3s ease;
+                        `;
+                        notification.innerHTML = '🚫 Vous n\'avez pas accès à cet événement';
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            notification.style.opacity = '1';
+                            notification.style.transform = 'translateX(0)';
+                        }, 100);
+                        
+                        setTimeout(() => {
+                            notification.style.opacity = '0';
+                            notification.style.transform = 'translateX(100%)';
+                            setTimeout(() => notification.remove(), 300);
+                        }, 3000);
+                        
+                        return;
+                    }
+                    
                     // Animation spectaculaire au clic
                     info.el.style.transform = 'scale(0.9)';
                     info.el.style.transition = 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -1138,9 +1228,7 @@
                             info.el.style.transform = 'scale(1)';
                             
                             // Redirection avec effet
-                            if (info.event.url) {
                                 window.location.href = info.event.url;
-                            }
                         }, 150);
                     }, 100);
                 },
@@ -1166,6 +1254,54 @@
                     // Animation d'apparition des événements
                     info.el.style.opacity = '0';
                     info.el.style.transform = 'scale(0.8)';
+                    
+                    // Ajouter un tooltip avec les informations de rôle
+                    const props = info.event.extendedProps;
+                    const role = props?.role || 'observateur';
+                    const organizer = props?.organizer || 'Non défini';
+                    const lieu = props?.lieu || 'Non spécifié';
+                    
+                    let roleIcon = '';
+                    let roleText = '';
+                    switch(role) {
+                        case 'administrateur':
+                            roleIcon = '👨‍💼';
+                            roleText = 'Administrateur';
+                            break;
+                        case 'organisateur':
+                            roleIcon = '🎯';
+                            roleText = 'Vous organisez';
+                            break;
+                        case 'participant':
+                            roleIcon = '👥';
+                            roleText = 'Vous participez';
+                            break;
+                        default:
+                            roleIcon = '👁️';
+                            roleText = 'Observateur';
+                    }
+                    
+                    info.el.title = `${roleIcon} ${roleText}\n📍 ${lieu}\n👤 Organisé par: ${organizer}`;
+                    
+                    // Ajouter un badge de rôle sur l'événement
+                    const badge = document.createElement('span');
+                    badge.innerHTML = roleIcon;
+                    badge.style.cssText = `
+                        position: absolute;
+                        top: -5px;
+                        right: -5px;
+                        font-size: 12px;
+                        background: rgba(255, 255, 255, 0.9);
+                        border-radius: 50%;
+                        width: 20px;
+                        height: 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    `;
+                    info.el.style.position = 'relative';
+                    info.el.appendChild(badge);
                     
                     setTimeout(() => {
                         info.el.style.transition = 'all 0.4s ease-out';

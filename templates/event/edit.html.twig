@@ -542,14 +542,16 @@
                         
                         <div class="form-grid">
                             <div class="form-field">
-                                {{ form_widget(form.lieu, {
+                                {{ form_widget(form.salle, {
                                     'attr': {
-                                        'class': 'form-control',
+                                        'class': 'form-select',
                                         'placeholder': ' '
                                     }
                                 }) }}
-                                <label class="form-label">{{ form_label(form.lieu) }}</label>
+                                <label class="form-label">{{ form_label(form.salle) }}</label>
                             </div>
+                            
+
                             
                             <div class="form-field">
                                 {{ form_widget(form.dateHeure, {

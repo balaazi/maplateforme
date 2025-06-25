@@ -18,7 +18,7 @@ class UserController extends AbstractController
 {
 // Afficher le profil de l'utilisateur
 #[Route('/profile', name: 'app_profile')]
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_PARTICIPANT')]
 public function profile(UserRepository $userRepository): Response
 {
 $user = $this->getUser();

@@ -103,7 +103,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        $roles[] = 'ROLE_USER'; // Garantit que tout utilisateur a au moins ROLE_USER
+       /// $roles[] = 'ROLE_USER'; // Garantit que tout utilisateur a au moins ROLE_USER
         return array_unique($roles);
     }
 
@@ -260,6 +260,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFullName(): string
     {
         return $this->prenom . ' ' . $this->nom;
+    }
+
+    public function __toString(): string
+    {
+        return $this->getFullName() . ' (' . $this->email . ')';
     }
 
     /**

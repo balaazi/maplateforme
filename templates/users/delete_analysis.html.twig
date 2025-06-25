@@ -120,9 +120,7 @@
                                     <p><strong>Département:</strong> {{ user.departement ?: 'Non défini' }}</p>
                                     <p><strong>Rôles:</strong> 
                                         {% for role in user.roles %}
-                                            {% if role != 'ROLE_USER' %}
                                                 <span class="badge bg-primary">{{ role|replace({'ROLE_': ''})|title }}</span>
-                                            {% endif %}
                                         {% endfor %}
                                     </p>
                                 </div>

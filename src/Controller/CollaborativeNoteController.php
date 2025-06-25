@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/collaborative-notes')]
-#[IsGranted('ROLE_USER')]
+#[IsGranted('ROLE_PARTICIPANT')]
 class CollaborativeNoteController extends AbstractController
 {
     private function canAccessEvent(Event $event): bool

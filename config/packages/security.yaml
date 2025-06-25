@@ -4,7 +4,9 @@ security:
             algorithm: auto
 
     role_hierarchy:
-        ROLE_ADMIN: [ROLE_ORGANISATEUR, ROLE_PARTICIPANT]
+        ROLE_PARTICIPANT: [ROLE_USER]
+        ROLE_ORGANISATEUR: [ROLE_PARTICIPANT, ROLE_USER]
+        ROLE_ADMIN: [ROLE_ORGANISATEUR, ROLE_PARTICIPANT, ROLE_USER]
 
     providers:
         user_provider:
@@ -31,9 +33,12 @@ security:
 
     access_control:
         - { path: ^/organizer/invitations/respond, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api, roles: ROLE_USER }
         - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/organizer, roles: ROLE_ORGANISATEUR }
         - { path: ^/organisateur, roles: ROLE_ORGANISATEUR }
+        - { path: ^/gestion-salles, roles: ROLE_ORGANISATEUR }
+        - { path: ^/gestion-salle, roles: ROLE_ORGANISATEUR }
         - { path: ^/participant, roles: ROLE_PARTICIPANT }
         - { path: ^/dashboard, roles: ROLE_PARTICIPANT }
         - { path: ^/mes-evenements, roles: ROLE_PARTICIPANT }

@@ -318,7 +318,7 @@ class ReportController extends AbstractController
                 "%s,%s,%s,%d,%d,%d,%.2f%%\n",
                 $event->getTitle(),
                 $event->getDateHeure()->format('d/m/Y H:i'),
-                $event->getLieu(),
+                $event->getSalle() ? $event->getSalle()->getNom() : 'Non défini',
                 $invited,
                 $present,
                 $absent,

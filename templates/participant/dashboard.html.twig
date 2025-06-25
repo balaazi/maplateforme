@@ -575,7 +575,7 @@
                                 <div class="welcome-stat-label">Événements</div>
                             </div>
                             <div class="welcome-stat">
-                                <div class="welcome-stat-number">5</div>
+                                <div class="welcome-stat-number">{{ unreadNotificationsCount ?? 0 }}</div>
                                 <div class="welcome-stat-label">Notifications</div>
                             </div>
                             <div class="welcome-stat">
@@ -606,7 +606,7 @@
                     <div class="stat-icon notifications">
                         <i class="fas fa-bell"></i>
                     </div>
-                    <div class="stat-number pulse-animation" data-target="5">0</div>
+                    <div class="stat-number pulse-animation" data-target="{{ unreadNotificationsCount ?? 0 }}">0</div>
                     <div class="stat-label">Notifications</div>
                     <div class="stat-description">Restez informé des dernières mises à jour, rappels et messages importants</div>
                     <a href="{{ path('participant_notifications') }}" class="btn-action warning">

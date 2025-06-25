@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Event;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -30,7 +31,41 @@ class EventRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Retourne les événements filtrés selon le rôle de l'utilisateur
+     */
+    public function findByRole(User $user): array
+    {
+        $roles = $user->getRoles();
 
+        // Admin peut voir tous les événements
+        if (in_array('ROLE_ADMIN', $roles)) {
+            return $this->createQueryBuilder('e')
+                ->orderBy('e.dateHeure', 'ASC')
+                ->getQuery()
+                ->getResult();
+        }
+
+        // Organisateur peut voir ses événements créés + ceux auxquels il participe
+        if (in_array('ROLE_ORGANISATEUR', $roles)) {
+            return $this->createQueryBuilder('e')
+                ->leftJoin('e.participations', 'p')
+                ->where('e.organizer = :user OR p.user = :user')
+                ->setParameter('user', $user)
+                ->orderBy('e.dateHeure', 'ASC')
+                ->getQuery()
+                ->getResult();
+        }
+
+        // Participant peut voir uniquement les événements auxquels il participe
+        return $this->createQueryBuilder('e')
+            ->join('e.participations', 'p')
+            ->where('p.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('e.dateHeure', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 
     // Autres méthodes générées (commentées)
     /*

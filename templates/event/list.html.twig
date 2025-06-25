@@ -642,8 +642,13 @@
                                     {{ event.duree }} min
                                 </div>
                                 <div class="event-detail">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    {{ event.lieu }}
+                                    {% if event.salle %}
+                                        <i class="fas fa-door-open"></i>
+                                        {{ event.salle.nom }}
+                                    {% else %}
+                                        <i class="fas fa-question-circle"></i>
+                                        Non défini
+                                    {% endif %}
                                 </div>
                                 <div class="event-detail">
                                     <i class="fas fa-user"></i>

@@ -1,0 +1,191 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier la salle "{{ salle.nom }}" - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .edit-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .edit-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .edit-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .edit-header h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .edit-icon {
+            background: rgba(255,255,255,0.2);
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .edit-body {
+            padding: 2rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .form-control, .form-check-input {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            border-radius: 10px;
+            border: none;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="edit-container">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="edit-card">
+                        <div class="edit-header">
+                            <div class="edit-icon">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <h1>Modifier la salle</h1>
+                            <p class="mb-0">{{ salle.nom }}</p>
+                        </div>
+                        
+                        <div class="edit-body">
+                            {% for message in app.flashes('success') %}
+                                <div class="alert alert-success">
+                                    <i class="fas fa-check-circle me-2"></i>{{ message }}
+                                </div>
+                            {% endfor %}
+                            
+                            {% for message in app.flashes('error') %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+                                </div>
+                            {% endfor %}
+
+                            {{ form_start(form) }}
+                                <div class="form-group">
+                                    {{ form_label(form.nom, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.nom, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.nom) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_label(form.capacite, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.capacite, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.capacite) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_label(form.debutReservation, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.debutReservation, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.debutReservation) }}
+                                </div>
+
+                                <div class="form-group">
+                                    {{ form_label(form.finReservation, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    {{ form_widget(form.finReservation, {'attr': {'class': 'form-control'}}) }}
+                                    {{ form_errors(form.finReservation) }}
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="form-check">
+                                        {{ form_widget(form.disponible, {'attr': {'class': 'form-check-input'}}) }}
+                                        {{ form_label(form.disponible, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    </div>
+                                    {{ form_errors(form.disponible) }}
+                                </div>
+
+                                <div class="btn-group">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                                    </button>
+                                    
+                                    <a href="{{ path('app_salle_index') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Annuler
+                                    </a>
+                                </div>
+                            {{ form_end(form) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %} 

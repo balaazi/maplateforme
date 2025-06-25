@@ -1,0 +1,573 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Statistiques - Participant{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+        }
+
+        body {
+            background: 
+                radial-gradient(circle at top right, rgba(99, 102, 241, 0.1), transparent 50%),
+                radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.1), transparent 50%);
+            min-height: 100vh;
+        }
+
+        .stats-container {
+            padding: 2rem 0;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 4rem 2rem;
+            border-radius: 30px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2);
+        }
+
+        .stats-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .stats-icon {
+            background: rgba(255,255,255,0.25);
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .stats-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .stats-header p {
+            margin: 0;
+            opacity: 0.95;
+            font-size: 1.3rem;
+            font-weight: 300;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.success::before { background: linear-gradient(90deg, var(--success), #34d399); }
+        .stat-card.warning::before { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+        .stat-card.danger::before { background: linear-gradient(90deg, var(--danger), #f87171); }
+        .stat-card.info::before { background: linear-gradient(90deg, var(--info), #38bdf8); }
+
+        .stat-icon-wrapper {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .stat-card.success .stat-icon-wrapper { background: linear-gradient(135deg, var(--success), #34d399); }
+        .stat-card.warning .stat-icon-wrapper { background: linear-gradient(135deg, var(--warning), #fbbf24); }
+        .stat-card.danger .stat-icon-wrapper { background: linear-gradient(135deg, var(--danger), #f87171); }
+        .stat-card.info .stat-icon-wrapper { background: linear-gradient(135deg, var(--info), #38bdf8); }
+        .stat-card .stat-icon-wrapper { background: linear-gradient(135deg, var(--primary), var(--primary-light)); }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: block;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .stat-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chart-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .progress-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .progress-bar-custom {
+            width: 100%;
+            height: 12px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+            position: relative;
+        }
+
+        .progress-fill.success { background: linear-gradient(90deg, var(--success), #34d399); }
+        .progress-fill.warning { background: linear-gradient(90deg, var(--warning), #fbbf24); }
+
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--primary), var(--primary-light));
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            margin-left: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.7rem;
+            top: 1.5rem;
+            width: 15px;
+            height: 15px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .back-btn {
+            background: linear-gradient(135deg, var(--text-secondary), #475569);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 2rem;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(71, 85, 105, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .stats-container {
+                padding: 1rem;
+            }
+
+            .stats-header {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+
+            .stats-header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 2rem;
+            }
+
+            .chart-container {
+                padding: 2rem;
+            }
+
+            .timeline {
+                padding-left: 1rem;
+            }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="stats-container">
+        <div class="container">
+            <!-- En-tête des statistiques -->
+            <div class="stats-header">
+                <div class="header-content">
+                    <div class="stats-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h1>📊 Mes Statistiques</h1>
+                    <p>Découvrez votre activité et votre engagement dans les événements</p>
+                </div>
+            </div>
+
+            <!-- Statistiques principales -->
+            <div class="stats-grid fade-in">
+                <div class="stat-card">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <span class="stat-number">{{ stats.total_events }}</span>
+                    <div class="stat-label">Total Événements</div>
+                    <div class="stat-description">Nombre total d'événements auxquels vous avez été invité(e)</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="stat-number">{{ stats.present }}</span>
+                    <div class="stat-label">Présences</div>
+                    <div class="stat-description">Événements où vous étiez présent(e)</div>
+                </div>
+
+                <div class="stat-card warning">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="stat-number">{{ stats.upcoming }}</span>
+                    <div class="stat-label">À Venir</div>
+                    <div class="stat-description">Événements programmés dans le futur</div>
+                </div>
+
+                <div class="stat-card info">
+                    <div class="stat-icon-wrapper">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <span class="stat-number">{{ stats.presence_rate }}%</span>
+                    <div class="stat-label">Taux de Présence</div>
+                    <div class="stat-description">Pourcentage de présences sur total événements</div>
+                </div>
+            </div>
+
+            <!-- Graphiques -->
+            <div class="row fade-in" style="animation-delay: 0.2s;">
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h3 class="chart-title">
+                            <div class="chart-icon">
+                                <i class="fas fa-chart-doughnut"></i>
+                            </div>
+                            Répartition des Participations
+                        </h3>
+                        <canvas id="participationChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="chart-container">
+                        <h3 class="chart-title">
+                            <div class="chart-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                            Événements par Catégorie
+                        </h3>
+                        <canvas id="categoryChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bouton retour -->
+            <div class="text-center">
+                <a href="{{ path('participant_dashboard') }}" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour au Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des compteurs
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                if (!stat.textContent.includes('%')) {
+                    animateCounter(stat);
+                }
+            });
+
+            function animateCounter(element) {
+                const target = parseInt(element.textContent);
+                const duration = 2000;
+                const step = target / (duration / 16);
+                let current = 0;
+                
+                element.textContent = '0';
+                
+                const timer = setInterval(() => {
+                    current += step;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.floor(current);
+                }, 16);
+            }
+
+            // Graphique de participation
+            const participationCtx = document.getElementById('participationChart').getContext('2d');
+            new Chart(participationCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Présent', 'Absent', 'À venir'],
+                    datasets: [{
+                        data: [{{ stats.present }}, {{ stats.absent }}, {{ stats.upcoming }}],
+                        backgroundColor: [
+                            '#10b981',
+                            '#ef4444',
+                            '#f59e0b'
+                        ],
+                        borderWidth: 3,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Graphique par catégorie
+            const categoryData = {{ eventsByCategory|json_encode|raw }};
+            const categoryLabels = Object.keys(categoryData);
+            const categoryValues = Object.values(categoryData);
+
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        label: 'Événements',
+                        data: categoryValues,
+                        backgroundColor: [
+                            '#6366f1',
+                            '#10b981',
+                            '#f59e0b',
+                            '#ef4444',
+                            '#06b6d4'
+                        ],
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#f1f5f9'
+                            },
+                            ticks: {
+                                font: {
+                                    weight: '600'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    weight: '600'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

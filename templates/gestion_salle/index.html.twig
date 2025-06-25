@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des salles{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .list-section {
+            margin-top: 30px;
+        }
+        .table {
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+        .statut-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        .statut-en_cours { background-color: #ffc107; color: #212529; }
+        .statut-termine { background-color: #28a745; color: white; }
+        .statut-en_attente { background-color: #17a2b8; color: white; }
+        .statut-annule { background-color: #dc3545; color: white; }
+        .select-salle {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+        .select-salle:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h1 class="mb-4"><i class="fas fa-tasks me-2"></i>Gestion des salles</h1>
+
+        {# Carte d'information #}
+        <div class="info-card">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h4><i class="fas fa-info-circle me-2"></i>Gestion des salles</h4>
+                    <p class="mb-0">Gérez l'attribution et le suivi des salles. Sélectionnez une salle existante et assignez-la à un responsable.</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <i class="fas fa-clipboard-list fa-4x opacity-75"></i>
+                </div>
+            </div>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+
+        {# Section Formulaire #}
+        <div class="form-section">
+            <h2 class="mb-4"><i class="fas fa-plus-circle me-2"></i>Nouvelle gestion de salle</h2>
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.salle) }}
+                        {{ form_widget(form.salle, {'attr': {'class': 'form-select select-salle'}}) }}
+                        {{ form_errors(form.salle) }}
+                        <small class="form-text text-muted">
+                            <i class="fas fa-lightbulb me-1"></i>Sélectionnez la salle à gérer dans la liste
+                        </small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.responsable) }}
+                        {{ form_widget(form.responsable) }}
+                        {{ form_errors(form.responsable) }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.dateGestion) }}
+                        {{ form_widget(form.dateGestion) }}
+                        {{ form_errors(form.dateGestion) }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form_label(form.statut) }}
+                        {{ form_widget(form.statut) }}
+                        {{ form_errors(form.statut) }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form_label(form.commentaire) }}
+                    {{ form_widget(form.commentaire) }}
+                    {{ form_errors(form.commentaire) }}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>Enregistrer la gestion
+                </button>
+            {{ form_end(form) }}
+        </div>
+
+        {# Section Liste #}
+        <div class="list-section">
+            <h2 class="mb-4"><i class="fas fa-list me-2"></i>Liste des gestions de salles</h2>
+            {% if gestions_salles|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th><i class="fas fa-door-open me-1"></i>Salle</th>
+                                <th><i class="fas fa-user me-1"></i>Responsable</th>
+                                <th><i class="fas fa-calendar me-1"></i>Date de gestion</th>
+                                <th><i class="fas fa-flag me-1"></i>Statut</th>
+                                <th><i class="fas fa-comment me-1"></i>Commentaire</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for gestion in gestions_salles %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ gestion.salle.nom }}</strong><br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-users me-1"></i>{{ gestion.salle.capacite }} personnes
+                                        </small>
+                                    </td>
+                                    <td>{{ gestion.responsable }}</td>
+                                    <td>{{ gestion.dateGestion|date('d/m/Y H:i') }}</td>
+                                    <td>
+                                        <span class="badge statut-{{ gestion.statut }}">
+                                            {% if gestion.statut == 'en_cours' %}
+                                                <i class="fas fa-play me-1"></i>En cours
+                                            {% elseif gestion.statut == 'termine' %}
+                                                <i class="fas fa-check me-1"></i>Terminé
+                                            {% elseif gestion.statut == 'en_attente' %}
+                                                <i class="fas fa-clock me-1"></i>En attente
+                                            {% elseif gestion.statut == 'annule' %}
+                                                <i class="fas fa-times me-1"></i>Annulé
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if gestion.commentaire %}
+                                            <span data-bs-toggle="tooltip" title="{{ gestion.commentaire }}">
+                                                {{ gestion.commentaire|length > 30 ? gestion.commentaire|slice(0, 30) ~ '...' : gestion.commentaire }}
+                                            </span>
+                                        {% else %}
+                                            <em class="text-muted">Aucun commentaire</em>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>Aucune gestion de salle n'a encore été enregistrée.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        // Initialiser les tooltips Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    </script>
+{% endblock %} 

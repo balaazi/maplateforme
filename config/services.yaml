@@ -1,5 +1,6 @@
 parameters:
   photos_directory: '%kernel.project_dir%/public/uploads/photos'
+  documents_directory: '%kernel.project_dir%/public/uploads/documents'
   google_token_expiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
   app.mailer_from: 'no-reply@votresite.com'
   google_token_file: '%kernel.project_dir%/var/google_token.json'
@@ -32,9 +33,18 @@ services:
 
   App\Service\ReminderService: ~
 
+  App\Service\FileUploadService:
+    arguments:
+      $documentsDirectory: '%documents_directory%'
+
   App\Service\GoogleCalendarService:
    arguments:
         $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
         $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
         $googleRedirectUri: '%env(GOOGLE_REDIRECT_URI)%'
         $projectDir: '%kernel.project_dir%'
+
+  # Event listener pour capturer les erreurs d'accès
+  App\EventListener\AccessDeniedListener:
+    tags:
+      - { name: kernel.event_subscriber }

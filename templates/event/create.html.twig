@@ -587,24 +587,27 @@
                                     Détails pratiques
                                 </h5>
                                 
-                                <div class="two-columns">
-                                    <div class="form-group">
-                                        {{ form_label(form.lieu, null, {'label_attr': {'class': 'form-label'}}) }}
-                                        <div class="input-group">
-                                            <span class="input-group-text">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                            </span>
-                                            {{ form_widget(form.lieu, {
-                                                'attr': {
-                                                    'class': 'form-control',
-                                                    'placeholder': 'Salle de conférence, adresse complète...'
-                                                }
-                                            }) }}
-                                        </div>
-                                        <div class="invalid-feedback">
-                                            {{ form_errors(form.lieu) }}
-                                        </div>
+                                <div class="form-group">
+                                    {{ form_label(form.salle, null, {'label_attr': {'class': 'form-label'}}) }}
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-door-open"></i>
+                                        </span>
+                                        {{ form_widget(form.salle, {
+                                            'attr': {
+                                                'class': 'form-select'
+                                            }
+                                        }) }}
                                     </div>
+                                    <div class="invalid-feedback">
+                                        {{ form_errors(form.salle) }}
+                                    </div>
+                                    <small class="text-muted">{{ form_help(form.salle) }}</small>
+                                </div>
+
+
+                                
+                                <div class="two-columns">
 
                                     <div class="form-group">
                                         {{ form_label(form.dateHeure, 'Date et heure', {'label_attr': {'class': 'form-label'}}) }}

@@ -2,78 +2,641 @@
 
 {% block title %}Marquer votre présence - {{ event.title }}{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1>Marquer votre présence</h1>
-    <h2 class="mb-4">{{ event.title }}</h2>
-
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title">Informations de l'événement</h5>
-            <p><strong>Date :</strong> {{ event.dateHeure|date('d/m/Y H:i') }}</p>
-            <p><strong>Lieu :</strong> {{ event.lieu }}</p>
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .presence-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+            position: relative;
+        }
+        
+        .presence-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(102,126,234,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(118,75,162,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(40,167,69,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .presence-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102,126,234,0.2);
+            animation: slideInDown 0.8s ease-out;
+        }
+        
+        .presence-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        .presence-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 70%, rgba(255,255,255,0.1) 0%, transparent 50%);
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .presence-icon {
+            background: rgba(255,255,255,0.25);
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .presence-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .event-title {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            animation: slideInUp 0.8s ease-out 0.2s both;
+        }
+        
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #28a745, #20c997, #17a2b8);
+        }
+        
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .info-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-item:hover {
+            background: #f8f9fa;
+            padding-left: 1rem;
+            border-radius: 10px;
+        }
+        
+        .info-item-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #6c757d;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+        
+        .info-item-content {
+            flex: 1;
+        }
+        
+        .info-item-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-item-value {
+            font-size: 1.1rem;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+        
+        .presence-card {
+            background: white;
+            border-radius: 25px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.8s ease-out 0.4s both;
+        }
+        
+        .presence-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #28a745, #dc3545);
+        }
+        
+        .presence-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .presence-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .presence-btn {
+            background: white;
+            border: 3px solid;
+            border-radius: 20px;
+            padding: 2rem 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            min-height: 140px;
+            justify-content: center;
+        }
+        
+        .presence-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .presence-btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-present {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        
+        .btn-present:hover,
+        .btn-present.active {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border-color: #28a745;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(40,167,69,0.3);
+        }
+        
+        .btn-absent {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .btn-absent:hover,
+        .btn-absent.active {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            border-color: #dc3545;
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(220,53,69,0.3);
+        }
+        
+        .btn-icon {
+            font-size: 2.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .status-message {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: all 0.5s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .status-message.show {
+            transform: translateX(0);
+        }
+        
+        .status-message.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .status-message.error {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+        
+        @media (max-width: 768px) {
+            .presence-container {
+                padding: 1rem;
+            }
             
-            <div class="mt-4">
-                <h5>Votre présence</h5>
-                <div class="btn-group" role="group" aria-label="Marquer présence">
-                    <button type="button" 
-                            class="btn {% if participation.isPresent %}btn-success active{% else %}btn-outline-success{% endif %}" 
-                            onclick="updatePresence(true)"
-                            id="btnPresent">
-                        ✅ Je serai présent
-                    </button>
-                    <button type="button" 
-                            class="btn {% if not participation.isPresent %}btn-danger active{% else %}btn-outline-danger{% endif %}" 
-                            onclick="updatePresence(false)"
-                            id="btnAbsent">
-                        ❌ Je serai absent
-                    </button>
+            .presence-header {
+                padding: 2rem 1.5rem;
+                margin-bottom: 2rem;
+            }
+            
+            .presence-header h1 {
+                font-size: 2rem;
+            }
+            
+            .info-card,
+            .presence-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .presence-buttons {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .presence-btn {
+                min-height: 120px;
+                padding: 1.5rem 1rem;
+            }
+        }
+        
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30px;
+            height: 30px;
+            margin: -15px 0 0 -15px;
+            border: 3px solid transparent;
+            border-top: 3px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="presence-container">
+        <div class="container">
+            <!-- En-tête -->
+            <div class="presence-header">
+                <div class="header-content">
+                    <div class="presence-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h1>Marquer votre présence</h1>
+                    <div class="event-title">
+                        <i class="fas fa-calendar-star"></i> {{ event.title }}
+                    </div>
                 </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <!-- Informations de l'événement -->
+                    <div class="info-card">
+                        <div class="info-title">
+                            <div class="info-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            Informations de l'événement
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-item-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div class="info-item-content">
+                                <div class="info-item-label">Date & Heure</div>
+                                <div class="info-item-value">{{ event.dateHeure|date('d/m/Y à H:i') }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-item-icon">
+                                <i class="fas fa-door-open"></i>
+                            </div>
+                            <div class="info-item-content">
+                                <div class="info-item-label">Lieu</div>
+                                <div class="info-item-value">
+                                    {% if event.salle %}
+                                        {{ event.salle.nom }}
+                                        {% if event.salle.localisation %}
+                                            <br><small class="text-muted">{{ event.salle.localisation }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        Non défini
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="info-item">
+                            <div class="info-item-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-item-content">
+                                <div class="info-item-label">Durée</div>
+                                <div class="info-item-value">{{ event.duree }} minutes</div>
+                            </div>
+                        </div>
+                        
+                        {% if event.organizer %}
+                        <div class="info-item">
+                            <div class="info-item-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="info-item-content">
+                                <div class="info-item-label">Organisateur</div>
+                                <div class="info-item-value">{{ event.organizer.prenom }} {{ event.organizer.nom }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <!-- Marquage de présence -->
+                    <div class="presence-card">
+                        <div class="presence-title">
+                            <i class="fas fa-clipboard-check"></i>
+                            Votre présence
+                        </div>
+                        
+                        <div class="presence-buttons">
+                            <button type="button" 
+                                    class="presence-btn btn-present {% if participation.isPresent %}active{% endif %}" 
+                                    onclick="updatePresence(true)"
+                                    id="btnPresent">
+                                <div class="btn-icon">✅</div>
+                                <span>Je serai présent</span>
+                            </button>
+                            
+                            <button type="button" 
+                                    class="presence-btn btn-absent {% if not participation.isPresent %}active{% endif %}" 
+                                    onclick="updatePresence(false)"
+                                    id="btnAbsent">
+                                <div class="btn-icon">❌</div>
+                                <span>Je serai absent</span>
+                            </button>
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle"></i>
+                                Vous pouvez modifier votre choix à tout moment
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bouton retour -->
+            <div class="text-center mt-4">
+                <a href="{{ path('event_list') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-arrow-left"></i> Retour aux événements
+                </a>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Message de statut -->
+    <div id="statusMessage" class="status-message"></div>
+{% endblock %}
 
 {% block javascripts %}
-<script>
-function updatePresence(isPresent) {
-    fetch('{{ path('mark_presence', {'id': event.id}) }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'X-Requested-With': 'XMLHttpRequest'
-        },
-        body: 'is_present=' + isPresent
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Mettre à jour l'interface
+    {{ parent() }}
+    <script>
+        function showStatusMessage(message, type = 'success') {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type} show`;
+            
+            setTimeout(() => {
+                statusDiv.classList.remove('show');
+            }, 3000);
+        }
+
+        function updatePresence(isPresent) {
             const btnPresent = document.getElementById('btnPresent');
             const btnAbsent = document.getElementById('btnAbsent');
             
-            if (data.isPresent) {
-                btnPresent.classList.remove('btn-outline-success');
-                btnPresent.classList.add('btn-success', 'active');
-                btnAbsent.classList.remove('btn-danger', 'active');
-                btnAbsent.classList.add('btn-outline-danger');
-            } else {
-                btnAbsent.classList.remove('btn-outline-danger');
-                btnAbsent.classList.add('btn-danger', 'active');
-                btnPresent.classList.remove('btn-success', 'active');
-                btnPresent.classList.add('btn-outline-success');
-            }
+            // Ajouter l'état de chargement
+            const activeBtn = isPresent ? btnPresent : btnAbsent;
+            activeBtn.classList.add('loading');
             
-            // Afficher un message de confirmation
-            alert(data.message);
+            fetch('{{ path('mark_presence', {'id': event.id}) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: 'is_present=' + isPresent
+            })
+            .then(response => response.json())
+            .then(data => {
+                activeBtn.classList.remove('loading');
+                
+                if (data.success) {
+                    // Mettre à jour l'interface avec animations
+                    if (data.isPresent) {
+                        btnPresent.classList.add('active');
+                        btnAbsent.classList.remove('active');
+                    } else {
+                        btnAbsent.classList.add('active');
+                        btnPresent.classList.remove('active');
+                    }
+                    
+                    // Afficher un message de confirmation moderne
+                    showStatusMessage(data.message, 'success');
+                    
+                    // Petit effet de vibration
+                    activeBtn.style.animation = 'pulse 0.6s ease-out';
+                    setTimeout(() => {
+                        activeBtn.style.animation = '';
+                    }, 600);
+                    
+                } else {
+                    showStatusMessage('Erreur lors de la mise à jour', 'error');
+                }
+            })
+            .catch(error => {
+                activeBtn.classList.remove('loading');
+                console.error('Erreur:', error);
+                showStatusMessage('Une erreur est survenue', 'error');
+            });
         }
-    })
-    .catch(error => {
-        console.error('Erreur:', error);
-        alert('Une erreur est survenue lors de la mise à jour de votre présence.');
-    });
-}
-</script>
-{% endblock %}
 
+        // Animations au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des cartes
+            const cards = document.querySelectorAll('.info-card, .presence-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease-out';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, (index + 1) * 200);
+            });
+            
+            // Effet de parallaxe léger
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.presence-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+        });
+    </script>
 {% endblock %} 

@@ -2,45 +2,746 @@
 
 {% block title %}Statistiques de participation - {{ event.title }}{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .attendance-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+            position: relative;
+        }
+        
+        .attendance-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(40,167,69,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(220,53,69,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,193,7,0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .attendance-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(102,126,234,0.2);
+            animation: slideInDown 0.8s ease-out;
+        }
+        
+        .attendance-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+        
+        .attendance-icon {
+            background: rgba(255,255,255,0.25);
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255,255,255,0.4);
+            font-size: 2.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .attendance-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .event-title-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideInUp 0.6s ease-out forwards;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        @keyframes slideInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+        
+        .stat-card.accepted::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .stat-card.declined::before {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        .stat-card.pending::before {
+            background: linear-gradient(90deg, #ffc107, #e0a800);
+        }
+        
+        .stat-card.total::before {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: white;
+            position: relative;
+        }
+        
+        .stat-card.accepted .stat-icon {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            animation: pulse-green 2s infinite;
+        }
+        
+        .stat-card.declined .stat-icon {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            animation: pulse-red 2s infinite;
+        }
+        
+        .stat-card.pending .stat-icon {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            animation: pulse-yellow 2s infinite;
+        }
+        
+        .stat-card.total .stat-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            animation: pulse-blue 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(40, 167, 69, 0); }
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(220, 53, 69, 0); }
+        }
+        
+        @keyframes pulse-yellow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255, 193, 7, 0); }
+        }
+        
+        @keyframes pulse-blue {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(102, 126, 234, 0); }
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .participants-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .participant-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transform: translateY(30px);
+            opacity: 0;
+            animation: slideInUp 0.8s ease-out forwards;
+        }
+        
+        .participant-card:nth-child(1) { animation-delay: 0.5s; }
+        .participant-card:nth-child(2) { animation-delay: 0.6s; }
+        .participant-card:nth-child(3) { animation-delay: 0.7s; }
+        
+        .participant-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+        }
+        
+        .participant-card.accepted::before {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .participant-card.declined::before {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        .participant-card.pending::before {
+            background: linear-gradient(90deg, #ffc107, #e0a800);
+        }
+        
+        .participant-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .participant-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        .participant-card.accepted .participant-icon {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .participant-card.declined .participant-icon {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        
+        .participant-card.pending .participant-icon {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+        }
+        
+        .participant-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .participant-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .participant-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .participant-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .participant-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+        }
+        
+        .participant-item {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .participant-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .participant-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .participant-card.accepted .participant-item::before {
+            background: #28a745;
+        }
+        
+        .participant-card.declined .participant-item::before {
+            background: #dc3545;
+        }
+        
+        .participant-card.pending .participant-item::before {
+            background: #ffc107;
+        }
+        
+        .participant-item:hover::before {
+            width: 6px;
+        }
+        
+        .participant-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            background: white;
+            border: 2px solid;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-btn.secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        
+        .action-btn.secondary:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108,117,125,0.3);
+        }
+        
+        .action-btn.primary {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .attendance-container {
+                padding: 1rem;
+            }
+            
+            .attendance-header {
+                padding: 2rem 1.5rem;
+                margin-bottom: 2rem;
+            }
+            
+            .attendance-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .participants-section {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .participant-card {
+                padding: 2rem 1.5rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 2s ease-out;
+            animation: fillProgress 2s ease-out;
+        }
+        
+        @keyframes fillProgress {
+            from { width: 0; }
+        }
+        
+        .participant-card.accepted .progress-fill {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+        
+        .participant-card.declined .progress-fill {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+        
+        .participant-card.pending .progress-fill {
+            background: linear-gradient(90deg, #ffc107, #e0a800);
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-<div class="container mt-5">
-    <h1>📋 Participation à l'événement : <strong>{{ event.title }}</strong></h1>
+    <div class="attendance-container">
+        <div class="container">
+            <!-- En-tête -->
+            <div class="attendance-header">
+                <div class="header-content">
+                    <div class="attendance-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h1>Statistiques de participation</h1>
+                    <div class="event-title-badge">
+                        <i class="fas fa-calendar-star"></i> {{ event.title }}
+                    </div>
+                </div>
+            </div>
 
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <h3>✅ Acceptés</h3>
-            <ul class="list-group">
-                {% for user in going %}
-                    <li class="list-group-item">{{ user.fullName }}</li>
-                {% else %}
-                    <li class="list-group-item text-muted">Aucun participant accepté pour le moment.</li>
-                {% endfor %}
-            </ul>
-        </div>
+            <!-- Vue d'ensemble des statistiques -->
+            <div class="stats-overview">
+                {% set totalParticipants = going|length + notGoing|length + pending|length %}
+                
+                <div class="stat-card accepted">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="stat-number">{{ going|length }}</span>
+                    <div class="stat-label">Acceptés</div>
+                </div>
+                
+                <div class="stat-card declined">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <span class="stat-number">{{ notGoing|length }}</span>
+                    <div class="stat-label">Refusés</div>
+                </div>
+                
+                <div class="stat-card pending">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <span class="stat-number">{{ pending|length }}</span>
+                    <div class="stat-label">En attente</div>
+                </div>
+                
+                <div class="stat-card total">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span class="stat-number">{{ totalParticipants }}</span>
+                    <div class="stat-label">Total invités</div>
+                </div>
+            </div>
 
-        <div class="col-md-4">
-            <h3>❌ Refusés</h3>
-            <ul class="list-group">
-                {% for user in notGoing %}
-                    <li class="list-group-item">{{ user.fullName }}</li>
-                {% else %}
-                    <li class="list-group-item text-muted">Aucun participant refusé pour le moment.</li>
-                {% endfor %}
-            </ul>
-        </div>
+            <!-- Listes des participants -->
+            <div class="participants-section">
+                <!-- Participants qui ont accepté -->
+                <div class="participant-card accepted">
+                    <div class="participant-header">
+                        <div class="participant-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="participant-title">Participants confirmés</h3>
+                    </div>
+                    
+                    {% if going|length > 0 %}
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ totalParticipants > 0 ? (going|length / totalParticipants * 100)|round : 0 }}%"></div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">{{ totalParticipants > 0 ? (going|length / totalParticipants * 100)|round : 0 }}% des invités</small>
+                        
+                        <div class="participant-list mt-3">
+                            {% for user in going %}
+                                <div class="participant-item">
+                                    <div class="participant-name">
+                                        <i class="fas fa-user me-2"></i>
+                                        {{ user.prenom }} {{ user.nom }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">😴</div>
+                            <p>Aucun participant confirmé pour le moment</p>
+                        </div>
+                    {% endif %}
+                </div>
 
-        <div class="col-md-4">
-            <h3>⏳ En attente</h3>
-            <ul class="list-group">
-                {% for user in pending %}
-                    <li class="list-group-item">{{ user.fullName }}</li>
-                {% else %}
-                    <li class="list-group-item text-muted">Aucune réponse en attente.</li>
-                {% endfor %}
-            </ul>
+                <!-- Participants qui ont refusé -->
+                <div class="participant-card declined">
+                    <div class="participant-header">
+                        <div class="participant-icon">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <h3 class="participant-title">Participants absents</h3>
+                    </div>
+                    
+                    {% if notGoing|length > 0 %}
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ totalParticipants > 0 ? (notGoing|length / totalParticipants * 100)|round : 0 }}%"></div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">{{ totalParticipants > 0 ? (notGoing|length / totalParticipants * 100)|round : 0 }}% des invités</small>
+                        
+                        <div class="participant-list mt-3">
+                            {% for user in notGoing %}
+                                <div class="participant-item">
+                                    <div class="participant-name">
+                                        <i class="fas fa-user-times me-2"></i>
+                                        {{ user.prenom }} {{ user.nom }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">👍</div>
+                            <p>Aucun refus pour le moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Participants en attente -->
+                <div class="participant-card pending">
+                    <div class="participant-header">
+                        <div class="participant-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h3 class="participant-title">En attente de réponse</h3>
+                    </div>
+                    
+                    {% if pending|length > 0 %}
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ totalParticipants > 0 ? (pending|length / totalParticipants * 100)|round : 0 }}%"></div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">{{ totalParticipants > 0 ? (pending|length / totalParticipants * 100)|round : 0 }}% des invités</small>
+                        
+                        <div class="participant-list mt-3">
+                            {% for user in pending %}
+                                <div class="participant-item">
+                                    <div class="participant-name">
+                                        <i class="fas fa-hourglass-half me-2"></i>
+                                        {{ user.prenom }} {{ user.nom }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">✅</div>
+                            <p>Tous les invités ont répondu</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <a href="{{ path('event_list') }}" class="action-btn secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Retour aux événements
+                </a>
+                
+                <a href="{{ path('invitation_index', {'eventId': event.id}) }}" class="action-btn primary">
+                    <i class="fas fa-envelope"></i>
+                    Gérer les invitations
+                </a>
+            </div>
         </div>
     </div>
+{% endblock %}
 
-    <a href="{{ path('event_list') }}" class="btn btn-secondary mt-4">⬅ Retour à la liste des événements</a>
-</div>
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animation des nombres
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(number => {
+                const finalNumber = parseInt(number.textContent);
+                number.textContent = '0';
+                
+                let currentNumber = 0;
+                const increment = finalNumber / 50;
+                const timer = setInterval(() => {
+                    currentNumber += increment;
+                    if (currentNumber >= finalNumber) {
+                        number.textContent = finalNumber;
+                        clearInterval(timer);
+                    } else {
+                        number.textContent = Math.floor(currentNumber);
+                    }
+                }, 30);
+            });
+            
+            // Animation au survol des cartes de participants
+            const participantItems = document.querySelectorAll('.participant-item');
+            participantItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateX(10px) scale(1.02)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateX(0) scale(1)';
+                });
+            });
+            
+            // Effet de parallaxe léger
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const header = document.querySelector('.attendance-header');
+                if (header) {
+                    header.style.transform = `translateY(${scrolled * 0.1}px)`;
+                }
+            });
+            
+            // Animation des cartes au scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.animationPlayState = 'running';
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.participant-card, .stat-card').forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
 {% endblock %}

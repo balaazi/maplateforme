@@ -24,6 +24,9 @@ class CalendarController extends AbstractController
     #[Route('/calendar', name: 'calendar_index')]
     public function index(): Response
     {
+        // S'assurer que l'utilisateur est connecté
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        
         return $this->render('calendar/index.html.twig');
     }
 
@@ -116,21 +119,15 @@ class CalendarController extends AbstractController
         return $this->redirectToRoute('calendar_index');
     }
 
-    #[Route('/api/events', name: 'calendar_events')]
+    #[Route('/api/calendar-events', name: 'calendar_events')]
     public function getEvents(EntityManagerInterface $em): Response
     {
-        $events = $em->getRepository(CalendarEvent::class)->findAll();
-        $data = array_map(function ($e) {
-            return [
-                'title' => $e->getTitle(),
-                'start' => $e->getStart()->format(\DateTimeInterface::ATOM),
-                'end' => $e->getEnd()->format(\DateTimeInterface::ATOM),
-                'description' => $e->getDescription(),
-                'googleEventId' => $e->getGoogleEventId(),
-            ];
-        }, $events);
-
-        return $this->json($data);
+        // S'assurer que l'utilisateur est connecté
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        
+        // Utiliser les événements filtrés par rôle via l'API existante
+        // Rediriger vers l'API des événements qui gère déjà le filtrage par rôle
+        return $this->forward('App\Controller\Api\EventApiController::list');
     }
 
     #[Route('/calendar/export/{id}', name: 'export_event_to_google')]
@@ -138,9 +135,9 @@ class CalendarController extends AbstractController
     {
         try {
             $googleCalendarService->exportToGoogleCalendar($event);
-            $this->addFlash('success', '✅ Événement exporté avec succès vers Google Calendar.');
+            $this->addFlash('success', 'Événement exporté avec succès vers Google Calendar.');
         } catch (\Exception $e) {
-            $this->addFlash('error', '❌ Échec de l’export: ' . $e->getMessage());
+            $this->addFlash('error', 'Échec de l\'export: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('calendar_index');

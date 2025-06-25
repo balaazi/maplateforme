@@ -2,6 +2,7 @@
 namespace App\Form;
 
 use App\Entity\Event;
+use App\Entity\Salle;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -15,6 +16,7 @@ use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Vich\UploaderBundle\Form\Type\VichFileType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class EventFormType extends AbstractType
 {
@@ -23,7 +25,17 @@ class EventFormType extends AbstractType
         $builder
             ->add('title', TextType::class, ['label' => 'Titre'])
             ->add('description', TextareaType::class, ['label' => 'Description'])
-            ->add('lieu', TextType::class, ['label' => 'Lieu'])
+            ->add('salle', EntityType::class, [
+                'class' => Salle::class,
+                'choice_label' => 'nom',
+                'label' => 'Salle',
+                'required' => true,
+                'placeholder' => 'Choisir une salle...',
+                'attr' => [
+                    'class' => 'form-select',
+                ],
+                'help' => 'Sélectionnez une salle pour votre événement'
+            ])
             ->add('dateHeure', DateTimeType::class, [
                 'label' => 'Date et heure',
                 'widget' => 'single_text',
@@ -48,15 +60,7 @@ class EventFormType extends AbstractType
                     'Conférence' => 'Conférence',
                 ],
             ])
-            ->add('etherpadUrl', UrlType::class, [
-                'label' => 'URL Etherpad',
-                'required' => false,
-                'attr' => [
-                    'placeholder' => 'https://etherpad.example.com/p/ton-pad'
-                ]
-            ])
-
-            
+        
             ->add('imageFile', VichFileType::class, [
                 'required' => false,
                 'allow_delete' => true,

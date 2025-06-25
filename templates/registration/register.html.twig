@@ -180,6 +180,31 @@
             border-color: #667eea;
         }
         
+        /* Style pour les listes déroulantes */
+        select.form-control {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        select.form-control:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23667eea' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        }
+        
+        select.form-control option {
+            padding: 0.5rem;
+            background: white;
+            color: #495057;
+        }
+        
+        select.form-control option:hover {
+            background: #f8f9fa;
+        }
+        
         .form-text.text-danger {
             color: #dc3545 !important;
             font-size: 0.875rem;
@@ -542,8 +567,7 @@
                                     </span>
                                     {{ form_widget(form.departement, {
                                         'attr': {
-                                                    'class': 'form-control',
-                                            'placeholder': 'Votre département'
+                                            'class': 'form-control'
                                         }
                                     }) }}
                                 </div>

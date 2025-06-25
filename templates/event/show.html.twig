@@ -144,7 +144,16 @@
         </div>
         <div class="meta-item">
             <div class="meta-label">Lieu</div>
-            <div class="meta-value">{{ event.lieu }}</div>
+            <div class="meta-value">
+                {% if event.salle %}
+                    <i class="fas fa-door-open me-2"></i>{{ event.salle.nom }}
+                    {% if event.salle.localisation %}
+                        <br><small class="text-muted">{{ event.salle.localisation }}</small>
+                    {% endif %}
+                {% else %}
+                    <i class="fas fa-question-circle me-2"></i>Non défini
+                {% endif %}
+            </div>
         </div>
         <div class="meta-item">
             <div class="meta-label">Catégorie</div>

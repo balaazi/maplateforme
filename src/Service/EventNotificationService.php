@@ -35,7 +35,7 @@ $email = (new Email())
 ->html("<p>Bonjour {$user->getFullName()},</p>
 <p>L'événement <strong>{$event->getTitle()}</strong> a été modifié.</p>
 <p>Nouvelle date et heure : {$event->getDateHeure()->format('d/m/Y H:i')}</p>
-<p>Lieu : {$event->getLieu()}</p>");
+            <p>Lieu : " . ($event->getSalle() ? $event->getSalle()->getNom() : 'Non défini') . "</p>");
 
 $this->mailer->send($email);
 }
