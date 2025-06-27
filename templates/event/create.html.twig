@@ -587,19 +587,19 @@
                                     Détails pratiques
                                 </h5>
                                 
-                                <div class="form-group">
+                                    <div class="form-group">
                                     {{ form_label(form.salle, null, {'label_attr': {'class': 'form-label'}}) }}
-                                    <div class="input-group">
-                                        <span class="input-group-text">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
                                             <i class="fas fa-door-open"></i>
-                                        </span>
+                                            </span>
                                         {{ form_widget(form.salle, {
-                                            'attr': {
+                                                'attr': {
                                                 'class': 'form-select'
-                                            }
-                                        }) }}
-                                    </div>
-                                    <div class="invalid-feedback">
+                                                }
+                                            }) }}
+                                        </div>
+                                        <div class="invalid-feedback">
                                         {{ form_errors(form.salle) }}
                                     </div>
                                     <small class="text-muted">{{ form_help(form.salle) }}</small>

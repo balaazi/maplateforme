@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Forme carrée arrondie moderne -->
+  <rect x="4" y="4" width="32" height="32" rx="8" ry="8" fill="url(#grad)"/>
+  
+  <!-- Calendrier moderne -->
+  <g fill="white">
+    <!-- Corps du calendrier -->
+    <rect x="10" y="14" width="20" height="18" rx="2" ry="2" fill="white" opacity="0.9"/>
+    
+    <!-- Anneaux du haut -->
+    <rect x="14" y="8" width="2" height="8" rx="1" fill="white" opacity="0.9"/>
+    <rect x="24" y="8" width="2" height="8" rx="1" fill="white" opacity="0.9"/>
+    
+    <!-- Barre du haut -->
+    <rect x="10" y="14" width="20" height="4" rx="2" fill="url(#grad)"/>
+    
+    <!-- Points de dates -->
+    <circle cx="15" cy="23" r="1.5" fill="url(#grad)" opacity="0.7"/>
+    <circle cx="20" cy="23" r="1.5" fill="url(#grad)" opacity="0.9"/>
+    <circle cx="25" cy="23" r="1.5" fill="url(#grad)" opacity="0.7"/>
+    <circle cx="15" cy="28" r="1.5" fill="url(#grad)" opacity="0.9"/>
+    <circle cx="20" cy="28" r="1.5" fill="url(#grad)" opacity="0.7"/>
+    <circle cx="25" cy="28" r="1.5" fill="url(#grad)" opacity="0.9"/>
+  </g>
+</svg> 

@@ -66,6 +66,18 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .navbar-brand img {
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand:hover img {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .nav-link {
@@ -110,6 +122,23 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
             color: white;
+        }
+
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
         }
 
         /* Hero Section */
@@ -356,6 +385,65 @@
             line-height: 1.6;
         }
 
+        .step-features {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.5rem;
+        }
+
+        .step-features li {
+            color: #555;
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .step-features li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Mission Section */
+        .mission-points {
+            margin-top: 2rem;
+        }
+
+        .mission-point {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+        }
+
+        .mission-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1.5rem;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .mission-content h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+
+        .mission-content p {
+            color: #666;
+            line-height: 1.6;
+            margin: 0;
+        }
+
         /* CTA Section */
         .cta {
             padding: 6rem 0;
@@ -368,7 +456,7 @@
             font-size: 3rem;
             font-weight: 900;
             margin-bottom: 1.5rem;
-}
+        }
 
         .cta-text {
             font-size: 1.2rem;
@@ -387,6 +475,17 @@
             font-size: 1.2rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-title img {
+            margin-right: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .footer-title:hover img {
+            transform: scale(1.1) rotate(5deg);
         }
 
         .footer-link {
@@ -408,6 +507,22 @@
             padding-top: 2rem;
             text-align: center;
             color: rgba(255, 255, 255, 0.5);
+        }
+
+        .footer-contact {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-contact i {
+            color: var(--primary-color);
+            width: 20px;
+        }
+
+        .contact-info {
+            margin-top: 1rem;
         }
 
         /* Responsive */
@@ -478,7 +593,7 @@
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-calendar-alt me-2"></i>EventHub
+                <img src="{{ asset('images/eventhub-option2.svg') }}" alt="EventHub" style="width: 35px; height: 35px; margin-right: 8px;">EventHub
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -487,21 +602,9 @@
             
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#accueil">Accueil</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#fonctionnalites">Fonctionnalités</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#comment-ca-marche">Comment ça marche</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#contact">Contact</a>
-                    </li>
                 </ul>
 
-                <div class="d-flex">
+                <div class="d-flex gap-2">
                     <a href="{{ path('app_login') }}" class="btn btn-login">
                         <i class="fas fa-sign-in-alt me-2"></i>Se connecter
                     </a>
@@ -516,18 +619,11 @@
             <div class="row align-items-center">
                 <div class="col-lg-6">
                     <div class="hero-content" data-aos="fade-right">
-                        <h1 class="hero-title">Organisez vos événements d'entreprise en toute simplicité</h1>
+                        <h1 class="hero-title">Planifiez et gérez vos événements internes</h1>
                         <p class="hero-subtitle">
-                            EventHub révolutionne la gestion de vos événements internes. Planifiez, invitez, collaborez et suivez tous vos événements depuis une seule plateforme intuitive et moderne.
+                            EventHub permet aux entreprises de planifier, organiser et gérer leurs réunions, formations et séminaires de manière efficace et collaborative. Créez vos événements, gérez les invitations, synchronisez avec Google Calendar , partagez vos documents et prenez des notes collaboratives.
                         </p>
-                        <div class="hero-buttons">
-                            <a href="{{ path('app_login') }}" class="btn btn-hero btn-hero-primary">
-                                <i class="fas fa-rocket me-2"></i>Commencer maintenant
-                            </a>
-                            <a href="#fonctionnalites" class="btn btn-hero btn-hero-outline">
-                                <i class="fas fa-play me-2"></i>Découvrir les fonctionnalités
-                            </a>
-                        </div>
+
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -538,195 +634,65 @@
             </div>
         </div>
     </section>
-
-    <!-- Features Section -->
-    <section id="fonctionnalites" class="features">
+    <!-- Roles Section -->
+    <section id="roles" class="how-it-works">
         <div class="container">
             <div class="row">
                 <div class="col-12">
-                    <h2 class="section-title" data-aos="fade-up">Fonctionnalités puissantes</h2>
+                    <h2 class="section-title" data-aos="fade-up">Trois rôles, une plateforme unifiée</h2>
                     <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">
-                        Découvrez tous les outils dont vous avez besoin pour organiser des événements mémorables
-                    </p>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="feature-icon">
-                            <i class="fas fa-calendar-plus"></i>
-                        </div>
-                        <h3 class="feature-title">Planification intelligente</h3>
-                        <p class="feature-text">
-                            Créez et planifiez vos événements en quelques clics. Notre interface intuitive vous guide à chaque étape pour organiser des événements parfaits.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="feature-icon">
-                            <i class="fas fa-paper-plane"></i>
-                        </div>
-                        <h3 class="feature-title">Invitations automatisées</h3>
-                        <p class="feature-text">
-                            Envoyez des invitations personnalisées automatiquement. Suivez les réponses en temps réel et gérez les participants sans effort.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="400">
-                        <div class="feature-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <h3 class="feature-title">Collaboration en équipe</h3>
-                        <p class="feature-text">
-                            Travaillez ensemble sur l'organisation. Partagez des documents, créez des notes collaboratives et coordonnez vos équipes efficacement.
-                   </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="500">
-                        <div class="feature-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <h3 class="feature-title">Analyses détaillées</h3>
-                        <p class="feature-text">
-                            Obtenez des statistiques complètes sur vos événements. Mesurez l'engagement, analysez les tendances et optimisez vos futurs événements.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="600">
-                        <div class="feature-icon">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <h3 class="feature-title">Rappels intelligents</h3>
-                        <p class="feature-text">
-                            Système de notifications automatiques pour ne rien manquer. Rappels personnalisés pour les organisateurs et les participants.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="feature-card" data-aos="fade-up" data-aos-delay="700">
-                        <div class="feature-icon">
-                            <i class="fas fa-mobile-alt"></i>
-                        </div>
-                        <h3 class="feature-title">Accès mobile</h3>
-                        <p class="feature-text">
-                            Interface responsive accessible sur tous les appareils. Gérez vos événements depuis votre ordinateur, tablette ou smartphone.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Statistics Section -->
-    <section class="stats">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
-                        <span class="stat-number" data-count="500">0</span>
-                        <span class="stat-label">Entreprises clientes</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-                        <span class="stat-number" data-count="10000">0</span>
-                        <span class="stat-label">Événements organisés</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
-                        <span class="stat-number" data-count="50000">0</span>
-                        <span class="stat-label">Participants satisfaits</span>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="stat-item" data-aos="fade-up" data-aos-delay="400">
-                        <span class="stat-number" data-count="99">0</span>
-                        <span class="stat-label">% de satisfaction</span>
-                    </div>
-            </div>
-        </div>
-    </div>
-    </section>
-
-    <!-- How it works Section -->
-    <section id="comment-ca-marche" class="how-it-works">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <h2 class="section-title" data-aos="fade-up">Comment ça marche ?</h2>
-                    <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">
-                        Organisez vos événements en 4 étapes simples
+                        EventHub offre des interfaces et fonctionnalités spécialisées pour chaque type d'utilisateur
                     </p>
                 </div>
             </div>
             
             <div class="row">
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-4 col-md-6">
                     <div class="step-card" data-aos="fade-up" data-aos-delay="200">
-                        <div class="step-number">1</div>
-                        <h3 class="step-title">Créez votre événement</h3>
+                        <div class="step-number"><i class="fas fa-crown"></i></div>
+                        <h3 class="step-title">Administrateurs</h3>
                         <p class="step-text">
-                            Définissez les détails de votre événement : date, lieu, type, description et participants attendus.
+                            Supervision complète de la plateforme avec accès à toutes les fonctionnalités de gestion, statistiques globales et configuration système.
                         </p>
+                        <ul class="step-features">
+                            <li>Gestion des utilisateurs et rôles</li>
+                            <li>Accès aux statistiques générales</li>
+                            <li>Gestion des salles et réservations</li>
+                            <li>Configuration de la plateforme</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-4 col-md-6">
                     <div class="step-card" data-aos="fade-up" data-aos-delay="300">
-                        <div class="step-number">2</div>
-                        <h3 class="step-title">Invitez vos participants</h3>
+                        <div class="step-number"><i class="fas fa-user-tie"></i></div>
+                        <h3 class="step-title">Organisateurs</h3>
                         <p class="step-text">
-                            Sélectionnez et invitez automatiquement vos collaborateurs avec des invitations personnalisées.
+                            Planification et organisation d'événements avec gestion complète des invitations, réservation de salles et coordination des participants.
                         </p>
+                        <ul class="step-features">
+                            <li>Création et gestion d'événements</li>
+                            <li>Envoi d'invitations automatiques</li>
+                            <li>Réservation et gestion des salles</li>
+                            <li>Synchronisation Google Calendar</li>
+                        </ul>
                     </div>
                 </div>
                 
-                <div class="col-lg-3 col-md-6">
+                <div class="col-lg-4 col-md-6">
                     <div class="step-card" data-aos="fade-up" data-aos-delay="400">
-                        <div class="step-number">3</div>
-                        <h3 class="step-title">Collaborez et organisez</h3>
+                        <div class="step-number"><i class="fas fa-users"></i></div>
+                        <h3 class="step-title">Participants</h3>
                         <p class="step-text">
-                            Partagez des documents, créez des notes collaboratives et coordonnez tous les aspects de l'événement.
+                            Participation simple aux événements avec réception d'invitations, confirmation de présence et accès aux ressources partagées.
                         </p>
+                        <ul class="step-features">
+                            <li>Réception et réponse aux invitations</li>
+                            <li>Suivi de vos événements personnels</li>
+                            <li>Accès aux documents partagés</li>
+                            <li>Notes collaboratives par événement</li>
+                        </ul>
                     </div>
-                </div>
-                
-                <div class="col-lg-3 col-md-6">
-                    <div class="step-card" data-aos="fade-up" data-aos-delay="500">
-                        <div class="step-number">4</div>
-                        <h3 class="step-title">Analysez les résultats</h3>
-                        <p class="step-text">
-                            Consultez les statistiques détaillées et les retours pour améliorer vos prochains événements.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center">
-                    <h2 class="cta-title" data-aos="fade-up">Prêt à révolutionner vos événements ?</h2>
-                    <p class="cta-text" data-aos="fade-up" data-aos-delay="100">
-                        Rejoignez des centaines d'entreprises qui font déjà confiance à EventHub pour organiser leurs événements internes.
-                    </p>
-                    <a href="{{ path('app_login') }}" class="btn btn-hero btn-hero-primary" data-aos="fade-up" data-aos-delay="200">
-                        <i class="fas fa-rocket me-2"></i>Commencer gratuitement
-                    </a>
                 </div>
             </div>
         </div>
@@ -736,64 +702,65 @@
     <footer id="contact" class="footer">
         <div class="container">
             <div class="row">
-                <div class="col-lg-4 col-md-6 mb-4">
+                <div class="col-lg-3 col-md-6 mb-4">
                     <h3 class="footer-title">
-                        <i class="fas fa-calendar-alt me-2"></i>EventHub
+                        <img src="{{ asset('images/eventhub-option2.svg') }}" alt="EventHub" style="width: 28px; height: 28px; margin-right: 8px;">EventHub
                     </h3>
                     <p class="text-light">
-                        La solution complète pour organiser et gérer vos événements d'entreprise en toute simplicité.
+                        Plateforme centralisée pour la gestion efficace de tous vos événements internes.
                     </p>
-                    <div class="social-links">
-                        <a href="#" class="footer-link d-inline-block me-3">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="footer-link d-inline-block me-3">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="footer-link d-inline-block me-3">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                        <a href="#" class="footer-link d-inline-block">
-                            <i class="fab fa-instagram"></i>
-                        </a>
+                </div>
+                
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h4 class="footer-title">Contactez-nous</h4>
+                    <div class="contact-info">
+                        <p class="footer-contact">
+                            <i class="fas fa-envelope me-2"></i>
+                            contact.eventhub@gmail.com
+                        </p>
+                        <p class="footer-contact">
+                            <i class="fas fa-phone me-2"></i>
+                            +216 23 340 187
+                        </p>
+                        <p class="footer-contact">
+                            <i class="fas fa-map-marker-alt me-2"></i>
+                            Tunis, Tunisie
+                        </p>
                     </div>
                 </div>
                 
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h4 class="footer-title">Produit</h4>
-                    <a href="#fonctionnalites" class="footer-link">Fonctionnalités</a>
-                    <a href="#" class="footer-link">Tarifs</a>
-                    <a href="#" class="footer-link">Sécurité</a>
-                    <a href="#" class="footer-link">Intégrations</a>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h4 class="footer-title">Liens rapides</h4>
+                    <a href="#accueil" class="footer-link">
+                        <i class="fas fa-home me-2"></i>Accueil
+                    </a>
+                    <a href="#roles" class="footer-link">
+                        <i class="fas fa-users me-2"></i>Rôles
+                    </a>
                 </div>
                 
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h4 class="footer-title">Entreprise</h4>
-                    <a href="#" class="footer-link">À propos</a>
-                    <a href="#" class="footer-link">Blog</a>
-                    <a href="#" class="footer-link">Carrières</a>
-                    <a href="#" class="footer-link">Presse</a>
-                </div>
-                
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h4 class="footer-title">Support</h4>
-                    <a href="#" class="footer-link">Centre d'aide</a>
-                    <a href="#" class="footer-link">Contact</a>
-                    <a href="#" class="footer-link">Documentation</a>
-                    <a href="#" class="footer-link">Status</a>
-                </div>
-                
-                <div class="col-lg-2 col-md-6 mb-4">
-                    <h4 class="footer-title">Légal</h4>
-                    <a href="#" class="footer-link">Confidentialité</a>
-                    <a href="#" class="footer-link">Conditions</a>
-                    <a href="#" class="footer-link">Cookies</a>
-                    <a href="#" class="footer-link">RGPD</a>
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <h4 class="footer-title">Services</h4>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-list me-2"></i>Liste des Événements
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-chart-bar me-2"></i>Statistiques Générales
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-building me-2"></i>Statistiques par Département
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-file-alt me-2"></i>Documents
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-door-open me-2"></i>Gestion des Salles
+                    </a>
                 </div>
             </div>
 
             <div class="footer-bottom">
-                <p>&copy; 2024 EventHub. Tous droits réservés. Conçu avec ❤️ pour simplifier l'organisation d'événements.</p>
+                <p>&copy; 2025 EventHub. Tous droits réservés.</p>
             </div>
         </div>
     </footer>

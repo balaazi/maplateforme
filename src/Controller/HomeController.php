@@ -14,7 +14,7 @@ class HomeController extends AbstractController
         if ($this->getUser()) {
             return $this->redirectToRoute('redirect_after_login');
         }
-        return $this->render('home/simple.html.twig');
+        return $this->render('home/index.html.twig');
     }
 
     #[Route('/accueil', name: 'app_home_accueil')]
@@ -23,6 +23,6 @@ class HomeController extends AbstractController
         if ($this->getUser()) {
             return $this->redirectToRoute('redirect_after_login');
         }
-        return $this->render('home/simple.html.twig');
+        return $this->render('home/index.html.twig');
     }
 }

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="whiteGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Forme hexagonale moderne -->
+  <polygon points="20,2 32,9 32,23 20,30 8,23 8,9" fill="url(#primaryGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+  
+  <!-- Lettre E stylisée -->
+  <g transform="translate(12, 8)">
+    <rect x="0" y="0" width="12" height="2.5" fill="url(#whiteGrad)" rx="1.25"/>
+    <rect x="0" y="0" width="2.5" height="16" fill="url(#whiteGrad)" rx="1.25"/>
+    <rect x="0" y="6.75" width="10" height="2.5" fill="url(#whiteGrad)" rx="1.25"/>
+    <rect x="0" y="13.5" width="12" height="2.5" fill="url(#whiteGrad)" rx="1.25"/>
+  </g>
+  
+  <!-- Points décoratifs -->
+  <circle cx="6" cy="6" r="1.5" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="34" cy="6" r="1.5" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="6" cy="34" r="1.5" fill="rgba(255,255,255,0.6)"/>
+  <circle cx="34" cy="34" r="1.5" fill="rgba(255,255,255,0.6)"/>
+</svg> 
