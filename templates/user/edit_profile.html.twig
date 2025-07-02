@@ -524,6 +524,32 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Styles pour les messages flash */
+        .alert {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: none;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .alert-danger {
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .alert-info {
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
     </style>
 {% endblock %}
 
@@ -555,7 +581,18 @@
             </div>
 
             <div class="form-container">
-                {{ form_start(form, {'attr': {'class': 'profile-form', 'novalidate': true}}) }}
+                <!-- Messages flash -->
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'error' ? 'danger' : type }} alert-dismissible fade show mb-3" role="alert">
+                            <i class="fas fa-{{ type == 'success' ? 'check-circle' : (type == 'error' ? 'exclamation-triangle' : 'info-circle') }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+
+                {{ form_start(form, {'attr': {'class': 'profile-form', 'novalidate': true, 'enctype': 'multipart/form-data'}}) }}
                 
                     <!-- Section Photo de profil -->
                     <div class="form-section photo fade-in" style="animation-delay: 0.2s;">
@@ -569,7 +606,7 @@
                         <div class="avatar-upload">
                             <div class="avatar-preview" id="avatar-preview">
                                 {% if user.photo %}
-                                    <img src="{{ asset('uploads/photos/' ~ user.photo) }}" alt="Photo actuelle">
+                                    <img src="{{ asset('uploads/photos/' ~ user.photo) }}?v={{ 'now'|date('U') }}" alt="Photo actuelle">
                                     {% else %}
                                     <i class="fas fa-user"></i>
                                     {% endif %}

@@ -12,10 +12,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\UrlType;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Vich\UploaderBundle\Form\Type\VichFileType;
+
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class EventFormType extends AbstractType
@@ -59,24 +56,6 @@ class EventFormType extends AbstractType
                     'Atelier' => 'Atelier',
                     'Conférence' => 'Conférence',
                 ],
-            ])
-        
-            ->add('imageFile', VichFileType::class, [
-                'required' => false,
-                'allow_delete' => true,
-                'delete_label' => 'Supprimer',
-                'asset_helper' => true,
-                'constraints' => [
-                    new File([
-                        'maxSize' => '10M',
-                        'mimeTypes' => [
-                            'application/pdf',
-                            'application/msword',
-                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                        ],
-                        'mimeTypesMessage' => 'Merci de choisir un fichier PDF ou Word valide.',
-                    ])
-                ]
             ])
         ;
     }

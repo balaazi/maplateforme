@@ -9,6 +9,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Departement;
 
 class EditType extends AbstractType
 {
@@ -35,18 +37,11 @@ class EditType extends AbstractType
                 'label' => 'Spécialité',
                 'required' => true,
             ])
-            ->add('departement', ChoiceType::class, [
+            ->add('departement', EntityType::class, [
+                'class' => Departement::class,
+                'choice_label' => 'nom',
                 'label' => 'Département',
-                'required' => true,
-                'choices' => [
-                    'Choisissez votre département' => '',
-                    'Ressources Humaines' => 'Ressources Humaines',
-                    'Informatique' => 'Informatique',
-                    'Finance' => 'Finance',
-                    'Marketing' => 'Marketing',
-                    'Logistique' => 'Logistique',
-                    'Sécurité' => 'Sécurité',
-                ],
+                'required' => false,
                 'placeholder' => 'Choisissez votre département',
             ])
             ->add('roles', ChoiceType::class, [

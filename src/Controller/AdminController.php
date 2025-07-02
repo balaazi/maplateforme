@@ -14,6 +14,7 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Repository\InvitationRepository;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 #[Route('/admin')]
 class AdminController extends AbstractController
@@ -64,16 +65,33 @@ class AdminController extends AbstractController
     #[Route('/delete/{id}', name: 'admin_delete')]
     public function delete(User $user, EntityManagerInterface $em): Response
     {
-        $em->remove($user); // Supprime l'utilisateur
-        $em->flush(); // Applique la suppression
+        try {
+            // Informations de l'utilisateur pour le message
+            $userName = $user->getFullName();
+            $participationsCount = $user->getParticipations()->count();
+            
+            // Supprime l'utilisateur (et ses participations grâce au cascade)
+            $em->remove($user);
+            $em->flush();
 
-        $this->addFlash('success', 'Utilisateur supprimé avec succès !'); // Message de succès
+            // Message de succès avec détails
+            if ($participationsCount > 0) {
+                $this->addFlash('success', "✅ Utilisateur '$userName' supprimé avec succès ! ($participationsCount participation(s) supprimée(s))");
+            } else {
+                $this->addFlash('success', "✅ Utilisateur '$userName' supprimé avec succès !");
+            }
+            
+        } catch (\Exception $e) {
+            // Gestion des erreurs de suppression
+            $this->addFlash('error', '❌ Erreur lors de la suppression : ' . $e->getMessage());
+        }
+
         return $this->redirectToRoute('admin_dashboard');
     }
 
     // Route pour inviter un utilisateur
     #[Route('/invite', name: 'admin_invite')]
-    public function invite(Request $request, MailerInterface $mailer, EntityManagerInterface $em): Response
+    public function invite(Request $request, MailerInterface $mailer, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response
     {
         $form = $this->createForm(InviteUserType::class); // Crée le formulaire d'invitation
         $form->handleRequest($request);
@@ -82,65 +100,83 @@ class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData(); // Récupère les données du formulaire (array)
             $email = $data['email']; // Récupère l'email du tableau
+            $role = $data['role']; // Récupère le rôle sélectionné
+
+            // Vérifie si l'utilisateur existe déjà
+            $existingUser = $em->getRepository(User::class)->findOneBy(['email' => $email]);
+            if ($existingUser) {
+                $this->addFlash('error', "❌ Un utilisateur avec cet email existe déjà !");
+                return $this->redirectToRoute('admin_invite');
+            }
 
             try {
-                // Crée l'email d'invitation
-            $message = (new Email())
-                ->from('nadiabalaazi@gmail.com') // Remplacez par votre adresse email
-                ->to($email)
-                    ->subject('🎉 Invitation à rejoindre EventHub')
-                    ->html("
-                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;'>
-                            <div style='background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin-bottom: 20px;'>
-                                <h1 style='margin: 0; font-size: 24px;'>🎉 Invitation EventHub</h1>
-                                <p style='margin: 10px 0 0 0; opacity: 0.9;'>Vous êtes invité à rejoindre notre plateforme</p>
-                            </div>
-                            
-                            <div style='background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'>
-                                <h2 style='color: #333; margin-top: 0;'>Bonjour !</h2>
-                                <p style='color: #666; line-height: 1.6; font-size: 16px;'>
-                                    Nous avons le plaisir de vous inviter à rejoindre <strong>EventHub</strong>, 
-                                    notre plateforme de gestion d'événements collaborative.
-                                </p>
-                                
-                                <div style='text-align: center; margin: 30px 0;'>
-                                    <a href='http://127.0.0.1:8000/register' 
-                                       style='background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
-                                              color: white; padding: 15px 30px; text-decoration: none; 
-                                              border-radius: 25px; font-weight: bold; font-size: 16px;
-                                              display: inline-block; box-shadow: 0 4px 15px rgba(40,167,69,0.3);'>
-                                        🚀 Créer mon compte
-                                    </a>
-                                </div>
-                                
-                                <div style='background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>
-                                    <h3 style='color: #4e73df; margin-top: 0;'>✨ Avec EventHub, vous pourrez :</h3>
-                                    <ul style='color: #666; line-height: 1.6;'>
-                                        <li>📅 Participer à des événements exclusifs</li>
-                                        <li>🤝 Collaborer avec d'autres participants</li>
-                                        <li>📝 Partager des notes en temps réel</li>
-                                        <li>📊 Suivre vos participations</li>
-                                    </ul>
-                                </div>
-                                
-                                <p style='color: #888; font-size: 14px; text-align: center; margin-top: 30px;'>
-                                    Si vous avez des questions, n'hésitez pas à nous contacter.<br>
-                                    <strong>L'équipe EventHub</strong>
-                                </p>
-                            </div>
-                            
-                            <div style='text-align: center; margin-top: 20px; color: #999; font-size: 12px;'>
-                                Cet email a été envoyé depuis EventHub • 
-                                <a href='http://127.0.0.1:8000' style='color: #4e73df;'>Visiter le site</a>
-                            </div>
-                        </div>
-                    ");
+                // Génère un mot de passe temporaire
+                $temporaryPassword = bin2hex(random_bytes(8)); // 16 caractères hexadécimaux
+                
+                // Crée le nouvel utilisateur
+                $user = new User();
+                $user->setEmail($email);
+                $user->setNom('Utilisateur');
+                $user->setPrenom('Nouveau');
+                $user->setTelephone('0000000000');
+                $user->setSpecialite('À définir');
+                $user->setRoles([$role]);
+                
+                // Hash le mot de passe temporaire
+                $hashedPassword = $passwordHasher->hashPassword($user, $temporaryPassword);
+                $user->setPassword($hashedPassword);
+                
+                // Sauvegarde l'utilisateur
+                $em->persist($user);
+                $em->flush();
 
-            // Envoie l'email
-            $mailer->send($message);
+                // Détermine le nom du rôle pour l'affichage
+                $roleName = match($role) {
+                    'ROLE_ADMIN' => 'Administrateur',
+                    'ROLE_ORGANISATEUR' => 'Organisateur',
+                    'ROLE_PARTICIPANT' => 'Participant',
+                    default => 'Utilisateur'
+                };
+
+                                // Premier email : Identifiants pour l'utilisateur invité
+                $userMessage = (new Email())
+                    ->from('nadiabalaazi@gmail.com')
+                    ->to($email)
+                    ->subject('Vos identifiants de connexion - EventHub')
+                    ->html($this->renderView('emails/invitation.html.twig', [
+                        'email' => $email,
+                        'temporaryPassword' => $temporaryPassword,
+                        'roleName' => $roleName
+                    ]));
+
+                // Deuxième email : Email de confirmation (envoyé au même utilisateur)
+                $confirmationMessage = (new Email())
+                    ->from('nadiabalaazi@gmail.com')
+                    ->to($email) // Même email que l'utilisateur invité
+                    ->subject('🎉 Invitation EventHub')
+                    ->html($this->renderView('emails/admin_notification.html.twig', [
+                        'email' => $email,
+                        'roleName' => $roleName,
+                        'role' => $role
+                    ]));
+
+                                // Envoie les deux emails
+                try {
+                    $mailer->send($userMessage);
+                    $this->addFlash('info', "📧 Email avec identifiants envoyé à $email");
+                } catch (\Exception $e) {
+                    $this->addFlash('error', "❌ Erreur envoi email utilisateur : " . $e->getMessage());
+                }
+                
+                try {
+                    $mailer->send($confirmationMessage);
+                    $this->addFlash('info', "📧 Email de confirmation envoyé à $email");
+                } catch (\Exception $e) {
+                    $this->addFlash('error', "❌ Erreur envoi email confirmation : " . $e->getMessage());
+                }
 
             // Ajoute un message flash de succès
-                $this->addFlash('success', "✅ Invitation envoyée avec succès à $email !");
+                $this->addFlash('success', "✅ Invitation envoyée avec succès à $email avec le rôle $roleName ! Compte créé automatiquement.");
                 
                 // Redirection pour éviter la double soumission
             return $this->redirectToRoute('admin_invite');

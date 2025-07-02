@@ -46,6 +46,10 @@ class Event
     #[ORM\JoinColumn(nullable: false)]
     private ?User $organizer = null;
 
+    #[ORM\ManyToOne(targetEntity: Departement::class, inversedBy: 'events')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Departement $departement = null;
+
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Invitation::class, cascade: ['persist', 'remove'])]
     private Collection $invitations;
 
@@ -158,6 +162,9 @@ class Event
     public function setStatus(?string $status): self { $this->status = $status; return $this; }
     public function getOrganizer(): ?User { return $this->organizer; }
     public function setOrganizer(?User $organizer): self { $this->organizer = $organizer; return $this; }
+
+    public function getDepartement(): ?Departement { return $this->departement; }
+    public function setDepartement(?Departement $departement): self { $this->departement = $departement; return $this; }
 
     public function getGoogleDriveFolderId(): ?string { return $this->googleDriveFolderId; }
     public function setGoogleDriveFolderId(?string $googleDriveFolderId): self { $this->googleDriveFolderId = $googleDriveFolderId; return $this; }

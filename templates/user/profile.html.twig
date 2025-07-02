@@ -19,7 +19,7 @@
             margin-bottom: 2rem;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 20px 40px rgba(102,126,234,0.2);
+            box-shadow: 0 20px 40px rgba(8, 12, 26, 0.2);
         }
         
         .profile-header::before {
@@ -523,7 +523,7 @@
                     <div class="profile-avatar">
                         <div class="avatar-container">
                             {% if user.photo %}
-                                <img src="{{ asset('uploads/photos/' ~ user.photo) }}" alt="Photo de profil">
+                                <img src="{{ asset('uploads/photos/' ~ user.photo) }}?v={{ 'now'|date('U') }}" alt="Photo de profil">
                             {% else %}
                                 <i class="fas fa-user"></i>
                             {% endif %}

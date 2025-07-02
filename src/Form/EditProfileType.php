@@ -3,20 +3,18 @@
 namespace App\Form;
 
 use App\Entity\User;
+use App\Entity\Departement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-use App\Entity\Departement;
 
-class UserType extends AbstractType
+class EditProfileType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
@@ -24,15 +22,7 @@ class UserType extends AbstractType
             ->add('email', EmailType::class, [
                 'label' => 'Email',
                 'required' => true,
-            ])
-            ->add('password', PasswordType::class, [
-                'label' => 'Mot de passe',
-                'required' => true,
-                'mapped' => false,
-                'attr' => [
-                    'autocomplete' => 'new-password',
-                    'placeholder' => 'Choisissez un mot de passe sécurisé'
-                ],
+                'disabled' => true, // Email non modifiable
             ])
             ->add('nom', TextType::class, [
                 'label' => 'Nom',
@@ -59,7 +49,7 @@ class UserType extends AbstractType
             ])
             ->add('societe', TextType::class, [
                 'label' => 'Société',
-                'required'=>false,
+                'required' => false,
             ])
             ->add('dateNaissance', DateType::class, [
                 'widget' => 'single_text',
@@ -67,6 +57,18 @@ class UserType extends AbstractType
                 'label' => 'Date de naissance',
                 'attr' => [
                     'class' => 'form-control',
+                ],
+            ])
+            ->add('photoFile', FileType::class, [
+                'label' => 'Photo de profil',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2M',
+                        'mimeTypes' => ['image/jpeg', 'image/png', 'image/webp'],
+                        'mimeTypesMessage' => 'Veuillez télécharger une image valide (JPEG, PNG, WEBP).',
+                    ])
                 ],
             ]);
     }
@@ -77,4 +79,4 @@ class UserType extends AbstractType
             'data_class' => User::class,
         ]);
     }
-}
+} 

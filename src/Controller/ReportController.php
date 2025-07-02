@@ -205,7 +205,7 @@ class ReportController extends AbstractController
                 $participant = $participation->getUser();
                 if (!$participant) continue;
 
-                $department = $participant->getDepartement() ?: 'Non spécifié';
+                $department = $participant->getDepartement()?->getNom() ?: 'Non spécifié';
                 $specialty = $participant->getSpecialite() ?: 'Non spécifiée';
 
                 // Statistiques par département
@@ -352,7 +352,7 @@ class ReportController extends AbstractController
                     $participant->getNom(),
                     $participant->getPrenom(),
                     $participant->getEmail(),
-                    $participant->getDepartement() ?: 'Non spécifié',
+                    $participant->getDepartement()?->getNom() ?: 'Non spécifié',
                     $participant->getSpecialite() ?: 'Non spécifiée',
                     $participation->getInvitationStatus() ?: 'Non défini',
                     $participation->isPresent() ? 'Oui' : 'Non'

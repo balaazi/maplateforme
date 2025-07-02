@@ -9,6 +9,7 @@ use App\Form\EventFormType;
 use App\Repository\EventRepository;
 use App\Repository\ParticipationRepository;
 use App\Service\EventNotificationService;
+use App\Service\AdminNotificationService;
 use App\Service\GoogleCalendarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,10 +23,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class EventController extends AbstractController
 {
     private EventNotificationService $notificationService;
+    private AdminNotificationService $adminNotificationService;
 
-    public function __construct(EventNotificationService $notificationService)
-    {
+    public function __construct(
+        EventNotificationService $notificationService,
+        AdminNotificationService $adminNotificationService
+    ) {
         $this->notificationService = $notificationService;
+        $this->adminNotificationService = $adminNotificationService;
     }
 
     #[Route('/event/create', name: 'event_create')]
@@ -55,6 +60,14 @@ class EventController extends AbstractController
             $entityManager->persist($event);
             $entityManager->persist($calendarEvent);
             $entityManager->flush();
+
+            // Notification administrateur pour la création
+            try {
+                $this->adminNotificationService->notifyEventCreated($event);
+            } catch (\Exception $e) {
+                // Log l'erreur mais ne pas empêcher la création de l'événement
+                error_log('Erreur notification admin création événement: ' . $e->getMessage());
+            }
 
             try {
                 if (!$calendarService->isAuthenticated()) {
@@ -128,7 +141,17 @@ class EventController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
+            
+            // Notification aux participants
             $this->notificationService->sendEventUpdateNotification($event);
+            
+            // Notification administrateur pour la modification
+            try {
+                $this->adminNotificationService->notifyEventUpdated($event);
+            } catch (\Exception $e) {
+                error_log('Erreur notification admin modification événement: ' . $e->getMessage());
+            }
+            
             $this->addFlash('success', 'Événement modifié avec succès.');
             return $this->redirectToRoute('event_list');
         }
@@ -155,7 +178,16 @@ class EventController extends AbstractController
         $event->setStatus('annulé');
         $em->flush();
 
+        // Notification aux participants
         $this->notificationService->sendEventCancelNotification($event);
+        
+        // Notification administrateur pour l'annulation
+        try {
+            $this->adminNotificationService->notifyEventCancelled($event);
+        } catch (\Exception $e) {
+            error_log('Erreur notification admin annulation événement: ' . $e->getMessage());
+        }
+        
         $this->addFlash('success', 'Événement annulé avec succès.');
         return $this->redirectToRoute('event_list');
     }

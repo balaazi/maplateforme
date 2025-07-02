@@ -10,9 +10,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
+
+
 
 class RegisterController extends AbstractController
 {
@@ -29,11 +28,15 @@ class RegisterController extends AbstractController
     public function register(Request $request): Response
     {
         $user = new User();
+        
         // 📨 Si un email est passé en GET (depuis une invitation), on le pré-remplit
         $prefilledEmail = $request->query->get('email');
+        $prefilledRole = $request->query->get('role');
+        
         if ($prefilledEmail) {
             $user->setEmail($prefilledEmail);
         }
+        
         $form = $this->createForm(UserType::class, $user);
         $form->handleRequest($request);
 
@@ -47,18 +50,22 @@ class RegisterController extends AbstractController
                 return $this->redirectToRoute('app_register');
             }
 
-           // /** @var UploadedFile $photoFile */
-            //$photoFile = $form->get('photo')->getData();
-           // if ($photoFile) {
-              //  $newFilename = uniqid().'.'.$photoFile->guessExtension();
-              //  try {
-                  //  $photoFile->move($this->photosDirectory, $newFilename);
-                  //  $user->setPhoto($newFilename);
-              //  } catch (FileException $e) {
-                  //  $this->addFlash('error', 'Erreur lors de l\'upload de l\'image.');
-                  //  return $this->redirectToRoute('app_register');
-               // }
-           // }
+            // Attribution du rôle depuis l'invitation ou rôle par défaut
+            if ($prefilledRole && in_array($prefilledRole, ['ROLE_ADMIN', 'ROLE_ORGANISATEUR', 'ROLE_PARTICIPANT'])) {
+                $user->setRoles([$prefilledRole]);
+                $roleName = match($prefilledRole) {
+                    'ROLE_ADMIN' => 'Administrateur',
+                    'ROLE_ORGANISATEUR' => 'Organisateur',
+                    'ROLE_PARTICIPANT' => 'Participant',
+                    default => 'Utilisateur'
+                };
+                $this->addFlash('success', "🎯 Votre compte a été créé avec le rôle $roleName !");
+            } else {
+                // Rôle par défaut
+                $user->setRoles(['ROLE_PARTICIPANT']);
+            }
+
+
 
            
             $this->entityManager->persist($user);

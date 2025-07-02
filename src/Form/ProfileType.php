@@ -16,6 +16,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use App\Entity\Departement;
 
 class ProfileType extends AbstractType
 {
@@ -35,18 +37,11 @@ class ProfileType extends AbstractType
                 'attr' => ['class' => 'form-control'], // Style ou classe CSS personnalisée
             ])
             ->add('specialite', TextType::class, ['label' => 'Spécialité'])
-            ->add('departement', ChoiceType::class, [
+            ->add('departement', EntityType::class, [
+                'class' => Departement::class,
+                'choice_label' => 'nom',
                 'label' => 'Département',
-                'choices' => [
-                    'Choisissez votre département' => '',
-                    'Ressources Humaines' => 'Ressources Humaines',
-                    'Informatique' => 'Informatique',
-                    'Finance' => 'Finance',
-                    'Marketing' => 'Marketing',
-                    'Logistique' => 'Logistique',
-                    'Sécurité' => 'Sécurité',
-                    
-                ],
+                'required' => false,
                 'placeholder' => 'Choisissez votre département',
             ])
             ->add('societe', TextType::class, [

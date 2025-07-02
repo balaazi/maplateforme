@@ -1,5 +1,5 @@
 parameters:
-  photos_directory: '%kernel.project_dir%/public/uploads/photos'
+  photos_directory: '%kernel.project_dir%\public\uploads\photos'
   documents_directory: '%kernel.project_dir%/public/uploads/documents'
   google_token_expiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
   app.mailer_from: 'no-reply@votresite.com'
@@ -30,6 +30,10 @@ services:
     arguments:
       $mailer: '@mailer.mailer'
       $userRepository: '@App\Repository\UserRepository'
+
+  App\Service\AdminNotificationService:
+    arguments:
+      $mailer: '@mailer.mailer'
 
   App\Service\ReminderService: ~
 

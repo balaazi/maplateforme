@@ -57,10 +57,10 @@ class EventRepository extends ServiceEntityRepository
                 ->getResult();
         }
 
-        // Participant peut voir uniquement les événements auxquels il participe
+        // Participant peut voir les événements auxquels il participe OU qu'il organise
         return $this->createQueryBuilder('e')
-            ->join('e.participations', 'p')
-            ->where('p.user = :user')
+            ->leftJoin('e.participations', 'p')
+            ->where('e.organizer = :user OR p.user = :user')
             ->setParameter('user', $user)
             ->orderBy('e.dateHeure', 'ASC')
             ->getQuery()

@@ -6,6 +6,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -15,15 +16,30 @@ class InviteUserType extends AbstractType
     {
         $builder
             ->add('email', EmailType::class, [
-                'label' => 'Email du participant',
+                'label' => 'Email de l\'utilisateur',
                 'attr' => [
-                    'placeholder' => 'participant@example.com',
+                    'placeholder' => 'utilisateur@example.com',
                     'class' => 'form-control'
                 ],
                 'constraints' => [
                     new Assert\NotBlank(['message' => 'L\'email est obligatoire']),
                     new Assert\Email(['message' => 'Veuillez entrer un email valide']),
                 ],
+            ])
+            ->add('role', ChoiceType::class, [
+                'label' => 'Rôle à attribuer',
+                'choices' => [
+                    'Participant' => 'ROLE_PARTICIPANT',
+                    'Organisateur' => 'ROLE_ORGANISATEUR',
+                    'Administrateur' => 'ROLE_ADMIN',
+                ],
+                'attr' => [
+                    'class' => 'form-control'
+                ],
+                'constraints' => [
+                    new Assert\NotBlank(['message' => 'Le rôle est obligatoire']),
+                ],
+                'placeholder' => 'Sélectionnez un rôle...',
             ])
             ->add('submit', SubmitType::class, [
                 'label' => 'Envoyer l\'invitation',

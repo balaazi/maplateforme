@@ -481,7 +481,6 @@
             <div class="step-indicator fade-in" style="animation-delay: 0.1s;">
                 <div class="step basic">1</div>
                 <div class="step details">2</div>
-                <div class="step advanced">3</div>
             </div>
 
             <div class="form-container">
@@ -575,59 +574,24 @@
                         </div>
                     </div>
 
-                    <!-- Section 3: Options avancées -->
-                    <div class="form-section advanced fade-in" style="animation-delay: 0.4s;">
-                        <h3 class="section-title">
-                            <div class="section-icon">
-                                <i class="fas fa-cogs"></i>
-                            </div>
-                            Options Avancées
-                        </h3>
+                    <!-- Boutons d'action -->
+                    <div class="btn-group fade-in" style="animation-delay: 0.4s;">
+                        <a href="{{ path('event_list') }}" class="btn btn-back">
+                            <i class="fas fa-arrow-left"></i>
+                            Retour à la liste
+                        </a>
                         
-                        <div class="form-grid">
-                            {% if form.etherpadUrl is defined %}
-                                <div class="form-field">
-                                    {{ form_widget(form.etherpadUrl, {
-                                        'attr': {
-                                            'class': 'form-control',
-                                            'placeholder': ' '
-                                        }
-                                    }) }}
-                                    <label class="form-label">{{ form_label(form.etherpadUrl) }}</label>
-                                </div>
-                            {% endif %}
-                            
-                            {% if form.imageFile is defined %}
-                                <div class="form-field" style="grid-column: 1 / -1;">
-                                    {{ form_widget(form.imageFile, {
-                                        'attr': {
-                                            'class': 'form-control'
-                                        }
-                                    }) }}
-                                    <label class="form-label">{{ form_label(form.imageFile) }}</label>
-                                </div>
-                            {% endif %}
-                        </div>
+                        <button type="submit" class="btn btn-save" id="save-btn">
+                            <i class="fas fa-save"></i>
+                            Enregistrer
+                        </button>
                         
-                        <!-- Boutons d'action -->
-                        <div class="btn-group fade-in" style="animation-delay: 0.5s;">
-                            <a href="{{ path('event_list') }}" class="btn btn-back">
-                                <i class="fas fa-arrow-left"></i>
-                                Retour à la liste
-                            </a>
-                            
-                            <button type="submit" class="btn btn-save" id="save-btn">
-                                <i class="fas fa-save"></i>
-                                Enregistrer
-                            </button>
-                            
-                            <a href="{{ path('event_cancel', { id: event.id }) }}" 
-                               class="btn btn-danger"
-                               onclick="return confirm('Êtes-vous sûr de vouloir annuler cet événement ?')">
-                                <i class="fas fa-times"></i>
-                                Annuler l'événement
-                            </a>
-                        </div>
+                        <a href="{{ path('event_cancel', { id: event.id }) }}" 
+                           class="btn btn-danger"
+                           onclick="return confirm('Êtes-vous sûr de vouloir annuler cet événement ?')">
+                            <i class="fas fa-times"></i>
+                            Annuler l'événement
+                        </a>
                     </div>
 
                 {{ form_end(form) }}

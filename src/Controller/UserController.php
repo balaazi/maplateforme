@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Form\UserType;
+use App\Form\EditProfileType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -47,7 +48,7 @@ if ($user !== $this->getUser()) {
 throw $this->createAccessDeniedException('Vous ne pouvez pas modifier ce profil.');
 }
 
-$form = $this->createForm(UserType::class, $user);
+$form = $this->createForm(EditProfileType::class, $user);
 $form->handleRequest($request);
 
 if ($form->isSubmitted() && $form->isValid()) {
@@ -55,15 +56,16 @@ if ($form->isSubmitted() && $form->isValid()) {
 $photoFile = $form->get('photoFile')->getData();
 if ($photoFile) {
 $newFilename = uniqid().'.'.$photoFile->guessExtension();
+$uploadDir = $this->getParameter('photos_directory');
 try {
-$photoFile->move(
-$this->getParameter('photos_directory'),
-$newFilename
-);
+$photoFile->move($uploadDir, $newFilename);
 $user->setPhoto($newFilename);
+$this->addFlash('success', 'Photo uploadée avec succès !');
 } catch (FileException $e) {
-$this->addFlash('error', 'Impossible de télécharger la photo.');
+$this->addFlash('error', 'Impossible de télécharger la photo: ' . $e->getMessage());
 }
+} else {
+$this->addFlash('info', 'Aucune nouvelle photo sélectionnée.');
 }
 
 $entityManager->persist($user);
@@ -71,6 +73,11 @@ $entityManager->flush();
 
 $this->addFlash('success', 'Votre profil a été mis à jour avec succès.');
 return $this->redirectToRoute('app_profile');
+} else {
+// Afficher les erreurs de formulaire
+foreach ($form->getErrors(true) as $error) {
+$this->addFlash('error', $error->getMessage());
+}
 }
 
 return $this->render('user/edit_profile.html.twig', [

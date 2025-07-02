@@ -129,7 +129,7 @@ class StatsController extends AbstractController
 
             foreach ($participations as $participation) {
                 $participant = $participation->getUser();
-                $department = $participant->getDepartement() ?? 'Non spécifié';
+                $department = $participant->getDepartement()?->getNom() ?? 'Non spécifié';
 
                 if (!isset($departmentStats[$department])) {
                     $departmentStats[$department] = [

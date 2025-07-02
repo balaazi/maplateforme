@@ -41,8 +41,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateNaissance = null;
 
-    #[ORM\Column(type: Types::STRING, length: 100, nullable: true)]
-    private ?string $departement = null;
+    #[ORM\ManyToOne(targetEntity: Departement::class, inversedBy: 'users')]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?Departement $departement = null;
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $notifyByEmail = false;
@@ -65,7 +66,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedAt = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Participation::class)]
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Participation::class, cascade: ['remove'])]
     private Collection $participations;
 
     public function __construct()
@@ -157,12 +158,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getDepartement(): ?string
+    public function getDepartement(): ?Departement
     {
         return $this->departement;
     }
 
-    public function setDepartement(?string $departement): static
+    public function setDepartement(?Departement $departement): static
     {
         $this->departement = $departement;
         return $this;
