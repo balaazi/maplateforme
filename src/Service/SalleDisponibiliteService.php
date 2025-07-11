@@ -104,6 +104,84 @@ class SalleDisponibiliteService
     }
 
     /**
+     * Récupère le statut d'une salle pour une date spécifique
+     */
+    public function getStatutActuelPourDate(Salle $salle, \DateTimeInterface $date): array
+    {
+        if (!$salle->isDisponible()) {
+            return [
+                'statut' => 'desactivee',
+                'libelle' => 'Désactivée',
+                'couleur' => 'danger'
+            ];
+        }
+
+        $maintenant = new \DateTime();
+        
+        // Convertir en DateTime si nécessaire pour utiliser setTime
+        if ($date instanceof \DateTimeInterface && !($date instanceof \DateTime)) {
+            $dateDebut = new \DateTime($date->format('Y-m-d H:i:s'));
+            $dateFin = new \DateTime($date->format('Y-m-d H:i:s'));
+        } else {
+            $dateDebut = clone $date;
+            $dateFin = clone $date;
+        }
+        
+        $dateDebut->setTime(0, 0, 0);
+        $dateFin->setTime(23, 59, 59);
+
+        // Si c'est aujourd'hui, vérifier s'il y a une réservation en cours maintenant
+        if ($date->format('Y-m-d') === $maintenant->format('Y-m-d')) {
+            $reservationActuelle = $this->reservationRepository->findReservationActuelle($salle, $maintenant);
+            
+            if ($reservationActuelle) {
+                return [
+                    'statut' => 'occupee',
+                    'libelle' => 'Occupée',
+                    'couleur' => 'danger',
+                    'reservation' => $reservationActuelle,
+                    'fin_occupation' => $reservationActuelle->getDateFin()
+                ];
+            }
+        }
+
+        // Chercher les réservations pour cette date
+        $reservationsPourDate = $this->reservationRepository->findReservationsPourJour($salle, $date);
+
+        if (!empty($reservationsPourDate)) {
+            // Il y a des réservations ce jour-là
+            if ($date->format('Y-m-d') === $maintenant->format('Y-m-d')) {
+                // Pour aujourd'hui, chercher la prochaine réservation
+                $prochaineReservation = $this->reservationRepository->findProchaineReservation($salle, $maintenant);
+                
+                if ($prochaineReservation) {
+                    return [
+                        'statut' => 'libre_temporaire',
+                        'libelle' => 'Libre (réservée bientôt)',
+                        'couleur' => 'warning',
+                        'prochaine_reservation' => $prochaineReservation,
+                        'debut_occupation' => $prochaineReservation->getDateDebut()
+                    ];
+                }
+            } else {
+                // Pour une date future, la salle est réservée
+                return [
+                    'statut' => 'reservee',
+                    'libelle' => 'Réservée',
+                    'couleur' => 'warning',
+                    'reservations' => $reservationsPourDate
+                ];
+            }
+        }
+
+        return [
+            'statut' => 'libre',
+            'libelle' => 'Libre',
+            'couleur' => 'success'
+        ];
+    }
+
+    /**
      * Récupère les créneaux libres d'une salle pour une journée donnée
      */
     public function getCreneauxLibres(Salle $salle, \DateTimeInterface $date): array

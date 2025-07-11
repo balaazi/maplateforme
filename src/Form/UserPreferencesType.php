@@ -28,7 +28,27 @@ class UserPreferencesType extends AbstractType
                     '24 heures' => 24,
                     '48 heures' => 48,
                 ],
-                'label' => 'Fréquence des rappels',
+                'label' => 'Fréquence des rappels (en heures)',
+                'required' => true,
+            ])
+            ->add('enableSoundNotifications', CheckboxType::class, [
+                'label' => 'Activer les notifications sonores',
+                'help' => 'Jouer un son lors de la réception de notifications importantes',
+                'required' => false,
+            ])
+            ->add('enableVisualNotifications', CheckboxType::class, [
+                'label' => 'Activer les notifications visuelles',
+                'help' => 'Afficher des bulles de notification sur l\'écran',
+                'required' => false,
+            ])
+            ->add('notificationPriority', ChoiceType::class, [
+                'choices' => [
+                    'Priorité faible (moins d\'interruptions)' => 'low',
+                    'Priorité normale (recommandé)' => 'normal',
+                    'Priorité élevée (notifications urgentes)' => 'high',
+                ],
+                'label' => 'Niveau de priorité des notifications',
+                'help' => 'Détermine la fréquence et l\'intensité des notifications',
                 'required' => true,
             ]);
     }

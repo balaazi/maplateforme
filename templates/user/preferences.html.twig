@@ -1,0 +1,507 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Préférences de notifications{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <!-- Header Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="preferences-header text-center">
+                <div class="preferences-icon-container mb-3">
+                    <div class="preferences-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                </div>
+                <h1 class="display-4 fw-bold text-gradient mb-2">Préférences de notifications</h1>
+                <p class="lead text-muted">Personnalisez vos notifications pour une expérience optimale</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-xl-8 col-lg-10">
+            <!-- Flash Messages -->
+            {% for message in app.flashes('success') %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>{{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            <!-- Preferences Form Card -->
+            <div class="card preferences-card shadow-lg border-0">
+                <div class="card-header preferences-card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bell me-2"></i>
+                        Configuration des notifications
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    {{ form_start(form, {'attr': {'class': 'preferences-form', 'id': 'preferences-form'}}) }}
+                    
+                    <!-- Basic Notifications Section -->
+                    <div class="preferences-section mb-5">
+                        <h6 class="section-title">
+                            <i class="fas fa-envelope text-primary me-2"></i>
+                            Notifications de base
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check-container">
+                                    {{ form_widget(form.notifyByEmail, {'attr': {'class': 'form-check-input', 'id': 'notifyByEmail'}}) }}
+                                    {{ form_label(form.notifyByEmail, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    <small class="form-text text-muted d-block">Recevoir des notifications par email</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check-container">
+                                    {{ form_widget(form.notifyBySms, {'attr': {'class': 'form-check-input', 'id': 'notifyBySms'}}) }}
+                                    {{ form_label(form.notifyBySms, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    <small class="form-text text-muted d-block">Recevoir des notifications par SMS (bientôt disponible)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Notifications Section -->
+                    <div class="preferences-section mb-5">
+                        <h6 class="section-title">
+                            <i class="fas fa-volume-up text-warning me-2"></i>
+                            Notifications avancées
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check-container">
+                                    {{ form_widget(form.enableSoundNotifications, {'attr': {'class': 'form-check-input', 'id': 'enableSoundNotifications'}}) }}
+                                    {{ form_label(form.enableSoundNotifications, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    <small class="form-text text-muted d-block">{{ form.enableSoundNotifications.vars.help }}</small>
+                                    <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="test-sound">
+                                        <i class="fas fa-play me-1"></i>Tester le son
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check-container">
+                                    {{ form_widget(form.enableVisualNotifications, {'attr': {'class': 'form-check-input', 'id': 'enableVisualNotifications'}}) }}
+                                    {{ form_label(form.enableVisualNotifications, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                                    <small class="form-text text-muted d-block">{{ form.enableVisualNotifications.vars.help }}</small>
+                                    <button type="button" class="btn btn-sm btn-outline-info mt-2" id="test-visual">
+                                        <i class="fas fa-eye me-1"></i>Aperçu visuel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reminder Settings Section -->
+                    <div class="preferences-section mb-5">
+                        <h6 class="section-title">
+                            <i class="fas fa-clock text-info me-2"></i>
+                            Paramètres des rappels
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form_label(form.reminderFrequency, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                    {{ form_widget(form.reminderFrequency, {'attr': {'class': 'form-select', 'id': 'reminderFrequency'}}) }}
+                                    <small class="form-text text-muted">Délai avant l'événement pour recevoir un rappel</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    {{ form_label(form.notificationPriority, null, {'label_attr': {'class': 'form-label fw-semibold'}}) }}
+                                    {{ form_widget(form.notificationPriority, {'attr': {'class': 'form-select', 'id': 'notificationPriority'}}) }}
+                                    <small class="form-text text-muted">{{ form.notificationPriority.vars.help }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="preferences-section mb-4">
+                        <h6 class="section-title">
+                            <i class="fas fa-preview text-success me-2"></i>
+                            Aperçu de vos préférences
+                        </h6>
+                        <div class="preview-container" id="preview-container">
+                            <div class="preview-item">
+                                <span class="preview-icon"><i class="fas fa-envelope"></i></span>
+                                <span class="preview-text">Email : <span id="preview-email">En attente...</span></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-icon"><i class="fas fa-volume-up"></i></span>
+                                <span class="preview-text">Son : <span id="preview-sound">En attente...</span></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-icon"><i class="fas fa-eye"></i></span>
+                                <span class="preview-text">Visuel : <span id="preview-visual">En attente...</span></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-icon"><i class="fas fa-clock"></i></span>
+                                <span class="preview-text">Rappels : <span id="preview-frequency">En attente...</span></span>
+                            </div>
+                            <div class="preview-item">
+                                <span class="preview-icon"><i class="fas fa-star"></i></span>
+                                <span class="preview-text">Priorité : <span id="preview-priority">En attente...</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary" id="reset-defaults">
+                                <i class="fas fa-undo me-2"></i>Valeurs par défaut
+                            </button>
+                        </div>
+                        <div>
+                            <a href="{{ path('user_profile') }}" class="btn btn-outline-dark me-2">
+                                <i class="fas fa-arrow-left me-2"></i>Retour au profil
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Enregistrer les préférences
+                            </button>
+                        </div>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Styles -->
+<style>
+.preferences-header {
+    position: relative;
+    padding: 2rem 0;
+}
+
+.preferences-icon-container {
+    display: flex;
+    justify-content: center;
+}
+
+.preferences-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.text-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.preferences-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.preferences-card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border: none;
+}
+
+.preferences-section {
+    position: relative;
+    padding: 1.5rem;
+    margin: 0 -1rem;
+    border-radius: 15px;
+    background: rgba(248, 249, 250, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+}
+
+.form-check-container {
+    position: relative;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-check-container:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+}
+
+.form-check-input:checked + .form-check-label {
+    color: #667eea;
+    font-weight: 600;
+}
+
+.form-group {
+    position: relative;
+}
+
+.form-select, .form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus, .form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.preview-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid rgba(102, 126, 234, 0.1);
+}
+
+.preview-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.preview-item:last-child {
+    margin-bottom: 0;
+}
+
+.preview-icon {
+    width: 30px;
+    height: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.875rem;
+    margin-right: 1rem;
+}
+
+.preview-text {
+    font-weight: 500;
+    color: #495057;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+}
+
+.btn-outline-primary, .btn-outline-info, .btn-outline-secondary, .btn-outline-dark {
+    border-radius: 8px;
+    border-width: 2px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover, .btn-outline-info:hover {
+    transform: translateY(-1px);
+}
+
+/* Animations */
+.preferences-form {
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .preferences-section {
+        margin: 0;
+        padding: 1rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .d-flex.justify-content-between > div {
+        text-align: center;
+    }
+}
+</style>
+
+<!-- JavaScript for interactivity -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const form = document.getElementById('preferences-form');
+    const testSoundBtn = document.getElementById('test-sound');
+    const testVisualBtn = document.getElementById('test-visual');
+    const resetBtn = document.getElementById('reset-defaults');
+    
+    // Preview elements
+    const previewEmail = document.getElementById('preview-email');
+    const previewSound = document.getElementById('preview-sound');
+    const previewVisual = document.getElementById('preview-visual');
+    const previewFrequency = document.getElementById('preview-frequency');
+    const previewPriority = document.getElementById('preview-priority');
+
+    // Update preview function
+    function updatePreview() {
+        const emailEnabled = document.getElementById('notifyByEmail').checked;
+        const soundEnabled = document.getElementById('enableSoundNotifications').checked;
+        const visualEnabled = document.getElementById('enableVisualNotifications').checked;
+        const frequency = document.getElementById('reminderFrequency').value;
+        const priority = document.getElementById('notificationPriority').value;
+
+        previewEmail.textContent = emailEnabled ? '✅ Activé' : '❌ Désactivé';
+        previewEmail.className = emailEnabled ? 'text-success' : 'text-danger';
+
+        previewSound.textContent = soundEnabled ? '🔊 Activé' : '🔇 Désactivé';
+        previewSound.className = soundEnabled ? 'text-success' : 'text-danger';
+
+        previewVisual.textContent = visualEnabled ? '👁️ Activé' : '👁️ Désactivé';
+        previewVisual.className = visualEnabled ? 'text-success' : 'text-danger';
+
+        const frequencyTexts = {
+            '1': '1 heure avant',
+            '6': '6 heures avant',
+            '24': '24 heures avant',
+            '48': '48 heures avant'
+        };
+        previewFrequency.textContent = frequencyTexts[frequency] || 'Non défini';
+
+        const priorityTexts = {
+            'low': '🟢 Faible',
+            'normal': '🟡 Normale',
+            'high': '🔴 Élevée'
+        };
+        previewPriority.textContent = priorityTexts[priority] || 'Non défini';
+    }
+
+    // Event listeners for real-time preview
+    form.addEventListener('change', updatePreview);
+
+    // Test sound button
+    testSoundBtn.addEventListener('click', function() {
+        const soundEnabled = document.getElementById('enableSoundNotifications').checked;
+        
+        if (!soundEnabled) {
+            alert('Veuillez d\'abord activer les notifications sonores pour tester.');
+            return;
+        }
+
+        // Simulation d'un test sonore
+        showToast('🔊 Test sonore simulé !', 'success');
+    });
+
+    // Test visual button
+    testVisualBtn.addEventListener('click', function() {
+        const visualEnabled = document.getElementById('enableVisualNotifications').checked;
+        
+        if (!visualEnabled) {
+            alert('Veuillez d\'abord activer les notifications visuelles pour tester.');
+            return;
+        }
+
+        // Create a test visual notification
+        createTestNotification();
+    });
+
+    // Reset to defaults
+    resetBtn.addEventListener('click', function() {
+        if (confirm('Êtes-vous sûr de vouloir restaurer les valeurs par défaut ?')) {
+            document.getElementById('notifyByEmail').checked = false;
+            document.getElementById('notifyBySms').checked = false;
+            document.getElementById('enableSoundNotifications').checked = true;
+            document.getElementById('enableVisualNotifications').checked = true;
+            document.getElementById('reminderFrequency').value = '1';
+            document.getElementById('notificationPriority').value = 'normal';
+            updatePreview();
+            showToast('🔄 Valeurs par défaut restaurées', 'info');
+        }
+    });
+
+    // Function to create test notification
+    function createTestNotification() {
+        showToast('👁️ Test visuel simulé !', 'info');
+    }
+
+    // Utility function for toast messages
+    function showToast(message, type) {
+        // Create a simple toast notification
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.remove();
+            }
+        }, 5000);
+    }
+
+    // Initial preview update
+    updatePreview();
+});
+</script>
+{% endblock %} 

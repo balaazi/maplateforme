@@ -7,12 +7,14 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
+#[UniqueEntity(fields: ['email'], message: 'Cette adresse email est déjà utilisée.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -50,6 +52,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
     private bool $notifyBySms = false;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $enableSoundNotifications = true;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => true])]
+    private bool $enableVisualNotifications = true;
+
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+    private int $reminderFrequency = 1;
+
+    #[ORM\Column(type: Types::STRING, length: 20, options: ['default' => 'normal'])]
+    private string $notificationPriority = 'normal';
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $photo = null;
@@ -188,6 +202,50 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setNotifyBySms(bool $notifyBySms): static
     {
         $this->notifyBySms = $notifyBySms;
+        return $this;
+    }
+
+    public function isEnableSoundNotifications(): bool
+    {
+        return $this->enableSoundNotifications;
+    }
+
+    public function setEnableSoundNotifications(bool $enableSoundNotifications): static
+    {
+        $this->enableSoundNotifications = $enableSoundNotifications;
+        return $this;
+    }
+
+    public function isEnableVisualNotifications(): bool
+    {
+        return $this->enableVisualNotifications;
+    }
+
+    public function setEnableVisualNotifications(bool $enableVisualNotifications): static
+    {
+        $this->enableVisualNotifications = $enableVisualNotifications;
+        return $this;
+    }
+
+    public function getReminderFrequency(): int
+    {
+        return $this->reminderFrequency;
+    }
+
+    public function setReminderFrequency(int $reminderFrequency): static
+    {
+        $this->reminderFrequency = $reminderFrequency;
+        return $this;
+    }
+
+    public function getNotificationPriority(): string
+    {
+        return $this->notificationPriority;
+    }
+
+    public function setNotificationPriority(string $notificationPriority): static
+    {
+        $this->notificationPriority = $notificationPriority;
         return $this;
     }
 

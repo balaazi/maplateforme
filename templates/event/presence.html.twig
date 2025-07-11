@@ -11,7 +11,6 @@
             padding: 2rem 0;
             position: relative;
         }
-        
         .presence-container::before {
             content: '';
             position: absolute;
@@ -25,7 +24,7 @@
                 radial-gradient(circle at 40% 40%, rgba(40,167,69,0.05) 0%, transparent 50%);
             pointer-events: none;
         }
-        
+
         .presence-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -550,7 +549,6 @@
     <!-- Message de statut -->
     <div id="statusMessage" class="status-message"></div>
 {% endblock %}
-
 {% block javascripts %}
     {{ parent() }}
     <script>

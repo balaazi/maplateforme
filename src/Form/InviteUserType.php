@@ -31,7 +31,6 @@ class InviteUserType extends AbstractType
                 'choices' => [
                     'Participant' => 'ROLE_PARTICIPANT',
                     'Organisateur' => 'ROLE_ORGANISATEUR',
-                    'Administrateur' => 'ROLE_ADMIN',
                 ],
                 'attr' => [
                     'class' => 'form-control'

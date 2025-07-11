@@ -2,23 +2,148 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rappel - {{ event.title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+        .header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 28px;
+        }
+        .event-card {
+            background: #f8f9ff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 20px 0;
+        }
+        .event-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .event-details {
+            display: table;
+            width: 100%;
+        }
+        .detail-row {
+            display: table-row;
+        }
+        .detail-label {
+            display: table-cell;
+            font-weight: bold;
+            color: #555;
+            padding: 5px 15px 5px 0;
+            width: 30%;
+        }
+        .detail-value {
+            display: table-cell;
+            padding: 5px 0;
+            color: #333;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 12px;
+            color: #666;
+        }
+        .button {
+            display: inline-block;
+            background-color: #667eea;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif;">
-<h2>⏰ Rappel : {{ event.title }}</h2>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="icon">⏰</span>Rappel d'événement</h1>
+        </div>
 
-<p>Bonjour {{ user.firstname }},</p>
+        <p>Bonjour <strong>{{ user.fullName }}</strong>,</p>
 
-<p>Un petit rappel concernant votre événement prévu :</p>
+        <p>Nous vous rappelons que vous avez un événement prévu pour <strong>demain</strong> :</p>
 
-<ul>
-    <li><strong>Date :</strong> {{ event.startDate|date('d/m/Y') }}</li>
-    <li><strong>Heure :</strong> {{ event.startDate|date('H:i') }}</li>
-    <li><strong>Lieu :</strong> {{ event.location }}</li>
-</ul>
+        <div class="event-card">
+            <div class="event-title">{{ event.title }}</div>
+            
+            <div class="event-details">
+                <div class="detail-row">
+                    <div class="detail-label">📅 Date :</div>
+                    <div class="detail-value">{{ event.dateHeure|date('d/m/Y') }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">🕐 Heure :</div>
+                    <div class="detail-value">{{ event.dateHeure|date('H:i') }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">🏢 Lieu :</div>
+                    <div class="detail-value">
+                        {% if event.salle %}
+                            {{ event.salle.nom }}
+                        {% else %}
+                            Non défini
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">⏱️ Durée :</div>
+                    <div class="detail-value">{{ event.duree }} minutes</div>
+                </div>
+                {% if event.description %}
+                <div class="detail-row">
+                    <div class="detail-label">📝 Description :</div>
+                    <div class="detail-value">{{ event.description|nl2br }}</div>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <div class="detail-label">👤 Organisateur :</div>
+                    <div class="detail-value">{{ event.organizer.fullName }}</div>
+                </div>
+            </div>
+        </div>
 
-<p>À très bientôt !</p>
+        <p>N'oubliez pas de vous préparer pour cet événement. Nous vous rappelons d'être ponctuel(le) !</p>
 
-<p style="font-size: 12px; color: #999;">Cet email est envoyé automatiquement par EvenHub.</p>
+        <p>Si vous avez des questions, n'hésitez pas à contacter l'organisateur.</p>
+
+        <div class="footer">
+            <p>Cet email est envoyé automatiquement par <strong>EventHub</strong>.</p>
+            <p>Pour désactiver ces rappels, modifiez vos préférences dans votre profil utilisateur.</p>
+        </div>
+    </div>
 </body>
 </html>

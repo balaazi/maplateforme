@@ -38,12 +38,19 @@ class ParticipantController extends AbstractController
     }
 
     #[Route('/documents', name: 'participant_documents')]
-    public function documents(ParticipationRepository $participationRepository, CollaborativeNoteRepository $noteRepository): Response
-    {
-        // Récupérer les événements auxquels participe l'utilisateur
-        $participations = $participationRepository->findBy([
-            'user' => $this->getUser()
-        ]);
+    public function documents(
+        ParticipationRepository $participationRepository,
+        CollaborativeNoteRepository $noteRepository
+    ): Response {
+        // Récupérer les événements auxquels participe l'utilisateur (sauf annulés)
+        $participations = $participationRepository->createQueryBuilder('p')
+            ->join('p.event', 'e')
+            ->where('p.user = :user')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->setParameter('user', $this->getUser())
+            ->setParameter('cancelled', 'annulé')
+            ->getQuery()
+            ->getResult();
 
         // Extraire les événements de ces participations
         $events = [];
@@ -82,7 +89,15 @@ class ParticipantController extends AbstractController
     public function statistics(ParticipationRepository $participationRepository): Response
     {
         $user = $this->getUser();
-        $participations = $participationRepository->findBy(['user' => $user]);
+        // Récupérer seulement les participations aux événements non annulés
+        $participations = $participationRepository->createQueryBuilder('p')
+            ->join('p.event', 'e')
+            ->where('p.user = :user')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->setParameter('user', $user)
+            ->setParameter('cancelled', 'annulé')
+            ->getQuery()
+            ->getResult();
 
         // Calculer les statistiques du participant
         $stats = [
@@ -140,13 +155,10 @@ class ParticipantController extends AbstractController
         // Calculer les taux
         $stats['presence_rate'] = $stats['total_events'] > 0 ? 
             round(($stats['present'] / $stats['total_events']) * 100, 1) : 0;
-        $stats['response_rate'] = $stats['total_events'] > 0 ? 
-            round((($stats['accepted'] + $stats['declined']) / $stats['total_events']) * 100, 1) : 0;
 
         return $this->render('participant/statistics.html.twig', [
             'stats' => $stats,
-            'eventsByCategory' => $eventsByCategory,
-            'participations' => $participations
+            'eventsByCategory' => $eventsByCategory
         ]);
     }
 }

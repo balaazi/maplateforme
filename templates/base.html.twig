@@ -389,6 +389,112 @@
                 background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28102, 126, 234, 1%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
             }
 
+            /* Notifications Dropdown */
+            .notification-dropdown {
+                border-radius: 20px !important;
+                background: rgba(255, 255, 255, 0.98) !important;
+                backdrop-filter: blur(30px) !important;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 32px rgba(102, 126, 234, 0.2) !important;
+                border: 1px solid rgba(102, 126, 234, 0.1) !important;
+                padding: 0 !important;
+            }
+
+            .notification-item {
+                padding: 1rem;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                position: relative;
+                margin: 0;
+            }
+
+            .notification-item:hover {
+                background: rgba(102, 126, 234, 0.05);
+                transform: translateX(5px);
+            }
+
+            .notification-item.unread {
+                background: rgba(102, 126, 234, 0.08);
+                border-left: 4px solid var(--primary-color);
+            }
+
+            .notification-item.unread::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                right: 1rem;
+                transform: translateY(-50%);
+                width: 8px;
+                height: 8px;
+                background: var(--primary-color);
+                border-radius: 50%;
+                animation: pulse-notification 2s infinite;
+            }
+
+            @keyframes pulse-notification {
+                0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+                50% { opacity: 0.5; transform: translateY(-50%) scale(1.2); }
+            }
+
+            .notification-title {
+                font-weight: 700;
+                font-size: 0.9rem;
+                color: var(--text-color);
+                margin-bottom: 0.25rem;
+                line-height: 1.2;
+            }
+
+            .notification-message {
+                font-size: 0.8rem;
+                color: var(--gray-600);
+                line-height: 1.3;
+                margin-bottom: 0.5rem;
+            }
+
+            .notification-time {
+                font-size: 0.75rem;
+                color: var(--gray-500);
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .notification-badge {
+                animation: bounce-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+                border: 2px solid white;
+                box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            }
+
+            @keyframes bounce-in {
+                0% { transform: translateX(-50%) translateY(-50%) scale(0); }
+                50% { transform: translateX(-50%) translateY(-50%) scale(1.2); }
+                100% { transform: translateX(-50%) translateY(-50%) scale(1); }
+            }
+
+            .notification-empty {
+                padding: 2rem;
+                text-align: center;
+                color: var(--gray-500);
+            }
+
+            .notification-empty i {
+                font-size: 2rem;
+                margin-bottom: 1rem;
+                opacity: 0.5;
+            }
+
+            #notification-badge {
+                font-size: 0.7rem;
+                padding: 0.2rem 0.4rem;
+                min-width: 18px;
+                height: 18px;
+                line-height: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
             /* Toast Notifications améliorées */
             .toast-container {
                 z-index: 1050;
@@ -511,6 +617,56 @@
                 50% { width: 80%; }
                 100% { width: 100%; opacity: 0; }
             }
+
+            /* Style spécial pour le menu Événements Annulés */
+            .cancelled-menu-item {
+                position: relative;
+            }
+
+            .cancelled-menu-item::after {
+                content: '';
+                position: absolute;
+                right: 1.5rem;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 8px;
+                height: 8px;
+                background: var(--danger-color);
+                border-radius: 50%;
+                animation: pulse-danger 2s infinite;
+            }
+
+            .cancelled-menu-item:hover::after {
+                animation: none;
+                background: white;
+            }
+
+            .cancelled-menu-item .badge {
+                animation: bounce-badge 1.5s infinite;
+            }
+
+            @keyframes pulse-danger {
+                0%, 100% {
+                    opacity: 1;
+                    transform: translateY(-50%) scale(1);
+                }
+                50% {
+                    opacity: 0.5;
+                    transform: translateY(-50%) scale(1.2);
+                }
+            }
+
+            @keyframes bounce-badge {
+                0%, 20%, 50%, 80%, 100% {
+                    transform: translateY(0);
+                }
+                40% {
+                    transform: translateY(-3px);
+                }
+                60% {
+                    transform: translateY(-1px);
+                }
+            }
         </style>
     {% endblock %}
 </head>
@@ -565,6 +721,42 @@
                 {% endif %}
 
                 {% if app.user %}
+                    <!-- Notifications -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span class="d-none d-lg-inline">Notifications</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notification-badge" style="display: none;">
+                                0
+                                <span class="visually-hidden">notifications non lues</span>
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end notification-dropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                            <li class="dropdown-header d-flex justify-content-between align-items-center">
+                                <span><i class="fas fa-bell me-1"></i> Notifications</span>
+                                <button class="btn btn-sm btn-outline-primary" id="mark-all-read-btn" style="display: none;">
+                                    <i class="fas fa-check-double"></i>
+                                </button>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <div id="notification-content" class="p-3 text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Chargement des notifications...
+                                </div>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-center" href="{{ path('participant_notifications') }}">
+                                    <i class="fas fa-eye"></i>
+                                    Voir toutes les notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                {% if app.user %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-circle"></i>
@@ -611,6 +803,13 @@
                                     <a class="dropdown-item" href="{{ path('event_list') }}">
                                         <i class="fas fa-list"></i>
                                         Liste des Événements
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item cancelled-menu-item" href="{{ path('event_cancelled_list') }}">
+                                        <i class="fas fa-ban text-danger me-2"></i>
+                                        <span>Événements Annulés</span>
+                                        <span class="badge bg-danger ms-auto">!</span>
                                     </a>
                                 </li>
                                 <li>
@@ -842,6 +1041,463 @@
                     this.style.outline = 'none';
                 });
             });
+
+            // Système de notifications en temps réel
+            {% if app.user %}
+            let notificationUpdateInterval;
+            const notificationBadge = document.getElementById('notification-badge');
+            const notificationContent = document.getElementById('notification-content');
+            const markAllReadBtn = document.getElementById('mark-all-read-btn');
+
+            // Fonction pour mettre à jour le badge
+            function updateNotificationBadge(count) {
+                if (count > 0) {
+                    notificationBadge.textContent = count > 99 ? '99+' : count;
+                    notificationBadge.style.display = 'flex';
+                    notificationBadge.classList.add('notification-badge');
+                } else {
+                    notificationBadge.style.display = 'none';
+                }
+            }
+
+            // Fonction pour récupérer les notifications
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch('/api/notifications/list');
+                    const data = await response.json();
+                    return data.notifications || [];
+                } catch (error) {
+                    console.error('Erreur lors de la récupération des notifications:', error);
+                    return [];
+                }
+            }
+
+            // Fonction pour récupérer le nombre de notifications non lues
+            async function fetchNotificationCount() {
+                try {
+                    const response = await fetch('/api/notifications/count');
+                    const data = await response.json();
+                    return data.count || 0;
+                } catch (error) {
+                    console.error('Erreur lors de la récupération du nombre de notifications:', error);
+                    return 0;
+                }
+            }
+
+            // Fonction pour afficher les notifications dans le dropdown
+            function displayNotifications(notifications) {
+                if (!notifications || notifications.length === 0) {
+                    notificationContent.innerHTML = `
+                        <div class="notification-empty">
+                            <i class="fas fa-bell-slash"></i>
+                            <div>Aucune notification récente</div>
+                        </div>
+                    `;
+                    markAllReadBtn.style.display = 'none';
+                    return;
+                }
+
+                const hasUnread = notifications.some(n => !n.isRead);
+                markAllReadBtn.style.display = hasUnread ? 'block' : 'none';
+
+                notificationContent.innerHTML = notifications
+                    .slice(0, 10) // Limiter à 10 notifications récentes
+                    .map(notification => {
+                        const timeAgo = getTimeAgo(new Date(notification.createdAt));
+                        const typeIcon = getTypeIcon(notification.type);
+                        
+                        return `
+                            <div class="notification-item ${!notification.isRead ? 'unread' : ''}" data-id="${notification.id}">
+                                <div class="d-flex align-items-start gap-2">
+                                    <i class="${typeIcon}" style="color: var(--primary-color); margin-top: 0.2rem;"></i>
+                                    <div class="flex-grow-1">
+                                        <div class="notification-title">${notification.title || 'Notification'}</div>
+                                        <div class="notification-message">${notification.message}</div>
+                                        <div class="notification-time">
+                                            <i class="fas fa-clock"></i>
+                                            ${timeAgo}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+            }
+
+            // Fonction pour obtenir l'icône selon le type
+            function getTypeIcon(type) {
+                const icons = {
+                    'event_reminder': 'fas fa-clock',
+                    'event_update': 'fas fa-edit',
+                    'event_cancel': 'fas fa-times-circle',
+                    'invitation': 'fas fa-envelope',
+                    'welcome': 'fas fa-hand-wave',
+                    'info': 'fas fa-info-circle'
+                };
+                return icons[type] || 'fas fa-bell';
+            }
+
+            // Fonction pour calculer le temps écoulé
+            function getTimeAgo(date) {
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (days > 0) return `${days}j`;
+                if (hours > 0) return `${hours}h`;
+                if (minutes > 0) return `${minutes}min`;
+                return 'Maintenant';
+            }
+
+            // Fonction principale de mise à jour
+            async function updateNotifications() {
+                const count = await fetchNotificationCount();
+                updateNotificationBadge(count);
+            }
+
+            // Charger les notifications lors de l'ouverture du dropdown
+            document.getElementById('notificationDropdown').addEventListener('click', async function(e) {
+                if (e.target === this || this.contains(e.target)) {
+                    notificationContent.innerHTML = `
+                        <div class="p-3 text-center text-muted">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Chargement...
+                        </div>
+                    `;
+                    
+                    const notifications = await fetchNotifications();
+                    displayNotifications(notifications);
+                }
+            });
+
+            // Marquer toutes les notifications comme lues
+            markAllReadBtn.addEventListener('click', async function() {
+                try {
+                    const response = await fetch('/api/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+                    
+                    if (response.ok) {
+                        this.style.display = 'none';
+                        
+                        // Recharger les notifications
+                        const notifications = await fetchNotifications();
+                        displayNotifications(notifications);
+                        await updateNotifications();
+                        
+                        // Afficher une notification de succès
+                        showToast('Toutes les notifications ont été marquées comme lues', 'success');
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la mise à jour:', error);
+                    showToast('Erreur lors de la mise à jour', 'error');
+                }
+            });
+
+            // Fonction pour afficher des toasts
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation-triangle'}"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                
+                const toastContainer = document.querySelector('.toast-container') || createToastContainer();
+                toastContainer.appendChild(toast);
+                
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+                
+                // Supprimer le toast après 5 secondes
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 5000);
+            }
+
+            function createToastContainer() {
+                const container = document.createElement('div');
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                document.body.appendChild(container);
+                return container;
+            }
+
+            // Variables pour le système de rappels
+            let reminderCheckInterval;
+            let lastReminderCheck = 0;
+            let audioContext;
+            let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+            let reminderQueue = [];
+            
+            // Initialiser le système audio
+            function initializeAudio() {
+                try {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (e) {
+                    console.warn('Audio context not supported:', e);
+                }
+            }
+
+            // Fonction pour jouer un son
+            function playNotificationSound(soundFile, volume = 0.5) {
+                if (!soundEnabled || !soundFile) return;
+                
+                try {
+                    const audio = new Audio(soundFile);
+                    audio.volume = volume;
+                    audio.play().catch(e => console.warn('Couldn\'t play sound:', e));
+                } catch (e) {
+                    console.warn('Error playing sound:', e);
+                }
+            }
+
+            // Fonction pour créer une notification visuelle avancée
+            function createAdvancedNotification(notificationData) {
+                const config = notificationData.config || {};
+                const style = config.style || {};
+                
+                // Créer le conteneur de notification
+                const notification = document.createElement('div');
+                notification.className = 'advanced-notification';
+                notification.id = notificationData.id;
+                
+                // Appliquer les styles
+                Object.assign(notification.style, {
+                    position: 'fixed',
+                    top: '20px',
+                    right: '20px',
+                    minWidth: '300px',
+                    maxWidth: '400px',
+                    backgroundColor: style.backgroundColor || '#6c757d',
+                    color: style.textColor || '#ffffff',
+                    border: `2px solid ${style.borderColor || '#545b62'}`,
+                    borderRadius: '15px',
+                    padding: '15px',
+                    boxShadow: style.boxShadow || '0 10px 30px rgba(0,0,0,0.3)',
+                    zIndex: '9999',
+                    animation: style.animation ? `${style.animation} 1s ease-in-out` : 'slideInRight 0.5s ease-out',
+                    backdropFilter: 'blur(10px)',
+                    fontFamily: 'Segoe UI, system-ui, sans-serif'
+                });
+                
+                // Contenu HTML
+                notification.innerHTML = `
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <div style="flex-shrink: 0;">
+                            <i class="${style.icon || 'fas fa-bell'}" style="font-size: 24px; color: ${style.textColor || '#ffffff'};"></i>
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="font-weight: bold; font-size: 16px; margin-bottom: 5px;">${notificationData.title}</div>
+                            <div style="font-size: 14px; line-height: 1.4; margin-bottom: 10px;">${notificationData.message}</div>
+                            ${notificationData.event ? `
+                                <div style="font-size: 12px; opacity: 0.9; margin-bottom: 10px;">
+                                    📅 ${notificationData.event.title}<br>
+                                    🕒 ${new Date(notificationData.event.date).toLocaleString('fr-FR')}<br>
+                                    📍 ${notificationData.event.location}
+                                </div>
+                            ` : ''}
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                ${notificationData.actions.dismiss ? '<button class="notif-btn dismiss-btn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: inherit; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Ignorer</button>' : ''}
+                                ${notificationData.actions.snooze ? '<button class="notif-btn snooze-btn" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: inherit; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Reporter (5min)</button>' : ''}
+                                ${notificationData.actions.viewEvent && notificationData.event ? '<button class="notif-btn view-btn" style="background: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.4); color: inherit; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px;">Voir l\'événement</button>' : ''}
+                            </div>
+                        </div>
+                        <div style="flex-shrink: 0;">
+                            <button class="close-notif" style="background: none; border: none; color: inherit; cursor: pointer; font-size: 20px; opacity: 0.7; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">&times;</button>
+                        </div>
+                    </div>
+                `;
+                
+                // Ajouter les gestionnaires d'événements
+                const dismissBtn = notification.querySelector('.dismiss-btn');
+                const snoozeBtn = notification.querySelector('.snooze-btn');
+                const viewBtn = notification.querySelector('.view-btn');
+                const closeBtn = notification.querySelector('.close-notif');
+                
+                if (dismissBtn) {
+                    dismissBtn.addEventListener('click', () => dismissNotification(notification));
+                }
+                
+                if (snoozeBtn) {
+                    snoozeBtn.addEventListener('click', () => snoozeNotification(notificationData, notification));
+                }
+                
+                if (viewBtn && notificationData.event) {
+                    viewBtn.addEventListener('click', () => {
+                        window.location.href = `/event/${notificationData.event.id}`;
+                    });
+                }
+                
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => dismissNotification(notification));
+                }
+                
+                // Ajouter au DOM
+                document.body.appendChild(notification);
+                
+                // Jouer le son si configuré
+                if (config.playSound && config.soundFile) {
+                    playNotificationSound(config.soundFile);
+                }
+                
+                // Auto-dismiss après la durée configurée
+                const duration = config.duration || 5000;
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        dismissNotification(notification);
+                    }
+                }, duration);
+                
+                return notification;
+            }
+
+            // Fonction pour ignorer une notification
+            function dismissNotification(notificationElement) {
+                notificationElement.style.animation = 'slideOutRight 0.3s ease-in';
+                setTimeout(() => {
+                    if (document.body.contains(notificationElement)) {
+                        document.body.removeChild(notificationElement);
+                    }
+                }, 300);
+            }
+
+            // Fonction pour reporter une notification
+            function snoozeNotification(notificationData, notificationElement) {
+                dismissNotification(notificationElement);
+                
+                // Reporter de 5 minutes
+                setTimeout(() => {
+                    const snoozedData = {...notificationData};
+                    snoozedData.id = uniqid('snoozed_');
+                    snoozedData.title = '⏰ ' + snoozedData.title + ' (Reporté)';
+                    createAdvancedNotification(snoozedData);
+                }, 5 * 60 * 1000); // 5 minutes
+                
+                showToast('Notification reportée de 5 minutes', 'info');
+            }
+
+            // Fonction pour générer un ID unique
+            function uniqid(prefix = '') {
+                return prefix + Date.now().toString(36) + Math.random().toString(36).substr(2);
+            }
+
+            // Fonction pour vérifier les rappels en temps réel
+            async function checkReminders() {
+                try {
+                    const response = await fetch('/api/reminders/check');
+                    const data = await response.json();
+                    
+                    if (data.success && data.data.pending_notifications.length > 0) {
+                        // Traiter chaque notification en attente
+                        data.data.pending_notifications.forEach(notification => {
+                            createAdvancedNotification(notification);
+                        });
+                        
+                        // Mettre à jour le badge si il y a des notifications urgentes
+                        if (data.data.has_urgent) {
+                            const badge = document.getElementById('notification-badge');
+                            if (badge) {
+                                badge.style.animation = 'pulse-urgent 1s infinite';
+                                badge.style.backgroundColor = '#dc3545';
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erreur lors de la vérification des rappels:', error);
+                }
+            }
+
+
+
+            // Ajouter les styles CSS pour les animations
+            const advancedNotificationStyles = document.createElement('style');
+            advancedNotificationStyles.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                
+                @keyframes slideOutRight {
+                    from {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                    to {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                }
+                
+                @keyframes pulse-urgent {
+                    0%, 100% {
+                        transform: scale(1);
+                        opacity: 1;
+                    }
+                    50% {
+                        transform: scale(1.1);
+                        opacity: 0.8;
+                    }
+                }
+                
+                .advanced-notification .notif-btn:hover {
+                    background: rgba(255,255,255,0.4) !important;
+                    transform: translateY(-1px);
+                }
+                
+                .advanced-notification .close-notif:hover {
+                    opacity: 1 !important;
+                    transform: scale(1.1);
+                }
+            `;
+            document.head.appendChild(advancedNotificationStyles);
+
+            // Initialiser le système
+            initializeAudio();
+            
+            // Démarrer le système de notifications existant
+            updateNotifications();
+            
+            // Démarrer la vérification des rappels (plus fréquente)
+            checkReminders();
+            reminderCheckInterval = setInterval(checkReminders, 10000); // Toutes les 10 secondes
+            
+            // Mettre à jour les notifications normales toutes les 30 secondes
+            notificationUpdateInterval = setInterval(updateNotifications, 30000);
+
+            // Nettoyer les intervalles avant de quitter la page
+            window.addEventListener('beforeunload', function() {
+                if (notificationUpdateInterval) {
+                    clearInterval(notificationUpdateInterval);
+                }
+                if (reminderCheckInterval) {
+                    clearInterval(reminderCheckInterval);
+                }
+            });
+
+
+            {% endif %}
         });
     </script>
 {% endblock %}

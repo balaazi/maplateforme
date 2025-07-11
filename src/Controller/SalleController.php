@@ -14,6 +14,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Service\GlobalNotificationService;
 
 
 
@@ -42,7 +44,7 @@ class SalleController extends AbstractController
     }
 
     #[Route('/new', name: 'app_salle_new')]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    public function new(Request $request, EntityManagerInterface $entityManager, GlobalNotificationService $globalNotificationService): Response
     {
         $salle = new Salle();
         $form = $this->createForm(SalleType::class, $salle);
@@ -51,6 +53,13 @@ class SalleController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($salle);
             $entityManager->flush();
+
+            // Notification globale pour la création de salle
+            try {
+                $globalNotificationService->notifyPlatformModification('créé', 'salle', $salle);
+            } catch (\Exception $e) {
+                error_log('Erreur notification globale création salle: ' . $e->getMessage());
+            }
 
             $this->addFlash('success', 'La salle a été créée avec succès !');
             return $this->redirectToRoute('app_salle_index');
@@ -104,6 +113,78 @@ class SalleController extends AbstractController
             'reservationActuelle' => $reservationActuelle,
             'prochaineReservation' => $prochaineReservation,
         ]);
+    }
+
+    #[Route('/api/disponibilite/{id}', name: 'app_salle_check_availability', methods: ['POST'])]
+    public function checkAvailability(
+        Salle $salle, 
+        Request $request, 
+        SalleDisponibiliteService $disponibiliteService,
+        ReservationRepository $reservationRepository
+    ): JsonResponse {
+        try {
+            $data = json_decode($request->getContent(), true);
+            $dateStr = $data['date'] ?? null;
+            
+            if (!$dateStr) {
+                return new JsonResponse(['error' => 'Date manquante'], 400);
+            }
+            
+            $date = new \DateTime($dateStr);
+            
+            // Vérifier le statut pour cette date spécifique
+            $statutPourDate = $disponibiliteService->getStatutActuelPourDate($salle, $date);
+            
+            // Récupérer les réservations pour cette date
+            $reservationsPourDate = $reservationRepository->findReservationsPourJour($salle, $date);
+            
+            // Réservation en cours pour cette date à l'heure actuelle
+            $reservationActuelle = null;
+            $prochaineReservation = null;
+            
+            if ($date->format('Y-m-d') === (new \DateTime())->format('Y-m-d')) {
+                // Si c'est aujourd'hui, chercher réservation actuelle
+                $maintenant = new \DateTime();
+                $reservationActuelle = $reservationRepository->findReservationActuelle($salle, $maintenant);
+                $prochaineReservation = $reservationRepository->findProchaineReservation($salle, $maintenant);
+            } else {
+                // Pour une date future, pas de réservation "actuelle"
+                if (!empty($reservationsPourDate)) {
+                    $prochaineReservation = $reservationsPourDate[0]; // Première réservation du jour
+                }
+            }
+            
+            return new JsonResponse([
+                'statut' => $statutPourDate,
+                'reservations' => array_map(function($reservation) {
+                    return [
+                        'id' => $reservation->getId(),
+                        'dateDebut' => $reservation->getDateDebut()->format('Y-m-d H:i:s'),
+                        'dateFin' => $reservation->getDateFin()->format('Y-m-d H:i:s'),
+                        'motif' => $reservation->getMotif(),
+                        'reservePar' => $reservation->getReservePar(),
+                        'statut' => $reservation->getStatut()
+                    ];
+                }, $reservationsPourDate),
+                'reservationActuelle' => $reservationActuelle ? [
+                    'id' => $reservationActuelle->getId(),
+                    'dateDebut' => $reservationActuelle->getDateDebut()->format('Y-m-d H:i:s'),
+                    'dateFin' => $reservationActuelle->getDateFin()->format('Y-m-d H:i:s'),
+                    'motif' => $reservationActuelle->getMotif(),
+                    'reservePar' => $reservationActuelle->getReservePar()
+                ] : null,
+                'prochaineReservation' => $prochaineReservation ? [
+                    'id' => $prochaineReservation->getId(),
+                    'dateDebut' => $prochaineReservation->getDateDebut()->format('Y-m-d H:i:s'),
+                    'dateFin' => $prochaineReservation->getDateFin()->format('Y-m-d H:i:s'),
+                    'motif' => $prochaineReservation->getMotif(),
+                    'reservePar' => $prochaineReservation->getReservePar()
+                ] : null
+            ]);
+            
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => $e->getMessage()], 500);
+        }
     }
 
     #[Route('/reserver/{id}', name: 'salle_reserver', methods: ['POST'])]
@@ -206,13 +287,20 @@ class SalleController extends AbstractController
     }
 
     #[Route('/edit/{id}', name: 'app_salle_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, Salle $salle, EntityManagerInterface $entityManager): Response
+    public function edit(Request $request, Salle $salle, EntityManagerInterface $entityManager, GlobalNotificationService $globalNotificationService): Response
     {
         $form = $this->createForm(SalleType::class, $salle);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
+
+            // Notification globale pour la modification de salle
+            try {
+                $globalNotificationService->notifyPlatformModification('modifié', 'salle', $salle);
+            } catch (\Exception $e) {
+                error_log('Erreur notification globale modification salle: ' . $e->getMessage());
+            }
 
             $this->addFlash('success', 'La salle a été modifiée avec succès !');
             return $this->redirectToRoute('app_salle_index');
@@ -225,7 +313,7 @@ class SalleController extends AbstractController
     }
 
     #[Route('/delete/{id}', name: 'app_salle_delete', methods: ['POST'])]
-    public function delete(Request $request, Salle $salle, EntityManagerInterface $entityManager): Response
+    public function delete(Request $request, Salle $salle, EntityManagerInterface $entityManager, GlobalNotificationService $globalNotificationService): Response
     {
         if (!$this->isCsrfTokenValid('delete'.$salle->getId(), $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
@@ -254,6 +342,13 @@ class SalleController extends AbstractController
             // Si aucune dépendance, procéder à la suppression
             $entityManager->remove($salle);
             $entityManager->flush();
+
+            // Notification globale pour la suppression de salle
+            try {
+                $globalNotificationService->notifyPlatformModification('supprimé', 'salle', $salle);
+            } catch (\Exception $e) {
+                error_log('Erreur notification globale suppression salle: ' . $e->getMessage());
+            }
 
             $this->addFlash('success', 'La salle "' . $salle->getNom() . '" a été supprimée avec succès !');
 

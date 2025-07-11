@@ -18,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_PARTICIPANT')]
 class CollaborativeNoteController extends AbstractController
 {
-    private function canAccessEvent(Event $event): bool
+    private function canAccessEvent(Event $event, EntityManagerInterface $entityManager = null): bool
     {
         $user = $this->getUser();
         
@@ -34,13 +34,38 @@ class CollaborativeNoteController extends AbstractController
             }
         }
 
+        // Si EntityManager est fourni, vérifier les invitations acceptées
+        if ($entityManager) {
+            $invitationRepository = $entityManager->getRepository(\App\Entity\Invitation::class);
+            $invitation = $invitationRepository->findOneBy([
+                'event' => $event,
+                'email' => $user->getUserIdentifier(),
+                'status' => 'accepted'
+            ]);
+
+            if ($invitation) {
+                // Créer automatiquement une participation pour l'invitation acceptée
+                $participation = new \App\Entity\Participation();
+                $participation->setUser($user);
+                $participation->setEvent($event);
+                $participation->setInvitationStatus('accepté');
+                $participation->setIsPresent(false);
+                $participation->setCreatedAt(new \DateTime());
+                
+                $entityManager->persist($participation);
+                $entityManager->flush();
+                
+                return true;
+            }
+        }
+
         return false;
     }
 
     #[Route('/event/{id}', name: 'app_collaborative_notes_list')]
-    public function list(Event $event): Response
+    public function list(Event $event, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->canAccessEvent($event)) {
+        if (!$this->canAccessEvent($event, $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cet événement.');
         }
 
@@ -55,7 +80,7 @@ class CollaborativeNoteController extends AbstractController
     #[Route('/event/{id}/new', name: 'app_collaborative_notes_new')]
     public function new(Event $event, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->canAccessEvent($event)) {
+        if (!$this->canAccessEvent($event, $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cet événement.');
         }
 
@@ -83,7 +108,7 @@ class CollaborativeNoteController extends AbstractController
     #[Route('/{id}/edit', name: 'app_collaborative_notes_edit')]
     public function edit(CollaborativeNote $note, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->canAccessEvent($note->getEvent())) {
+        if (!$this->canAccessEvent($note->getEvent(), $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette note.');
         }
 
@@ -107,7 +132,7 @@ class CollaborativeNoteController extends AbstractController
     #[Route('/{id}/delete', name: 'app_collaborative_notes_delete', methods: ['POST'])]
     public function delete(CollaborativeNote $note, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->canAccessEvent($note->getEvent())) {
+        if (!$this->canAccessEvent($note->getEvent(), $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette note.');
         }
 

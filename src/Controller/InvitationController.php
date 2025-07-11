@@ -18,6 +18,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Participation;
 use App\Entity\User;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\GlobalNotificationService;
 
 #[Route('/organizer')]
 #[IsGranted('ROLE_ORGANISATEUR')]
@@ -29,7 +30,8 @@ class InvitationController extends AbstractController
         int $eventId,
         EntityManagerInterface $entityManager,
         MailerInterface $mailer,
-        EventRepository $eventRepository
+        EventRepository $eventRepository,
+        GlobalNotificationService $globalNotificationService
     ): Response {
         $event = $eventRepository->find($eventId);
 
@@ -55,6 +57,13 @@ class InvitationController extends AbstractController
 
             $entityManager->persist($invitation);
             $entityManager->flush();
+
+            // Notification globale pour la création d'invitation
+            try {
+                $globalNotificationService->notifyPlatformModification('créé', 'invitation', $invitation);
+            } catch (\Exception $e) {
+                error_log('Erreur notification globale création invitation: ' . $e->getMessage());
+            }
 
             $this->sendInvitationEmail($invitation, $mailer);
             $this->addFlash('success', 'Invitation envoyée avec succès');
@@ -128,7 +137,8 @@ class InvitationController extends AbstractController
     #[Route('/invitations/{id}/cancel', name: 'invitation_cancel', methods: ['GET'])]
     public function cancel(
         Invitation $invitation,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        GlobalNotificationService $globalNotificationService
     ): Response {
         $event = $invitation->getEvent();
         
@@ -145,6 +155,13 @@ class InvitationController extends AbstractController
 
         $entityManager->remove($invitation);
         $entityManager->flush();
+
+        // Notification globale pour la suppression d'invitation
+        try {
+            $globalNotificationService->notifyPlatformModification('supprimé', 'invitation', $invitation);
+        } catch (\Exception $e) {
+            error_log('Erreur notification globale suppression invitation: ' . $e->getMessage());
+        }
 
         $this->addFlash('success', 'L\'invitation a été annulée avec succès.');
         return $this->redirectToRoute('invitation_index', ['eventId' => $event->getId()]);

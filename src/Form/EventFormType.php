@@ -9,9 +9,11 @@ use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Validator\Constraints\File;
 
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
@@ -56,6 +58,30 @@ class EventFormType extends AbstractType
                     'Atelier' => 'Atelier',
                     'Conférence' => 'Conférence',
                 ],
+            ])
+            ->add('imageFile', FileType::class, [
+                'label' => 'Documents (PDF, Word, Images, etc.)',
+                'mapped' => false,
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '10M',
+                        'mimeTypes' => [
+                            'application/pdf',
+                            'application/msword',
+                            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                            'image/gif'
+                        ],
+                        'mimeTypesMessage' => 'Veuillez télécharger un fichier valide (PDF, Word, Image).',
+                    ])
+                ],
+                'attr' => [
+                    'class' => 'form-control',
+                    'accept' => '.pdf,.doc,.docx,.jpg,.jpeg,.png,.webp,.gif'
+                ]
             ])
         ;
     }

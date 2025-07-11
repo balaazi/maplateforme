@@ -22,14 +22,22 @@ class ReportController extends AbstractController
         return $this->render('reports/dashboard.html.twig');
     }
 
-    #[Route('/reports/attendance', name: 'reports_attendance')]
+    #[Route('/reports/attendance', name: 'reports_attendance', methods: ['GET'])]
     public function attendanceReport(
         Request $request,
         EventRepository $eventRepository,
-        ParticipationRepository $participationRepository
+        InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
-        $events = $eventRepository->findBy(['organizer' => $user], ['dateHeure' => 'DESC']);
+        // Exclure les événements annulés des rapports
+        $events = $eventRepository->createQueryBuilder('e')
+            ->where('e.organizer = :organizer')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->setParameter('organizer', $user)
+            ->setParameter('cancelled', 'annulé')
+            ->orderBy('e.dateHeure', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         // Filtrage par dates si demandé
         $startDate = $request->query->get('start_date');
@@ -39,7 +47,9 @@ class ReportController extends AbstractController
         if ($startDate || $endDate || $eventType) {
             $qb = $eventRepository->createQueryBuilder('e')
                 ->where('e.organizer = :organizer')
-                ->setParameter('organizer', $user);
+                ->andWhere('e.status IS NULL OR e.status != :cancelled')
+                ->setParameter('organizer', $user)
+                ->setParameter('cancelled', 'annulé');
 
             if ($startDate) {
                 $qb->andWhere('e.dateHeure >= :startDate')
@@ -66,50 +76,67 @@ class ReportController extends AbstractController
         $totalAbsent = 0;
 
         foreach ($events as $event) {
-            $participations = $participationRepository->findBy(['event' => $event]);
-            $invited = count($participations);
-            $present = count(array_filter($participations, fn($p) => $p->isPresent()));
-            $absent = $invited - $present;
-
-            $attendanceRate = $invited > 0 ? round(($present / $invited) * 100, 2) : 0;
-
-            $attendanceData[] = [
+            $invitations = $invitationRepository->findBy(['event' => $event]);
+            $eventStats = [
                 'event' => $event,
-                'invited' => $invited,
-                'present' => $present,
-                'absent' => $absent,
-                'attendance_rate' => $attendanceRate
+                'invited' => count($invitations),
+                'present' => 0,
+                'absent' => 0,
+                'response_rate' => 0,
+                'attendance_rate' => 0
             ];
 
-            $totalInvited += $invited;
-            $totalPresent += $present;
-            $totalAbsent += $absent;
-        }
+            $responded = 0;
+            foreach ($invitations as $invitation) {
+                $totalInvited++;
+                if ($invitation->getStatus() !== 'pending') {
+                    $responded++;
+                }
+                
+                if ($invitation->getStatus() === 'accepted') {
+                    $eventStats['present']++;
+                    $totalPresent++;
+                } else {
+                    $eventStats['absent']++;
+                    $totalAbsent++;
+                }
+            }
 
-        $globalAttendanceRate = $totalInvited > 0 ? round(($totalPresent / $totalInvited) * 100, 2) : 0;
+            if ($eventStats['invited'] > 0) {
+                $eventStats['response_rate'] = round(($responded / $eventStats['invited']) * 100, 1);
+                $eventStats['attendance_rate'] = round(($eventStats['present'] / $eventStats['invited']) * 100, 1);
+            }
+
+            $attendanceData[] = $eventStats;
+        }
 
         return $this->render('reports/attendance.html.twig', [
             'attendanceData' => $attendanceData,
             'totalInvited' => $totalInvited,
             'totalPresent' => $totalPresent,
             'totalAbsent' => $totalAbsent,
-            'globalAttendanceRate' => $globalAttendanceRate,
             'filters' => [
                 'start_date' => $startDate,
                 'end_date' => $endDate,
-                'event_type' => $eventType
+                'event_type' => $eventType,
             ]
         ]);
     }
 
-    #[Route('/reports/participation-analysis', name: 'reports_participation')]
-    public function participationAnalysis(
+    #[Route('/reports/participation', name: 'reports_participation', methods: ['GET'])]
+    public function participationReport(
         EventRepository $eventRepository,
-        ParticipationRepository $participationRepository,
         InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
-        $events = $eventRepository->findBy(['organizer' => $user]);
+        // Exclure les événements annulés des rapports de participation
+        $events = $eventRepository->createQueryBuilder('e')
+            ->where('e.organizer = :organizer')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->setParameter('organizer', $user)
+            ->setParameter('cancelled', 'annulé')
+            ->getQuery()
+            ->getResult();
 
         // Analyse des taux de participation
         $participationStats = [
@@ -163,20 +190,17 @@ class ReportController extends AbstractController
 
         // Calcul des taux
         if ($participationStats['total_invitations'] > 0) {
-            $responded = $participationStats['accepted'] + $participationStats['declined'];
-            $participationStats['response_rate'] = round(($responded / $participationStats['total_invitations']) * 100, 2);
-            $participationStats['acceptance_rate'] = round(($participationStats['accepted'] / $participationStats['total_invitations']) * 100, 2);
+            $totalResponses = $participationStats['accepted'] + $participationStats['declined'];
+            $participationStats['response_rate'] = round(($totalResponses / $participationStats['total_invitations']) * 100, 1);
+            $participationStats['acceptance_rate'] = round(($participationStats['accepted'] / $participationStats['total_invitations']) * 100, 1);
         }
 
         // Calcul des taux par type d'événement
-        foreach ($eventTypeStats as &$stats) {
+        foreach ($eventTypeStats as $type => &$stats) {
             if ($stats['total_invitations'] > 0) {
-                $responded = $stats['accepted'] + $stats['declined'];
-                $stats['response_rate'] = round(($responded / $stats['total_invitations']) * 100, 2);
-                $stats['acceptance_rate'] = round(($stats['accepted'] / $stats['total_invitations']) * 100, 2);
-            } else {
-                $stats['response_rate'] = 0;
-                $stats['acceptance_rate'] = 0;
+                $totalResponses = $stats['accepted'] + $stats['declined'];
+                $stats['response_rate'] = round(($totalResponses / $stats['total_invitations']) * 100, 1);
+                $stats['acceptance_rate'] = round(($stats['accepted'] / $stats['total_invitations']) * 100, 1);
             }
         }
 
@@ -186,14 +210,20 @@ class ReportController extends AbstractController
         ]);
     }
 
-    #[Route('/reports/department-analysis', name: 'reports_department')]
-    public function departmentAnalysis(
+    #[Route('/reports/department', name: 'reports_department', methods: ['GET'])]
+    public function departmentReport(
         EventRepository $eventRepository,
-        ParticipationRepository $participationRepository,
-        UserRepository $userRepository
+        ParticipationRepository $participationRepository
     ): Response {
         $user = $this->getUser();
-        $events = $eventRepository->findBy(['organizer' => $user]);
+        // Exclure les événements annulés des rapports par département
+        $events = $eventRepository->createQueryBuilder('e')
+            ->where('e.organizer = :organizer')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->setParameter('organizer', $user)
+            ->setParameter('cancelled', 'annulé')
+            ->getQuery()
+            ->getResult();
 
         $departmentStats = [];
         $specialtyStats = [];
@@ -233,48 +263,43 @@ class ReportController extends AbstractController
                 }
 
                 // Mise à jour des compteurs
-                foreach ([$departmentStats[$department], $specialtyStats[$specialty]] as &$stats) {
-                    $stats['total_participations']++;
+                $departmentStats[$department]['total_participations']++;
+                $specialtyStats[$specialty]['total_participations']++;
 
-                    if ($participation->isPresent()) {
-                        $stats['present']++;
-                    } else {
-                        $stats['absent']++;
-                    }
+                // Présence
+                if ($participation->isPresent()) {
+                    $departmentStats[$department]['present']++;
+                    $specialtyStats[$specialty]['present']++;
+                } else {
+                    $departmentStats[$department]['absent']++;
+                    $specialtyStats[$specialty]['absent']++;
+                }
 
-                    switch ($participation->getInvitationStatus()) {
-                        case 'accepted':
-                            $stats['accepted']++;
-                            break;
-                        case 'declined':
-                            $stats['declined']++;
-                            break;
-                        case 'pending':
-                            $stats['pending']++;
-                            break;
-                    }
+                // Statut d'invitation
+                $status = $participation->getInvitationStatus();
+                switch ($status) {
+                    case 'accepted':
+                        $departmentStats[$department]['accepted']++;
+                        $specialtyStats[$specialty]['accepted']++;
+                        break;
+                    case 'declined':
+                        $departmentStats[$department]['declined']++;
+                        $specialtyStats[$specialty]['declined']++;
+                        break;
+                    default:
+                        $departmentStats[$department]['pending']++;
+                        $specialtyStats[$specialty]['pending']++;
+                        break;
                 }
             }
         }
 
         // Calcul des taux pour chaque département
-        foreach ($departmentStats as &$stats) {
-            $stats['attendance_rate'] = $stats['total_participations'] > 0 
-                ? round(($stats['present'] / $stats['total_participations']) * 100, 2) 
-                : 0;
-            $stats['response_rate'] = $stats['total_participations'] > 0 
-                ? round((($stats['accepted'] + $stats['declined']) / $stats['total_participations']) * 100, 2) 
-                : 0;
-        }
-
-        // Calcul des taux pour chaque spécialité
-        foreach ($specialtyStats as &$stats) {
-            $stats['attendance_rate'] = $stats['total_participations'] > 0 
-                ? round(($stats['present'] / $stats['total_participations']) * 100, 2) 
-                : 0;
-            $stats['response_rate'] = $stats['total_participations'] > 0 
-                ? round((($stats['accepted'] + $stats['declined']) / $stats['total_participations']) * 100, 2) 
-                : 0;
+        foreach ($departmentStats as $dept => &$stats) {
+            if ($stats['total_participations'] > 0) {
+                $stats['presence_rate'] = round(($stats['present'] / $stats['total_participations']) * 100, 1);
+                $stats['response_rate'] = round((($stats['accepted'] + $stats['declined']) / $stats['total_participations']) * 100, 1);
+            }
         }
 
         return $this->render('reports/department.html.twig', [

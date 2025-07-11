@@ -132,7 +132,6 @@ class AdminController extends AbstractController
 
                 // Détermine le nom du rôle pour l'affichage
                 $roleName = match($role) {
-                    'ROLE_ADMIN' => 'Administrateur',
                     'ROLE_ORGANISATEUR' => 'Organisateur',
                     'ROLE_PARTICIPANT' => 'Participant',
                     default => 'Utilisateur'

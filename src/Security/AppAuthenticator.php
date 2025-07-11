@@ -39,7 +39,21 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
         $csrfToken = $request->request->get('_csrf_token');
 
         if (empty($email) || empty($password)) {
+            error_log("Authentication failed: Empty email or password");
             throw new BadCredentialsException('Email et mot de passe doivent être renseignés.');
+        }
+
+        // Debug: Log les tentatives de connexion
+        error_log("Authentication attempt - Email: " . $email);
+        error_log("Password length: " . strlen($password));
+        
+        // Vérifier si l'utilisateur existe
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            error_log("Authentication failed: User not found for email: " . $email);
+        } else {
+            error_log("User found - ID: " . $user->getId() . ", Email: " . $user->getEmail());
+            error_log("User password hash: " . $user->getPassword());
         }
 
         // Laisser Symfony gérer la vérification du mot de passe

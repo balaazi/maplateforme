@@ -38,30 +38,36 @@ class EventRepository extends ServiceEntityRepository
     {
         $roles = $user->getRoles();
 
-        // Admin peut voir tous les événements
+        // Admin peut voir tous les événements (sauf annulés)
         if (in_array('ROLE_ADMIN', $roles)) {
             return $this->createQueryBuilder('e')
+                ->where('e.status IS NULL OR e.status != :cancelled')
+                ->setParameter('cancelled', 'annulé')
                 ->orderBy('e.dateHeure', 'ASC')
                 ->getQuery()
                 ->getResult();
         }
 
-        // Organisateur peut voir ses événements créés + ceux auxquels il participe
+        // Organisateur peut voir ses événements créés + ceux auxquels il participe (sauf annulés)
         if (in_array('ROLE_ORGANISATEUR', $roles)) {
             return $this->createQueryBuilder('e')
                 ->leftJoin('e.participations', 'p')
                 ->where('e.organizer = :user OR p.user = :user')
+                ->andWhere('e.status IS NULL OR e.status != :cancelled')
                 ->setParameter('user', $user)
+                ->setParameter('cancelled', 'annulé')
                 ->orderBy('e.dateHeure', 'ASC')
                 ->getQuery()
                 ->getResult();
         }
 
-        // Participant peut voir les événements auxquels il participe OU qu'il organise
+        // Participant peut voir les événements auxquels il participe OU qu'il organise (sauf annulés)
         return $this->createQueryBuilder('e')
             ->leftJoin('e.participations', 'p')
             ->where('e.organizer = :user OR p.user = :user')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
             ->setParameter('user', $user)
+            ->setParameter('cancelled', 'annulé')
             ->orderBy('e.dateHeure', 'ASC')
             ->getQuery()
             ->getResult();

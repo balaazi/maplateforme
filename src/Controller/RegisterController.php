@@ -11,8 +11,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-
-
 class RegisterController extends AbstractController
 {
     private $entityManager;
@@ -41,6 +39,15 @@ class RegisterController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // 🔍 Vérifier si l'email existe déjà
+            $existingUser = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $user->getEmail()]);
+            if ($existingUser) {
+                $this->addFlash('error', '❌ Un compte avec cette adresse email existe déjà. Veuillez vous connecter ou utiliser une autre adresse email.');
+                return $this->render('registration/register.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
+
             $plainPassword = $form->get('password')->getData();
             if ($plainPassword) {
                 $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
@@ -63,16 +70,21 @@ class RegisterController extends AbstractController
             } else {
                 // Rôle par défaut
                 $user->setRoles(['ROLE_PARTICIPANT']);
+                $this->addFlash('success', "✅ Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.");
             }
 
-
-
-           
+            try {
             $this->entityManager->persist($user);
             $this->entityManager->flush();
-
             
             return $this->redirectToRoute('app_login');
+            } catch (\Exception $e) {
+                // En cas d'erreur imprévu (comme une contrainte de base de données)
+                $this->addFlash('error', '❌ Une erreur est survenue lors de la création du compte. Veuillez réessayer.');
+                return $this->render('registration/register.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
         }
 
         return $this->render('registration/register.html.twig', [

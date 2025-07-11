@@ -549,9 +549,13 @@
                     
                     {% if app.user == user %}
                         <div class="profile-actions">
-                            <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-edit">
+                            <a href="{{ path('app_user_edit', {'id': user.id}) }}" class="btn-edit me-3">
                                 <i class="fas fa-edit"></i>
                                 Modifier le profil
+                            </a>
+                            <a href="{{ path('app_user_change_password') }}" class="btn-edit">
+                                <i class="fas fa-key"></i>
+                                Modifier mot de passe
                             </a>
                         </div>
                     {% endif %}

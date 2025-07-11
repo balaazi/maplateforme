@@ -57,6 +57,39 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
     //            ->getOneOrNullResult()
     //        ;
     //    }
+    /**
+     * Trouve les utilisateurs par rôle
+     */
+    public function findByRole(string $role): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('JSON_CONTAINS(u.roles, :role) = 1')
+            ->setParameter('role', json_encode($role))
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve les utilisateurs ayant au moins un des rôles spécifiés
+     */
+    public function findByRoles(array $roles): array
+    {
+        $qb = $this->createQueryBuilder('u');
+        
+        $orConditions = [];
+        foreach ($roles as $index => $role) {
+            $orConditions[] = $qb->expr()->eq(
+                'JSON_CONTAINS(u.roles, :role' . $index . ')',
+                1
+            );
+            $qb->setParameter('role' . $index, json_encode($role));
+        }
+        
+        $qb->andWhere($qb->expr()->orX(...$orConditions));
+        
+        return $qb->getQuery()->getResult();
+    }
+
     // src/Repository/UserRepository.php
 public function findParticipantsByEvent(Event $event): array
 {
