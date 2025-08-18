@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Participation;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,40 @@ class ParticipationRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Participation::class);
+    }
+
+    /**
+     * Retourne les participations d'un utilisateur aux événements non archivés
+     */
+    public function findByUserNonArchived(User $user): array
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.event', 'e')
+            ->where('p.user = :user')
+            ->andWhere('e.archive = :archived')
+            ->setParameter('user', $user)
+            ->setParameter('archived', false)
+            ->orderBy('e.dateHeure', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Retourne les participations d'un utilisateur aux événements non annulés et non archivés
+     */
+    public function findByUserNonCancelledNonArchived(User $user): array
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.event', 'e')
+            ->where('p.user = :user')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
+            ->andWhere('e.archive = :archived')
+            ->setParameter('user', $user)
+            ->setParameter('cancelled', 'annulé')
+            ->setParameter('archived', false)
+            ->orderBy('e.dateHeure', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

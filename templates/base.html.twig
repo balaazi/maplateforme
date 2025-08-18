@@ -9,6 +9,10 @@
     <link rel="icon" href="{{ asset('images/eventhub-favicon.svg') }}" type="image/svg+xml">
     {% block stylesheets %}
         <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/modern-design.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/calendar-modern.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/forms-modern.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/tables-modern.css') }}">
         <style>
             :root {
                 --primary-color: #667eea;
@@ -687,7 +691,7 @@
 
     <div class="container">
         <a class="navbar-brand" href="{{ path('app_home') }}">
-            <img src="{{ asset('images/eventhub-option2.svg') }}" alt="EventHub" style="width: 35px; height: 35px; margin-right: 8px;">
+            <img src="{{ asset('images/eventhub-icon.svg') }}" alt="EventHub" style="width: 35px; height: 35px; margin-right: 8px;">
             <span>EventHub</span>
         </a>
 
@@ -771,6 +775,8 @@
                             </li>
 
                             <li><hr class="dropdown-divider"></li>
+
+
 
                             {% if is_granted('ROLE_ADMIN') %}
                                 <li>
@@ -1495,6 +1501,25 @@
                     clearInterval(reminderCheckInterval);
                 }
             });
+
+            const badge = document.getElementById('notification-badge');
+            function updateNotifBadge() {
+                fetch('/api/notifications/count')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'inline-flex';
+                        } else {
+                            badge.textContent = 0;
+                            badge.style.display = 'none';
+                        }
+                    });
+            }
+            if (badge) {
+                updateNotifBadge();
+                setInterval(updateNotifBadge, 30000); // rafraîchit toutes les 30s
+            }
 
 
             {% endif %}

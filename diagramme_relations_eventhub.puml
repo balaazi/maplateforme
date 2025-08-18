@@ -1,0 +1,268 @@
+@startuml EventHub Class Relations
+
+' Entités principales
+class User {
+  +id: int
+  +email: string
+  +password: string
+  +roles: array
+  +nom: string
+  +prenom: string
+  +dateNaissance: date
+  +notifyByEmail: boolean
+  +notifyBySms: boolean
+  +enableSoundNotifications: boolean
+  +enableVisualNotifications: boolean
+  +reminderFrequency: int
+  +notificationPriority: string
+  +photo: string
+  +societe: string
+  +specialite: string
+  +telephone: string
+  +updatedAt: datetime
+  +createdAt: datetime
+}
+
+class Event {
+  +id: int
+  +title: string
+  +description: text
+  +lieu: string
+  +dateHeure: datetime
+  +duree: int
+  +category: string
+  +status: string
+  +googleDriveUrl: string
+  +googleDriveFolderId: string
+  +etherpadUrl: string
+  +uploadedDocuments: array
+  +fileName: string
+  +updatedAt: datetime
+  +archive: boolean
+}
+
+class Salle {
+  +id: int
+  +nom: string
+  +debutReservation: datetime
+  +finReservation: datetime
+  +capacite: int
+  +disponible: boolean
+  +description: text
+  +localisation: string
+  +equipements: array
+  +horairesParJour: array
+  +type: string
+  +superficie: decimal
+  +photo: string
+  +accessibilite: boolean
+  +tarif: decimal
+  +priorite: int
+}
+
+class Departement {
+  +id: int
+  +nom: string
+  +code: string
+  +description: text
+  +responsable: string
+  +emailContact: string
+  +telephone: string
+  +localisation: string
+  +budgetAnnuel: int
+  +actif: boolean
+  +createdAt: datetime
+  +updatedAt: datetime
+}
+
+' Entités de liaison
+class Participation {
+  +id: int
+  +invitationStatus: string
+  +isPresent: boolean
+  +createdAt: datetime
+  +feedback: text
+}
+
+class Invitation {
+  +id: int
+  +email: string
+  +name: string
+  +status: string
+  +token: string
+  +createdAt: datetime
+  +updatedAt: datetime
+}
+
+class Participant {
+  +id: int
+  +name: string
+  +email: string
+}
+
+' Entités de gestion
+class Reminder {
+  +id: int
+  +title: string
+  +description: text
+  +dueDate: datetime
+  +isDone: boolean
+  +isTriggered: boolean
+  +createdAt: datetime
+  +triggeredAt: datetime
+  +type: string
+  +priority: string
+  +sendEmail: boolean
+  +showNotification: boolean
+  +playSound: boolean
+  +metadata: array
+}
+
+class Notification {
+  +id: int
+  +title: string
+  +message: text
+  +isRead: boolean
+  +createdAt: datetime
+  +type: string
+}
+
+class Reservation {
+  +id: int
+  +dateDebut: datetime
+  +dateFin: datetime
+  +reservePar: string
+  +motif: string
+  +statut: string
+  +dateCreation: datetime
+  +nombreParticipants: int
+  +notes: text
+  +contactTelephone: string
+  +contactEmail: string
+  +recurrente: boolean
+  +typeRecurrence: string
+  +finRecurrence: date
+  +dateModification: datetime
+  +modifiePar: string
+}
+
+class GestionSalle {
+  +id: int
+  +responsable: string
+  +dateGestion: datetime
+  +commentaire: text
+  +statut: string
+}
+
+' Entités de contenu
+class Document {
+  +id: int
+  +file: file
+  +fileName: string
+  +createdAt: datetime
+}
+
+class EventFile {
+  +id: int
+  +name: string
+  +googleDriveFileId: string
+}
+
+class CollaborativeNote {
+  +id: int
+  +title: string
+  +content: text
+  +createdAt: datetime
+  +updatedAt: datetime
+}
+
+class CalendarEvent {
+  +id: int
+  +title: string
+  +description: text
+  +start: datetime
+  +end: datetime
+  +googleEventId: string
+}
+
+' Entités de sécurité
+class ResetPasswordRequest {
+  +id: int
+  +expiresAt: datetime
+  +selector: string
+  +hashedToken: string
+}
+
+' Relations User
+User "1" --> "*" Participation : has participations
+User "1" --> "*" Reminder : has reminders
+User "1" --> "*" Notification : receives notifications
+User "1" --> "*" ResetPasswordRequest : has reset requests
+User "1" --> "*" Event : organizes events
+User "1" --> "*" Event : creates events
+User "1" --> "*" CollaborativeNote : creates notes
+User "*" --> "1" Departement : belongs to department
+
+' Relations Event
+Event "1" --> "*" Participation : has participations
+Event "1" --> "*" Invitation : has invitations
+Event "1" --> "*" Document : has documents
+Event "1" --> "*" EventFile : has files
+Event "1" --> "*" CollaborativeNote : has notes
+Event "1" --> "*" Reminder : has reminders
+Event "1" --> "*" Notification : generates notifications
+Event "*" --> "1" User : organized by user
+Event "*" --> "1" User : created by user
+Event "*" --> "1" Departement : belongs to department
+Event "*" --> "1" Salle : takes place in room
+
+' Relations Salle
+Salle "1" --> "*" Event : hosts events
+Salle "1" --> "*" Reservation : has reservations
+Salle "1" --> "*" GestionSalle : has management records
+
+' Relations Departement
+Departement "1" --> "*" User : has users
+Departement "1" --> "*" Event : organizes events
+
+' Relations Participation
+Participation "*" --> "1" User : belongs to user
+Participation "*" --> "1" Event : belongs to event
+
+' Relations Invitation
+Invitation "*" --> "1" Event : belongs to event
+Invitation "*" --> "1" Participant : belongs to participant
+
+' Relations Participant
+Participant "1" --> "*" Invitation : has invitations
+
+' Relations Reminder
+Reminder "*" --> "1" User : belongs to user
+Reminder "*" --> "1" Event : linked to event
+
+' Relations Notification
+Notification "*" --> "1" User : belongs to user
+Notification "*" --> "1" Event : linked to event
+
+' Relations Reservation
+Reservation "*" --> "1" Salle : belongs to room
+
+' Relations GestionSalle
+GestionSalle "*" --> "1" Salle : manages room
+
+' Relations Document
+Document "*" --> "1" Event : belongs to event
+
+' Relations EventFile
+EventFile "*" --> "1" Event : belongs to event
+
+' Relations CollaborativeNote
+CollaborativeNote "*" --> "1" Event : belongs to event
+CollaborativeNote "*" --> "1" User : created by user
+
+' Relations ResetPasswordRequest
+ResetPasswordRequest "*" --> "1" User : belongs to user
+
+' Note: CalendarEvent n'a pas de relations directes
+
+@enduml 

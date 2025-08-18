@@ -47,10 +47,7 @@ class EditProfileType extends AbstractType
                 'required' => false,
                 'placeholder' => 'Choisissez votre département',
             ])
-            ->add('societe', TextType::class, [
-                'label' => 'Société',
-                'required' => false,
-            ])
+            
             ->add('dateNaissance', DateType::class, [
                 'widget' => 'single_text',
                 'required' => false,

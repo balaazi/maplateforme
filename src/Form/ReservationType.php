@@ -75,60 +75,6 @@ class ReservationType extends AbstractType
                 ],
                 'help' => 'Nombre approximatif de personnes qui assisteront'
             ])
-            ->add('contactEmail', EmailType::class, [
-                'label' => 'Email de contact',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'votre.email@exemple.com'
-                ],
-                'help' => 'Email pour recevoir les confirmations et rappels'
-            ])
-            ->add('contactTelephone', TelType::class, [
-                'label' => 'Téléphone de contact',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => '06 12 34 56 78'
-                ],
-                'help' => 'Numéro pour un contact d\'urgence si nécessaire'
-            ])
-            ->add('notes', TextareaType::class, [
-                'label' => 'Notes complémentaires',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'rows' => 4,
-                    'placeholder' => 'Équipements spéciaux, arrangement particulier, remarques...'
-                ],
-                'help' => 'Informations supplémentaires, besoins spécifiques, etc.'
-            ])
-            ->add('recurrente', CheckboxType::class, [
-                'label' => 'Réservation récurrente',
-                'required' => false,
-                'attr' => ['class' => 'form-check-input'],
-                'help' => 'Cochez si cette réservation se répète régulièrement'
-            ])
-            ->add('typeRecurrence', ChoiceType::class, [
-                'label' => 'Type de récurrence',
-                'choices' => [
-                    'Chaque jour' => 'quotidienne',
-                    'Chaque semaine' => 'hebdomadaire',
-                    'Chaque mois' => 'mensuelle',
-                    'Tous les 15 jours' => 'bihebdomadaire'
-                ],
-                'required' => false,
-                'placeholder' => 'Sélectionnez la fréquence',
-                'attr' => ['class' => 'form-select'],
-                'help' => 'À quelle fréquence cette réservation doit-elle se répéter ?'
-            ])
-            ->add('finRecurrence', DateType::class, [
-                'label' => 'Fin de la récurrence',
-                'required' => false,
-                'widget' => 'single_text',
-                'attr' => ['class' => 'form-control'],
-                'help' => 'Date jusqu\'à laquelle répéter la réservation'
-            ])
         ;
     }
 

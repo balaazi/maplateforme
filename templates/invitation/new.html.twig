@@ -6,112 +6,77 @@
     {{ parent() }}
     <style>
         .invitation-container {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             min-height: 100vh;
             padding: 2rem 0;
+            position: relative;
         }
         
         .invitation-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 4rem 2rem;
+            padding: 3rem 2rem;
             border-radius: 30px;
             margin-bottom: 3rem;
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 25px 50px rgba(102,126,234,0.2);
-        }
-        
-        .invitation-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 2px,
-                rgba(255,255,255,0.03) 2px,
-                rgba(255,255,255,0.03) 4px
-            );
-            animation: movePattern 20s linear infinite;
-        }
-        
-        .invitation-header::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%);
-        }
-        
-        @keyframes movePattern {
-            0% { transform: translateX(-100px) translateY(-100px); }
-            100% { transform: translateX(100px) translateY(100px); }
-        }
-        
-        .header-content {
-            position: relative;
-            z-index: 2;
             text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.1);
         }
         
-        .invitation-icon {
-            background: rgba(255,255,255,0.25);
-            width: 100px;
-            height: 100px;
-            border-radius: 25px;
+        .header-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 2rem;
-            backdrop-filter: blur(15px);
-            border: 3px solid rgba(255,255,255,0.4);
-            font-size: 2.5rem;
-            animation: float 3s ease-in-out infinite;
+            font-size: 3rem;
+            border: 3px solid rgba(255,255,255,0.3);
+            animation: pulse 2s ease-in-out infinite;
         }
         
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-15px); }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         
         .invitation-header h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             font-weight: 800;
             margin: 0 0 1rem 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
-        .event-title {
-            background: rgba(255,255,255,0.2);
+        .event-info {
+            background: rgba(255,255,255,0.15);
             padding: 1rem 2rem;
-            border-radius: 15px;
+            border-radius: 20px;
             margin-top: 1.5rem;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.3);
-            font-size: 1.3rem;
+            border: 1px solid rgba(255,255,255,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.2rem;
             font-weight: 600;
         }
         
         .form-container {
             max-width: 600px;
             margin: 0 auto;
+            position: relative;
+            z-index: 2;
         }
         
         .form-card {
             background: white;
             border-radius: 25px;
             padding: 3rem;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
             position: relative;
             overflow: hidden;
-            margin-bottom: 2rem;
         }
         
         .form-card::before {
@@ -120,54 +85,48 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 5px;
+            height: 4px;
             background: linear-gradient(90deg, #667eea, #764ba2);
         }
         
-        .form-card::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(102,126,234,0.05) 0%, transparent 70%);
-            transform: scale(0);
-            transition: transform 0.6s ease;
-        }
-        
-        .form-card:hover::after {
-            transform: scale(1);
-        }
-        
         .form-title {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #2c3e50;
-            margin-bottom: 2rem;
             text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
+            margin-bottom: 2.5rem;
+            color: #2c3e50;
         }
         
         .form-title-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 2rem;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
         }
         
-        .form-field {
-            position: relative;
+        .form-title h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .form-group {
             margin-bottom: 2rem;
+            position: relative;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+            font-size: 1rem;
         }
         
         .form-control {
@@ -177,35 +136,8 @@
             border-radius: 15px;
             font-size: 1.1rem;
             transition: all 0.3s ease;
-            background: #fff;
-            font-family: inherit;
-            position: relative;
-            z-index: 1000 !important;
-            pointer-events: auto !important;
-            opacity: 1 !important;
-            user-select: text !important;
-            cursor: text !important;
-        }
-        
-        /* Sécurité supplémentaire pour l'interaction */
-        .form-control:disabled,
-        .form-control[readonly] {
-            pointer-events: auto !important;
-            opacity: 1 !important;
-            cursor: text !important;
-        }
-        
-        .form-field * {
-            pointer-events: auto !important;
-        }
-        
-        /* Force l'affichage immédiat des champs de formulaire */
-        .form-field,
-        .form-actions {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-            visibility: visible !important;
-            display: block !important;
+            background: white;
+            color: #495057;
         }
         
         .form-control:focus {
@@ -220,149 +152,111 @@
             transform: translateY(-1px);
         }
         
-        .form-label {
-            position: absolute;
-            top: 1.25rem;
-            left: 1.5rem;
-            color: #7f8c8d;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            background: white;
-            padding: 0 0.5rem;
-            z-index: 3;
+        .form-control::placeholder {
+            color: #adb5bd;
         }
         
-        .form-control:focus + .form-label,
-        .form-control:not(:placeholder-shown) + .form-label,
-        .has-value + .form-label {
-            top: -0.5rem;
-            left: 1rem;
-            font-size: 0.9rem;
-            color: #667eea;
-            font-weight: 700;
-        }
-        
-        .form-field::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
-            border-radius: 15px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 1;
-        }
-        
-        .form-field:hover::before {
-            opacity: 1;
-        }
-        
-        .form-errors {
+        .form-error {
             color: #dc3545;
             font-size: 0.9rem;
             margin-top: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-weight: 600;
-        }
-        
-        .form-errors::before {
-            content: '⚠️';
-            font-size: 1rem;
-        }
-        
-        .btn {
-            padding: 1.25rem 2.5rem;
-            border-radius: 15px;
-            font-weight: 700;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            border: none;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 1rem;
-            min-width: 200px;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .btn:hover::before {
-            left: 100%;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
             color: white;
-            box-shadow: 0 8px 25px rgba(40,167,69,0.3);
+            padding: 1.25rem 2.5rem;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            margin-top: 2rem;
         }
         
         .btn-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(40,167,69,0.4);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.4);
             color: white;
             text-decoration: none;
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
-            color: white;
-            box-shadow: 0 8px 25px rgba(108,117,125,0.3);
+            background: rgba(255,255,255,0.9);
+            color: #495057;
+            border: 2px solid #e9ecef;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
         }
         
         .btn-secondary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 35px rgba(108,117,125,0.4);
-            color: white;
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            color: #495057;
             text-decoration: none;
         }
         
         .form-actions {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            margin-top: 3rem;
-            flex-wrap: wrap;
+            text-align: center;
         }
         
         .back-button-container {
-            display: flex;
-            justify-content: center;
+            text-align: center;
             margin-top: 2rem;
         }
         
+        /* Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in:nth-child(2) { animation-delay: 0.2s; }
+        .fade-in:nth-child(3) { animation-delay: 0.4s; }
+        
+        /* Responsive */
         @media (max-width: 768px) {
             .invitation-container {
                 padding: 1rem;
             }
             
             .invitation-header {
-                padding: 2.5rem 1.5rem;
+                padding: 2rem 1.5rem;
                 border-radius: 20px;
             }
             
             .invitation-header h1 {
+                font-size: 2rem;
+            }
+            
+            .header-icon {
+                width: 80px;
+                height: 80px;
                 font-size: 2rem;
             }
             
@@ -371,15 +265,13 @@
                 border-radius: 20px;
             }
             
-            .form-title {
+            .form-title-icon {
+                width: 60px;
+                height: 60px;
                 font-size: 1.5rem;
-                flex-direction: column;
-                gap: 1rem;
             }
             
-            .form-title-icon {
-                width: 50px;
-                height: 50px;
+            .form-title h2 {
                 font-size: 1.5rem;
             }
             
@@ -387,130 +279,608 @@
                 padding: 1rem 1.25rem;
                 font-size: 1rem;
             }
-            
-            .form-label {
-                font-size: 1rem;
-                top: 1rem;
-                left: 1.25rem;
-            }
-            
-            .form-control:focus + .form-label,
-            .form-control:not(:placeholder-shown) + .form-label,
-            .has-value + .form-label {
-                font-size: 0.85rem;
-            }
-            
-            .btn {
-                min-width: auto;
-                width: 100%;
-                margin-bottom: 1rem;
-            }
-            
-            .form-actions {
-                flex-direction: column;
-            }
         }
         
-        .fade-in {
-            opacity: 0;
-            transform: translateY(30px);
-            animation: fadeIn 0.8s ease-out forwards;
+        /* Options de ciblage */
+        .targeting-options {
+            margin-bottom: 3rem;
         }
         
-        @keyframes fadeIn {
+        .targeting-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .targeting-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .targeting-title {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #2c3e50;
+        }
+        
+        .targeting-title-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: white;
+            font-size: 1.8rem;
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+        
+        .targeting-title h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .targeting-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* Indicateur de progression */
+        .progress-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #6c757d;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .progress-step.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .progress-step.completed {
+            background: #28a745;
+            color: white;
+        }
+        
+        .progress-line {
+            height: 3px;
+            background: #e9ecef;
+            flex: 1;
+            margin: 0 1rem;
+            border-radius: 3px;
+            position: relative;
+        }
+        
+        .progress-line.completed {
+            background: #28a745;
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+        
+        /* Preview des destinataires */
+        .recipients-preview {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .recipients-preview.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .recipients-preview h4 {
+            margin: 0 0 1rem 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .recipient-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+        }
+        
+        .recipient-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+        
+        .recipient-item:last-child {
+            border-bottom: none;
+        }
+        
+        .recipient-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            margin-right: 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        .recipient-info {
+            flex: 1;
+        }
+        
+        .recipient-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .recipient-email {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .toast {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-left: 4px solid #28a745;
+            min-width: 300px;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.error {
+            border-left-color: #dc3545;
+        }
+        
+        .toast.warning {
+            border-left-color: #ffc107;
+        }
+        
+        .toast-header {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toast-body {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        /* Améliorations des boutons */
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-primary {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .btn-outline-primary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .targeting-btn {
+            background: rgba(255,255,255,0.95);
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .targeting-btn:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.15);
+            border-color: #667eea;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .targeting-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.05));
+            transform: translateY(-4px);
+        }
+        
+        .targeting-btn-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem auto;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .targeting-btn:hover .targeting-btn-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+        
+        .targeting-btn-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .targeting-btn-desc {
+            color: #6c757d;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .radio-indicator {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #dee2e6;
+            border-radius: 50%;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .targeting-btn.active .radio-indicator {
+            border-color: #667eea;
+            background: #667eea;
+        }
+        
+        .targeting-btn.active .radio-indicator::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Section conditionnelle */
+        .conditional-section {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .conditional-section.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
         
-        .loading {
-            position: relative;
+        .select-control {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+            color: #495057;
         }
         
-        .loading::after {
+        .select-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        /* Loading state */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+        }
+        
+        .btn-loading::after {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
             width: 20px;
             height: 20px;
-            margin: -10px 0 0 -10px;
             border: 2px solid transparent;
-            border-top: 2px solid #fff;
+            border-top: 2px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            right: 1rem;
         }
         
         @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .success-animation {
-            animation: successPulse 0.6s ease-out;
-        }
-        
-        @keyframes successPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 {% endblock %}
 
 {% block body %}
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
     <div class="invitation-container">
-        <div class="container-fluid">
+        <div class="container">
             <!-- En-tête d'invitation -->
             <div class="invitation-header fade-in">
-                <div class="header-content">
-                    <div class="invitation-icon">
-                        <i class="fas fa-paper-plane"></i>
+                <div class="header-icon">
+                    <i class="fas fa-paper-plane"></i>
+                </div>
+                <h1>Envoyer une invitation</h1>
+                <div class="event-info">
+                    <i class="fas fa-calendar-alt"></i>
+                    {{ event.title }}
+                </div>
+            </div>
+
+            <!-- Indicateur de progression -->
+            <div class="progress-indicator fade-in">
+                <div class="progress-step active" id="step-1">1</div>
+                <div class="progress-line" id="line-1"></div>
+                <div class="progress-step" id="step-2">2</div>
+                        </div>
+            <div class="progress-labels fade-in">
+                <span>Ciblage</span>
+                <span>Envoi</span>
                     </div>
-                    <h1>Envoyer une invitation</h1>
-                    <div class="event-title">
-                        <i class="fas fa-calendar-alt"></i> {{ event.title }}
+                    
+            <!-- Options de ciblage -->
+            <div class="targeting-options">
+                <div class="targeting-card fade-in">
+                    <div class="targeting-title">
+                        <div class="targeting-title-icon">
+                            <i class="fas fa-crosshairs"></i>
+                        </div>
+                        <h3>Étape 1 : Sélectionnez les destinataires</h3>
+                    </div>
+                    
+                    <div class="targeting-buttons">
+                        <div class="targeting-btn" data-target="all" onclick="selectTargeting('all')">
+                            <div class="radio-indicator"></div>
+                            <div class="targeting-btn-icon">
+                                <i class="fas fa-globe"></i>
+                                </div>
+                            <div class="targeting-btn-title">Tous les employés</div>
+                            <div class="targeting-btn-desc">La notification sera envoyée à l'ensemble du personnel</div>
+                        </div>
+                        
+                        <div class="targeting-btn" data-target="department" onclick="selectTargeting('department')">
+                            <div class="radio-indicator"></div>
+                            <div class="targeting-btn-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="targeting-btn-title">Par département</div>
+                            <div class="targeting-btn-desc">Sélectionnez un département dans la liste déroulante pour cibler uniquement les membres de ce service</div>
+                        </div>
+                        
+                        <div class="targeting-btn" data-target="specific" onclick="selectTargeting('specific')">
+                            <div class="radio-indicator"></div>
+                            <div class="targeting-btn-icon">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                            <div class="targeting-btn-title">Employé spécifique</div>
+                            <div class="targeting-btn-desc">Choisissez un ou plusieurs employés précis à notifier</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Section conditionnelle pour département -->
+                    <div id="department-section" class="conditional-section">
+                        <div class="form-group">
+                            <label for="department-select" class="form-label">
+                                <i class="fas fa-building me-2"></i>
+                                Sélectionnez un département
+                            </label>
+                            <select id="department-select" name="targeting_data" class="select-control">
+                                <option value="">-- Choisir un département --</option>
+                                {% for departement in departements %}
+                                    <option value="{{ departement.id }}">
+                                        {{ departement.nom }}
+                                        {% if departement.description %}
+                                            - {{ departement.description|slice(0, 50) }}{% if departement.description|length > 50 %}...{% endif %}
+                            {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                {{ departements|length }} département(s) disponible(s)
+                            </small>
+                        </div>
+                        </div>
+                        
+                    <!-- Section conditionnelle pour employé spécifique -->
+                    <div id="specific-section" class="conditional-section">
+                        <div class="form-group">
+                            <label for="employee-search" class="form-label">
+                                <i class="fas fa-search me-2"></i>
+                                Rechercher des employés
+                            </label>
+                            <input type="text" id="employee-search" class="form-control mb-2" placeholder="Tapez un nom, prénom ou département..." onkeyup="filterEmployees()">
+                                </div>
+                        
+                        <div class="form-group">
+                            <label for="employee-select" class="form-label">
+                                <i class="fas fa-user-check me-2"></i>
+                                Sélectionnez les employés
+                            </label>
+                            <select id="employee-select" name="targeting_data[]" class="select-control" multiple size="8">
+                                {% for user in users %}
+                                    <option value="{{ user.id }}" data-name="{{ user.nom|lower }} {{ user.prenom|lower }}" data-department="{{ user.departement ? user.departement.nom|lower : '' }}" data-email="{{ user.email|lower }}">
+                                        {{ user.nom }} {{ user.prenom }}
+                                        {% if user.departement %}
+                                            - {{ user.departement.nom }}
+                            {% endif %}
+                                        ({{ user.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted mt-2">
+                                <i class="fas fa-info-circle"></i>
+                                Maintenez Ctrl (ou Cmd sur Mac) pour sélectionner plusieurs employés. {{ users|length }} employé(s) disponible(s).
+                            </small>
+                            
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="selectAllFiltered()">
+                                    <i class="fas fa-check-double"></i> Sélectionner tout
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                                    <i class="fas fa-times"></i> Tout déselectionner
+                            </button>
+                            </div>
+                        </div>
+                        </div>
+                    
+                    <!-- Preview des destinataires -->
+                    <div id="recipients-preview" class="recipients-preview">
+                        <h4><i class="fas fa-eye me-2"></i>Aperçu des destinataires</h4>
+                        <div id="recipients-summary" class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-users me-2"></i>
+                                <span id="recipients-count">0</span> destinataire(s) sélectionné(s)
+                            </div>
+                        </div>
+                        <div id="recipient-list" class="recipient-list"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Formulaire d'invitation -->
-            <div class="form-container">
-                <div class="form-card fade-in" style="animation-delay: 0.1s;">
+            <!-- Bouton d'envoi direct -->
+            <div class="form-container" id="send-section" style="display: none;">
+                <div class="form-card fade-in">
                     <div class="form-title">
                         <div class="form-title-icon">
-                            <i class="fas fa-envelope"></i>
+                            <i class="fas fa-rocket"></i>
                         </div>
-                        Détails de l'invitation
+                        <h2>Étape 2 : Envoyer l'invitation</h2>
                     </div>
                     
-                    {{ form_start(form, {'attr': {'class': 'invitation-form', 'novalidate': true}}) }}
-                    
-                        <div class="form-field" style="opacity: 1; transform: translateY(0); margin-bottom: 1.5rem;">
-                            {{ form_label(form.name, null, {'attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.name) }}
-                                    {{ form_errors(form.name) }}
-                        </div>
+                    <form method="post" class="invitation-form" id="quick-send-form">
+                        <!-- Champs cachés pour le ciblage -->
+                        <input type="hidden" id="targeting-type" name="targeting_type" value="">
+                        <input type="hidden" id="targeting-data-hidden" name="targeting_data" value="">
                         
-                        <div class="form-field" style="opacity: 1; transform: translateY(0); margin-bottom: 1.5rem;">
-                            {{ form_label(form.email, null, {'attr': {'class': 'form-label'}}) }}
-                            {{ form_widget(form.email) }}
-                                    {{ form_errors(form.email) }}
-                        </div>
-                        
-                        <div class="form-actions" style="opacity: 1; transform: translateY(0);">
-                            <button type="submit" class="btn btn-primary" id="submit-btn">
-                                <i class="fas fa-paper-plane"></i>
-                                Envoyer l'invitation
+                        <div class="text-center">
+                            <p class="mb-4 text-muted">
+                                <i class="fas fa-info-circle me-2"></i>
+                                L'invitation sera envoyée avec les paramètres par défaut de l'événement.
+                            </p>
+                            
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                <i class="fas fa-paper-plane me-2"></i>
+                                Envoyer l'invitation maintenant
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-info btn-sm mt-3" onclick="debugFormData()">
+                                <i class="fas fa-bug me-2"></i>
+                                Debug - Voir les données
                             </button>
                         </div>
-                    
-                    {{ form_end(form) }}
+                    </form>
                 </div>
             </div>
 
             <!-- Bouton retour -->
-            <div class="back-button-container fade-in" style="animation-delay: 0.5s;">
+            <div class="back-button-container fade-in">
                 <a href="{{ path('invitation_index', {'eventId': event.id}) }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left"></i>
                     Retour à la liste des invitations
@@ -523,72 +893,536 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page chargée - Initialisation des champs');
+        // Gestion du ciblage
+        let selectedTargeting = null;
+        
+        // Fonctions de recherche et sélection
+        function filterEmployees() {
+            const searchTerm = document.getElementById('employee-search').value.toLowerCase();
+            const select = document.getElementById('employee-select');
+            const options = select.querySelectorAll('option');
             
-            // SIMPLIFICATION TOTALE - Supprimer tous les événements problématiques
-            const allInputs = document.querySelectorAll('input, textarea, select, button');
-            allInputs.forEach(input => {
-                // Nettoyer tous les attributs bloquants
-                input.removeAttribute('disabled');
-                input.removeAttribute('readonly');
-                input.style.pointerEvents = 'auto';
-                input.style.opacity = '1';
-                input.style.zIndex = '1000';
-                input.tabIndex = 0;
+            options.forEach(option => {
+                const name = option.getAttribute('data-name') || '';
+                const department = option.getAttribute('data-department') || '';
+                const email = option.getAttribute('data-email') || '';
                 
-                console.log('Champ activé:', input.type || input.tagName);
+                const matches = name.includes(searchTerm) || 
+                               department.includes(searchTerm) || 
+                               email.includes(searchTerm);
+                
+                option.style.display = matches ? 'block' : 'none';
+            });
+        }
+        
+        function selectAllFiltered() {
+            const select = document.getElementById('employee-select');
+            const options = select.querySelectorAll('option');
+            let count = 0;
+            
+            options.forEach(option => {
+                if (option.style.display !== 'none') {
+                    option.selected = true;
+                    count++;
+                }
             });
             
-            // Test simple pour vérifier que la saisie fonctionne
-            const nameInput = document.querySelector('input[name*="name"]');
-            const emailInput = document.querySelector('input[name*="email"]');
+            // Déclencher l'événement de changement
+            select.dispatchEvent(new Event('change'));
             
+            if (count > 0) {
+                showToast(`${count} employé(s) sélectionné(s)`, 'success', 'fas fa-check-double');
+            }
+        }
+        
+        function clearSelection() {
+            const select = document.getElementById('employee-select');
+            const options = select.querySelectorAll('option');
+            
+            options.forEach(option => {
+                option.selected = false;
+            });
+            
+            // Déclencher l'événement de changement
+            select.dispatchEvent(new Event('change'));
+            
+            showToast('Sélection supprimée', 'success', 'fas fa-times-circle');
+        }
+        
+        // Fonction de debug
+        function debugFormData() {
+            const targetingType = document.getElementById('targeting-type').value;
+            const targetingData = document.getElementById('targeting-data-hidden').value;
+            const deptValue = document.getElementById('department-select')?.value || 'N/A';
+            const empSelected = document.getElementById('employee-select')?.selectedOptions.length || 0;
+            
+            const debugInfo = `
+=== DEBUG DONNÉES FORMULAIRE ===
+Targeting Type: "${targetingType}"
+Targeting Data: "${targetingData}"
+Département sélectionné: "${deptValue}"
+Employés sélectionnés: ${empSelected}
+Selected Targeting Variable: "${selectedTargeting}"
+
+=== DONNÉES QUI SERONT ENVOYÉES ===
+targeting_type = "${targetingType}"
+targeting_data = "${targetingData}"
+            `;
+            
+            alert(debugInfo);
+            console.log('Debug Form Data:', {
+                targetingType,
+                targetingData,
+                deptValue,
+                empSelected,
+                selectedTargeting
+            });
+        }
+        
+        // Système de notifications toast
+        function showToast(message, type = 'success', icon = 'fas fa-check-circle') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <i class="${icon} me-2"></i>
+                    ${type === 'success' ? 'Succès' : type === 'error' ? 'Erreur' : 'Information'}
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Afficher le toast
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            
+            // Masquer et supprimer le toast après 4 secondes
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, 4000);
+        }
+        
+        function selectTargeting(target) {
+            // Désélectionner tous les boutons
+            document.querySelectorAll('.targeting-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Masquer toutes les sections conditionnelles
+            document.querySelectorAll('.conditional-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Sélectionner le bouton cliqué
+            const selectedBtn = document.querySelector(`[data-target="${target}"]`);
+            if (selectedBtn) {
+                selectedBtn.classList.add('active');
+                selectedTargeting = target;
+                
+                // Mettre à jour le champ caché
+                document.getElementById('targeting-type').value = target;
+                
+                // Afficher la section conditionnelle correspondante
+                if (target === 'department') {
+                    document.getElementById('department-section').classList.add('active');
+                } else if (target === 'specific') {
+                    document.getElementById('specific-section').classList.add('active');
+                }
+                
+                // Mettre à jour l'affichage du formulaire
+                updateFormDisplay();
+                
+                // Mettre à jour la progression
+                updateProgressIndicator();
+                
+                // Mettre à jour l'aperçu des destinataires
+                updateRecipientsPreview();
+                
+                // Mettre à jour les champs cachés
+                updateHiddenFields();
+                
+                // Notification du choix de ciblage
+                const targetNames = {
+                    'all': 'Tous les employés',
+                    'department': 'Par département',
+                    'specific': 'Employé spécifique'
+                };
+                showToast(`Mode "${targetNames[target]}" sélectionné`, 'success', 'fas fa-crosshairs');
+            }
+        }
+        
+        function updateProgressIndicator() {
+            const step1 = document.getElementById('step-1');
+            const step2 = document.getElementById('step-2');
+            const line1 = document.getElementById('line-1');
+            
+            if (selectedTargeting) {
+                step1.classList.add('completed');
+                step1.classList.remove('active');
+                line1.classList.add('completed');
+                step2.classList.add('active');
+            } else {
+                step1.classList.remove('completed');
+                step1.classList.add('active');
+                line1.classList.remove('completed');
+                step2.classList.remove('active');
+            }
+        }
+        
+        // Fonction pour mettre à jour les champs cachés
+        function updateHiddenFields() {
+            document.getElementById('targeting-type').value = selectedTargeting || '';
+            
+            let targetingData = '';
+            if (selectedTargeting === 'department') {
+                const deptSelect = document.getElementById('department-select');
+                if (deptSelect && deptSelect.value) {
+                    targetingData = deptSelect.value;
+                }
+            } else if (selectedTargeting === 'specific') {
+                const employeeSelect = document.getElementById('employee-select');
+                if (employeeSelect) {
+                    const selectedIds = Array.from(employeeSelect.selectedOptions).map(option => option.value);
+                    targetingData = selectedIds.join(',');
+                }
+            }
+            
+            document.getElementById('targeting-data-hidden').value = targetingData;
+        }
+        
+        function updateRecipientsPreview() {
+            const preview = document.getElementById('recipients-preview');
+            const countElement = document.getElementById('recipients-count');
+            const listElement = document.getElementById('recipient-list');
+            
+            let recipients = [];
+            let count = 0;
+            
+            if (selectedTargeting === 'all') {
+                count = {{ users|length }};
+                recipients = [
+                    {% for user in users|slice(0, 5) %}
+                    {
+                        name: '{{ user.nom }} {{ user.prenom }}',
+                        email: '{{ user.email }}',
+                        department: '{{ user.departement ? user.departement.nom : 'Non assigné' }}'
+                    },
+                    {% endfor %}
+                ];
+                if (count > 5) {
+                    recipients.push({ name: `... et ${count - 5} autres`, email: '', department: '' });
+                }
+            } else if (selectedTargeting === 'department') {
+                const deptSelect = document.getElementById('department-select');
+                if (deptSelect && deptSelect.value) {
+                    const deptName = deptSelect.options[deptSelect.selectedIndex].text;
+                    const deptUsers = [
+                        {% for user in users %}
+                        {% if user.departement %}
+                        { 
+                            name: '{{ user.nom }} {{ user.prenom }}', 
+                            email: '{{ user.email }}', 
+                            department: '{{ user.departement.nom }}',
+                            departmentId: {{ user.departement.id }}
+                        },
+                        {% endif %}
+                        {% endfor %}
+                    ];
+                    recipients = deptUsers.filter(user => user.departmentId == deptSelect.value);
+                    count = recipients.length;
+                }
+            } else if (selectedTargeting === 'specific') {
+                const employeeSelect = document.getElementById('employee-select');
+                if (employeeSelect) {
+                    const allUsers = [
+                        {% for user in users %}
+                        { 
+                            id: {{ user.id }},
+                            name: '{{ user.nom }} {{ user.prenom }}', 
+                            email: '{{ user.email }}', 
+                            department: '{{ user.departement ? user.departement.nom : 'Non assigné' }}'
+                        },
+                        {% endfor %}
+                    ];
+                    
+                    recipients = Array.from(employeeSelect.selectedOptions).map(option => {
+                        return allUsers.find(user => user.id == option.value);
+                    }).filter(user => user);
+                    count = recipients.length;
+                }
+            }
+            
+            // Mettre à jour le compteur
+            countElement.textContent = count;
+            
+            // Mettre à jour la liste
+            listElement.innerHTML = '';
+            recipients.forEach(recipient => {
+                if (recipient.name.startsWith('...')) {
+                    const item = document.createElement('div');
+                    item.className = 'recipient-item';
+                    item.innerHTML = `
+                        <div class="recipient-avatar">...</div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">${recipient.name}</div>
+                        </div>
+                    `;
+                    listElement.appendChild(item);
+                } else {
+                    const item = document.createElement('div');
+                    item.className = 'recipient-item';
+                    const initials = recipient.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                    item.innerHTML = `
+                        <div class="recipient-avatar">${initials}</div>
+                        <div class="recipient-info">
+                            <div class="recipient-name">${recipient.name}</div>
+                            <div class="recipient-email">${recipient.email}</div>
+                        </div>
+                    `;
+                    listElement.appendChild(item);
+                }
+            });
+            
+            // Afficher/masquer l'aperçu
+            if (count > 0) {
+                preview.classList.add('active');
+            } else {
+                preview.classList.remove('active');
+            }
+        }
+        
+        function updateFormDisplay() {
+            const sendSection = document.getElementById('send-section');
+            
+            if (selectedTargeting) {
+                // Afficher la section d'envoi
+                sendSection.style.display = 'block';
+                
+                // Faire défiler vers la section d'envoi
+                setTimeout(() => {
+                    sendSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            } else {
+                // Masquer la section d'envoi
+                sendSection.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('quick-send-form');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Initialiser l'affichage
+            updateFormDisplay();
+            
+            // Gestionnaires pour les sélecteurs
+            const departmentSelect = document.getElementById('department-select');
+            const employeeSelect = document.getElementById('employee-select');
+            
+                        if (departmentSelect) {
+                departmentSelect.addEventListener('change', function() {
+                    if (this.value && selectedTargeting === 'department') {
+                        formCard.style.opacity = '1';
+                        formCard.style.pointerEvents = 'auto';
+                        
+                        // Calculer le nombre d'employés dans ce département
+                        const userSelect = document.getElementById('employee-select');
+                        let employeeCount = 0;
+                        if (userSelect) {
+                            for (let option of userSelect.options) {
+                                if (option.text.includes(`- ${this.options[this.selectedIndex].text}`)) {
+                                    employeeCount++;
+                                }
+                            }
+                        }
+                        
+                        const message = document.querySelector('.targeting-message');
+                        if (message) {
+                            message.innerHTML = `
+                                <div style="background: #d4edda; color: #155724; padding: 1.5rem; border-radius: 15px; text-align: center; margin-bottom: 2rem; border: 1px solid #c3e6cb;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Département sélectionné :</strong> ${this.options[this.selectedIndex].text}<br>
+                                    <strong>${employeeCount}</strong> employé(s) recevront l'invitation.<br>
+                                    Remplissez maintenant les détails de l'invitation.
+                                </div>
+                            `;
+                        }
+                        
+                        // Mettre à jour l'aperçu des destinataires
+                        updateRecipientsPreview();
+                        
+                        // Mettre à jour les champs cachés
+                        updateHiddenFields();
+                    }
+                });
+            }
+            
+            if (employeeSelect) {
+                employeeSelect.addEventListener('change', function() {
+                    const selectedCount = this.selectedOptions.length;
+                    if (selectedCount > 0 && selectedTargeting === 'specific') {
+                        // Afficher un message avec le nombre d'employés sélectionnés
+                        const existingInfo = document.querySelector('.employee-selection-info');
+                        if (existingInfo) {
+                            existingInfo.remove();
+                        }
+                        
+                        const info = document.createElement('div');
+                        info.className = 'employee-selection-info';
+                        info.innerHTML = `
+                            <div style="background: #e3f2fd; color: #0d47a1; padding: 1rem; border-radius: 10px; margin-top: 1rem; border: 1px solid #bbdefb;">
+                                <i class="fas fa-users me-2"></i>
+                                <strong>${selectedCount}</strong> employé(s) sélectionné(s) pour recevoir l'invitation.
+                            </div>
+                        `;
+                        this.parentNode.appendChild(info);
+                        
+                        // Activer le formulaire
+                        const formCard = document.querySelector('.form-card');
+                        if (formCard) {
+                            formCard.style.opacity = '1';
+                            formCard.style.pointerEvents = 'auto';
+                        }
+                        
+                        // Mettre à jour l'aperçu des destinataires
+                        updateRecipientsPreview();
+                        
+                        // Mettre à jour les champs cachés
+                        updateHiddenFields();
+                    }
+                });
+            }
+            
+            // Focus automatique seulement si "employé spécifique" est sélectionné
+            // if (nameInput && selectedTargeting === 'specific') {
+            //     nameInput.focus();
+            // }
+            
+            // Validation en temps réel
+            function validateField(input, errorElement) {
+                const value = input.value.trim();
+                const isValid = value.length > 0;
+                
+                if (isValid) {
+                    input.style.borderColor = '#28a745';
+                    if (errorElement) errorElement.style.display = 'none';
+                } else {
+                    input.style.borderColor = '#dc3545';
+                    if (errorElement) errorElement.style.display = 'flex';
+                }
+                
+                return isValid;
+            }
+            
+            // Validation email
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+            
+            // Événements de validation
             if (nameInput) {
                 nameInput.addEventListener('input', function() {
-                    console.log('Saisie dans le champ nom:', this.value);
+                    const errorElement = this.parentNode.querySelector('.form-error');
+                    validateField(this, errorElement);
                 });
-                nameInput.focus();
-                console.log('Focus placé sur le champ nom');
             }
             
             if (emailInput) {
                 emailInput.addEventListener('input', function() {
-                    console.log('Saisie dans le champ email:', this.value);
+                    const value = this.value.trim();
+                    const errorElement = this.parentNode.querySelector('.form-error');
+                    
+                    if (value.length === 0) {
+                        this.style.borderColor = '#dc3545';
+                        if (errorElement) errorElement.style.display = 'flex';
+                    } else if (!validateEmail(value)) {
+                        this.style.borderColor = '#ffc107';
+                        if (errorElement) errorElement.style.display = 'flex';
+                    } else {
+                        this.style.borderColor = '#28a745';
+                        if (errorElement) errorElement.style.display = 'none';
+                    }
                 });
             }
             
-            // Gestion simple du formulaire
-            const form = document.querySelector('.invitation-form');
-            const submitBtn = document.getElementById('submit-btn');
-            
-            if (submitBtn) {
-                submitBtn.addEventListener('click', function(e) {
-                    console.log('Bouton cliqué');
-                    if (nameInput && !nameInput.value.trim()) {
+            // Gestion de la soumission
+            if (form && submitBtn) {
+                form.addEventListener('submit', function(e) {
+                    // Vérifier qu'un type de ciblage est sélectionné
+                    if (!selectedTargeting) {
                         e.preventDefault();
-                        alert('Veuillez entrer un nom');
-                        nameInput.focus();
-                        return;
+                        showToast('Veuillez sélectionner un type de destinataire avant d\'envoyer l\'invitation.', 'error', 'fas fa-exclamation-triangle');
+                        return false;
                     }
-                    if (emailInput && !emailInput.value.trim()) {
-                    e.preventDefault();
-                        alert('Veuillez entrer un email');
-                        emailInput.focus();
-                        return;
+
+                    // Mettre à jour les champs cachés avant soumission
+                    updateHiddenFields();
+
+                    // Validation selon le type de ciblage
+                    if (selectedTargeting === 'department') {
+                        const departmentSelect = document.getElementById('department-select');
+                        if (!departmentSelect.value) {
+                            e.preventDefault();
+                            showToast('Veuillez sélectionner un département.', 'error', 'fas fa-building');
+                            departmentSelect.focus();
+                        return false;
+                        }
+                    } else if (selectedTargeting === 'specific') {
+                        const employeeSelect = document.getElementById('employee-select');
+                        if (!employeeSelect || employeeSelect.selectedOptions.length === 0) {
+                            e.preventDefault();
+                            showToast('Veuillez sélectionner au moins un employé.', 'error', 'fas fa-user-check');
+                            if (employeeSelect) employeeSelect.focus();
+                            return false;
+                        }
+                    } else if (selectedTargeting === 'all') {
+                        // Confirmation pour tous les employés
+                        if (!confirm('Êtes-vous sûr de vouloir envoyer cette invitation à TOUS les employés ?')) {
+                            e.preventDefault();
+                            return false;
+                        }
                     }
-                    console.log('Envoi du formulaire...');
+                    
+                    // Animation de chargement
+                    submitBtn.classList.add('btn-loading');
+                    let loadingText = 'Envoi en cours...';
+                    
+                    if (selectedTargeting === 'all') {
+                        loadingText = 'Envoi à tous les employés...';
+                    } else if (selectedTargeting === 'department') {
+                        const dept = document.getElementById('department-select');
+                        loadingText = `Envoi au département ${dept.options[dept.selectedIndex].text}...`;
+                    } else if (selectedTargeting === 'specific') {
+                        const employeeSelect = document.getElementById('employee-select');
+                        const count = employeeSelect.selectedOptions.length;
+                        loadingText = `Envoi à ${count} employé(s)...`;
+                    }
+                    
+                    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin me-2"></i>${loadingText}`;
                 });
             }
             
-            // Test de focus immédiat
-            setTimeout(() => {
-                if (nameInput) {
-                    nameInput.focus();
-                    nameInput.click();
-                    console.log('Focus forcé sur le champ nom après 500ms');
-                }
-            }, 500);
+            // Animation des champs au focus
+            const formControls = document.querySelectorAll('.form-control');
+            formControls.forEach(control => {
+                control.addEventListener('focus', function() {
+                    this.parentNode.style.transform = 'scale(1.02)';
+                });
+                
+                control.addEventListener('blur', function() {
+                    this.parentNode.style.transform = 'scale(1)';
+                });
+            });
         });
     </script>
 {% endblock %}

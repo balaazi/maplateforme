@@ -16,6 +16,21 @@ class InvitationRepository extends ServiceEntityRepository
         parent::__construct($registry, Invitation::class);
     }
 
+    /**
+     * Trouve les invitations en attente qui ont dépassé la date d'expiration
+     */
+    public function findExpiredInvitations(\DateTime $expirationDate): array
+    {
+        return $this->createQueryBuilder('i')
+            ->andWhere('i.status = :status')
+            ->andWhere('i.createdAt < :expirationDate')
+            ->setParameter('status', 'pending')
+            ->setParameter('expirationDate', $expirationDate)
+            ->orderBy('i.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Invitation[] Returns an array of Invitation objects
     //     */

@@ -1,0 +1,323 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inviter un Utilisateur - Interface Commune{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-invite-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin-top: -90px;
+            padding-top: 90px;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            padding: 0.75rem 1rem;
+        }
+
+        .form-select:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.5);
+            color: white;
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+
+        .form-select option {
+            background: #2d3748;
+            color: white;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .invite-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .invite-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+        }
+
+        .invite-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .invite-description {
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .role-descriptions {
+            margin-top: 1rem;
+        }
+
+        .role-desc {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .role-desc.active {
+            display: block;
+        }
+
+        .role-desc h5 {
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .role-desc p {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .role-desc i {
+            margin-right: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="admin-invite-container">
+    <div class="container py-4">
+        <!-- En-tête -->
+        <div class="admin-header">
+            <h1 class="admin-title">
+                <i class="fas fa-user-plus me-3"></i>
+                Inviter un Utilisateur
+            </h1>
+            <p class="admin-subtitle">
+                Créez un nouveau compte utilisateur et envoyez une invitation par email
+            </p>
+        </div>
+
+        <!-- Informations d'invitation -->
+        <div class="invite-info">
+            <div class="invite-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div class="invite-title">Invitation par Email</div>
+            <div class="invite-description">
+                L'utilisateur recevra un email avec ses identifiants de connexion
+            </div>
+        </div>
+
+        <!-- Formulaire d'invitation -->
+        <div class="form-container">
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form_label(form.fullName, 'Nom Complet', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.fullName, {'attr': {'class': 'form-control', 'placeholder': 'Prénom Nom'}}) }}
+                        {{ form_errors(form.fullName) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form_label(form.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.email, {'attr': {'class': 'form-control', 'placeholder': 'exemple@email.com'}}) }}
+                        {{ form_errors(form.email) }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form_label(form.role, 'Rôle', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.role, {'attr': {'class': 'form-select'}}) }}
+                        {{ form_errors(form.role) }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        {{ form_label(form.password, 'Mot de Passe', {'label_attr': {'class': 'form-label'}}) }}
+                        {{ form_widget(form.password, {'attr': {'class': 'form-control', 'placeholder': 'Mot de passe temporaire'}}) }}
+                        {{ form_errors(form.password) }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descriptions des rôles -->
+            <div class="role-descriptions">
+                <div class="role-desc" data-role="ROLE_PARTICIPANT">
+                    <i class="fas fa-users text-info"></i>
+                    <div class="role-desc-content">
+                        <h5>Participant</h5>
+                        <p>Peut participer aux événements et collaborer avec les autres membres</p>
+                    </div>
+                </div>
+                <div class="role-desc" data-role="ROLE_ORGANISATEUR">
+                    <i class="fas fa-calendar-plus text-warning"></i>
+                    <div class="role-desc-content">
+                        <h5>Organisateur</h5>
+                        <p>Peut créer, gérer des événements et inviter des participants</p>
+                    </div>
+                </div>
+                <div class="role-desc" data-role="ROLE_ADMIN">
+                    <i class="fas fa-user-shield text-danger"></i>
+                    <div class="role-desc-content">
+                        <h5>Administrateur</h5>
+                        <p>Accès complet à toutes les fonctionnalités de la plateforme</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button type="submit" class="btn btn-submit">
+                    <i class="fas fa-paper-plane me-2"></i>
+                    Envoyer l'Invitation
+                </button>
+                <a href="{{ path('common_admin_users') }}" class="btn btn-cancel">
+                    <i class="fas fa-times me-2"></i>
+                    Annuler
+                </a>
+            </div>
+
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleSelect = document.querySelector('select[name*="[role]"]');
+    const roleDescriptions = document.querySelectorAll('.role-desc');
+    
+    function updateRoleDescription() {
+        const selectedRole = roleSelect.value;
+        
+        // Masquer toutes les descriptions
+        roleDescriptions.forEach(desc => {
+            desc.classList.remove('active');
+        });
+        
+        // Afficher la description du rôle sélectionné
+        const selectedDesc = document.querySelector(`[data-role="${selectedRole}"]`);
+        if (selectedDesc) {
+            selectedDesc.classList.add('active');
+        }
+    }
+    
+    // Initialiser l'affichage
+    updateRoleDescription();
+    
+    // Écouter les changements
+    roleSelect.addEventListener('change', updateRoleDescription);
+});
+</script>
+{% endblock %} 

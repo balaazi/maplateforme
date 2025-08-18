@@ -940,13 +940,6 @@
                                 </a>
                                 {% endif %}
                                 
-                                {% if is_granted('ROLE_PARTICIPANT') and not is_granted('ROLE_ORGANISATEUR') %}
-                                <a href="{{ path('event_create') }}" class="btn-sidebar">
-                                    <i class="fas fa-plus"></i>
-                                    Nouvel Événement
-                                </a>
-                                {% endif %}
-                                
                                 <a href="{{ path('calendar_sync') }}" class="btn-sidebar btn-success">
                                     <i class="fas fa-sync-alt"></i>
                                     Synchroniser
@@ -966,12 +959,7 @@
                                 </a>
                                 {% endif %}
                                 
-                                {% if is_granted('ROLE_PARTICIPANT') %}
-                                <a href="{{ path('participant_events') }}" class="btn-sidebar">
-                                    <i class="fas fa-calendar-day"></i>
-                                    Mes Événements
-                                </a>
-                                {% endif %}
+
                             </div>
                         </div>
 
@@ -988,16 +976,6 @@
                                     <div class="filter-color" style="background: linear-gradient(135deg, #007bff, #0056b3);"></div>
                                     <span class="filter-label">Réunions</span>
                                     <span class="filter-count" id="reunion-count">0</span>
-                                </div>
-                                <div class="filter-item" data-filter="conference">
-                                    <div class="filter-color" style="background: linear-gradient(135deg, #ffc107, #e0a800);"></div>
-                                    <span class="filter-label">Conférences</span>
-                                    <span class="filter-count" id="conference-count">0</span>
-                                </div>
-                                <div class="filter-item" data-filter="atelier">
-                                    <div class="filter-color" style="background: linear-gradient(135deg, #dc3545, #c82333);"></div>
-                                    <span class="filter-label">Ateliers</span>
-                                    <span class="filter-count" id="atelier-count">0</span>
                                 </div>
                                 <div class="filter-item" data-filter="seminaire">
                                     <div class="filter-color" style="background: linear-gradient(135deg, #6f42c1, #563d7c);"></div>
@@ -1082,13 +1060,13 @@
                 const counts = {
                     formation: 0,
                     reunion: 0,
-                    conference: 0,
-                    atelier: 0,
                     seminaire: 0
                 };
 
                 allEvents.forEach(event => {
                     const type = event.extendedProps?.type || 'formation';
+                    
+                    // Compter selon le type d'origine, pas selon la couleur
                     if (counts.hasOwnProperty(type)) {
                         counts[type]++;
                     }
@@ -1138,7 +1116,8 @@
                     reunion: 'linear-gradient(135deg, #007bff, #0056b3)',
                     conference: 'linear-gradient(135deg, #ffc107, #e0a800)',
                     atelier: 'linear-gradient(135deg, #dc3545, #c82333)',
-                    seminaire: 'linear-gradient(135deg, #6f42c1, #563d7c)'
+                    seminaire: 'linear-gradient(135deg, #6f42c1, #563d7c)',
+                    accepted: 'linear-gradient(135deg, #28a745, #34ce57)' // Vert pour les événements acceptés
                 };
                 return colors[type] || colors.formation;
             }
@@ -1161,12 +1140,17 @@
                         .then(response => response.json())
                         .then(events => {
                             // Enrichir les événements avec des types et couleurs
-                            allEvents = events.map(event => ({
-                                ...event,
-                                backgroundColor: getEventColor(event.extendedProps?.type || 'formation'),
-                                borderColor: 'transparent',
-                                textColor: 'white'
-                            }));
+                            allEvents = events.map(event => {
+                                const isAccepted = event.extendedProps?.isAccepted || false;
+                                const originalType = event.extendedProps?.type || 'formation';
+                                
+                                return {
+                                    ...event,
+                                    backgroundColor: isAccepted ? getEventColor('accepted') : getEventColor(originalType),
+                                    borderColor: 'transparent',
+                                    textColor: 'white'
+                                };
+                            });
                             
                             updateEventCounts();
                             updateMiniCalendar();
@@ -1227,8 +1211,8 @@
                         setTimeout(() => {
                             info.el.style.transform = 'scale(1)';
                             
-                            // Redirection avec effet
-                                window.location.href = info.event.url;
+                            // Afficher le menu contextuel avec les options
+                            showEventContextMenu(info.event, info.jsEvent);
                         }, 150);
                     }, 100);
                 },
@@ -1495,6 +1479,102 @@
             // Initialiser le mini calendrier
             updateMiniCalendar();
         });
+        
+        // Fonction pour afficher le menu contextuel des événements
+        function showEventContextMenu(event, jsEvent) {
+            // Supprimer l'ancien menu s'il existe
+            const existingMenu = document.querySelector('.event-context-menu');
+            if (existingMenu) {
+                existingMenu.remove();
+            }
+            
+            // Créer le menu contextuel
+            const menu = document.createElement('div');
+            menu.className = 'event-context-menu';
+            menu.style.cssText = `
+                position: fixed;
+                top: ${jsEvent.clientY}px;
+                left: ${jsEvent.clientX}px;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                z-index: 10000;
+                min-width: 200px;
+                overflow: hidden;
+                animation: menuSlideIn 0.3s ease-out;
+                border: 1px solid rgba(102,126,234,0.1);
+            `;
+            
+            // Ajouter le style CSS pour l'animation
+            if (!document.querySelector('#menu-styles')) {
+                const style = document.createElement('style');
+                style.id = 'menu-styles';
+                style.textContent = `
+                    @keyframes menuSlideIn {
+                        from {
+                            opacity: 0;
+                            transform: scale(0.8) translateY(-10px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: scale(1) translateY(0);
+                        }
+                    }
+                    
+                    .event-context-menu-item {
+                        padding: 12px 20px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                        border-bottom: 1px solid #f8f9fa;
+                    }
+                    
+                    .event-context-menu-item:last-child {
+                        border-bottom: none;
+                    }
+                    
+                    .event-context-menu-item:hover {
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        transform: translateX(5px);
+                    }
+                    
+                    .event-context-menu-item i {
+                        font-size: 16px;
+                        width: 20px;
+                        text-align: center;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            
+            // Option 1: Voir l'événement
+            const viewOption = document.createElement('div');
+            viewOption.className = 'event-context-menu-item';
+            viewOption.innerHTML = '<i class="fas fa-eye"></i> Voir l\'événement';
+            viewOption.addEventListener('click', () => {
+                menu.remove();
+                window.location.href = event.url;
+            });
+            
+            // Ajouter les options au menu
+            menu.appendChild(viewOption);
+            
+            // Ajouter le menu au DOM
+            document.body.appendChild(menu);
+            
+            // Fermer le menu en cliquant ailleurs
+            setTimeout(() => {
+                document.addEventListener('click', function closeMenu(e) {
+                    if (!menu.contains(e.target)) {
+                        menu.remove();
+                        document.removeEventListener('click', closeMenu);
+                    }
+                });
+            }, 100);
+        }
         
         // Animation slideOut pour les alertes
         const alertStyle = document.createElement('style');

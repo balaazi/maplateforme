@@ -215,7 +215,258 @@
             color: white;
             text-decoration: none;
         }
+
+        .notification-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .btn-delete-notification {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-delete-notification:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .notification-item.deleting {
+            opacity: 0.5;
+            transform: scale(0.95);
+            transition: all 0.3s ease;
+        }
+
+        .notification-item.deleted {
+            height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.5s ease;
+        }
+
+        .btn-delete-all-notifications {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-delete-all-notifications:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+            color: white;
+            text-decoration: none;
+        }
     </style>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestion de la suppression des notifications
+            document.querySelectorAll('.btn-delete-notification').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const notificationItem = this.closest('.notification-item');
+                    const notificationId = this.dataset.notificationId;
+                    
+                    if (confirm('Êtes-vous sûr de vouloir supprimer cette notification ?')) {
+                        deleteNotification(notificationId, notificationItem);
+                    }
+                });
+            });
+
+            // Gestion du "Tout marquer comme lu"
+            const markAllReadBtn = document.querySelector('.mark-all-read-btn');
+            if (markAllReadBtn) {
+                markAllReadBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    markAllAsRead();
+                });
+            }
+
+            // Gestion du "Tout supprimer"
+            const deleteAllBtn = document.querySelector('.btn-delete-all-notifications');
+            if (deleteAllBtn) {
+                deleteAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    deleteAllNotifications();
+                });
+            }
+        });
+
+        function deleteNotification(notificationId, notificationElement) {
+            // Ajouter la classe de suppression pour l'animation
+            notificationElement.classList.add('deleting');
+            
+            fetch(`/api/notifications/${notificationId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Animation de suppression
+                    notificationElement.classList.add('deleted');
+                    
+                    setTimeout(() => {
+                        notificationElement.remove();
+                        
+                        // Mettre à jour le compteur
+                        updateNotificationCount();
+                        
+                        // Vérifier s'il reste des notifications
+                        const remainingNotifications = document.querySelectorAll('.notification-item').length;
+                        if (remainingNotifications === 0) {
+                            location.reload(); // Recharger pour afficher l'état vide
+                        }
+                    }, 500);
+                } else {
+                    // Restaurer l'état normal en cas d'erreur
+                    notificationElement.classList.remove('deleting');
+                    alert('Erreur lors de la suppression de la notification');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                notificationElement.classList.remove('deleting');
+                alert('Erreur lors de la suppression de la notification');
+            });
+        }
+
+        function markAllAsRead() {
+            fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Marquer visuellement toutes les notifications comme lues
+                    document.querySelectorAll('.notification-item').forEach(item => {
+                        item.classList.remove('unread');
+                        const badge = item.querySelector('.badge');
+                        if (badge) {
+                            badge.remove();
+                        }
+                    });
+                    
+                    // Mettre à jour le compteur
+                    updateNotificationCount();
+                    
+                    // Afficher un message de succès
+                    showSuccessMessage('Toutes les notifications ont été marquées comme lues');
+                } else {
+                    alert('Erreur lors du marquage des notifications');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                alert('Erreur lors du marquage des notifications');
+            });
+        }
+
+        function deleteAllNotifications() {
+            if (confirm('Êtes-vous sûr de vouloir supprimer toutes les notifications ? Cette action est irréversible.')) {
+                fetch('/api/notifications/delete-all', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Animation de suppression pour toutes les notifications
+                        const notificationItems = document.querySelectorAll('.notification-item');
+                        notificationItems.forEach((item, index) => {
+                            setTimeout(() => {
+                                item.classList.add('deleting');
+                                setTimeout(() => {
+                                    item.classList.add('deleted');
+                                }, 300);
+                            }, index * 100);
+                        });
+                        
+                        // Recharger la page après l'animation
+                        setTimeout(() => {
+                            location.reload();
+                        }, notificationItems.length * 100 + 500);
+                        
+                        showSuccessMessage(`${data.deleted_count} notification(s) supprimée(s)`);
+                    } else {
+                        alert('Erreur lors de la suppression des notifications');
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    alert('Erreur lors de la suppression des notifications');
+                });
+            }
+        }
+
+        function updateNotificationCount() {
+            const notificationItems = document.querySelectorAll('.notification-item');
+            const countElement = document.querySelector('h3');
+            if (countElement) {
+                const count = notificationItems.length;
+                countElement.textContent = `${count} notification${count > 1 ? 's' : ''}`;
+            }
+        }
+
+        function showSuccessMessage(message) {
+            // Créer un toast de succès
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success position-fixed';
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                ${message}
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Auto-suppression après 3 secondes
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 3000);
+        }
+    </script>
 {% endblock %}
 
 {% block body %}
@@ -234,10 +485,16 @@
             {% if notifications|length > 0 %}
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3>{{ notifications|length }} notification{{ notifications|length > 1 ? 's' : '' }}</h3>
-                    <a href="#" class="mark-all-read-btn">
-                        <i class="fas fa-check-double"></i>
-                        Tout marquer comme lu
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="mark-all-read-btn">
+                            <i class="fas fa-check-double"></i>
+                            Tout marquer comme lu
+                        </a>
+                        <button class="btn-delete-all-notifications">
+                            <i class="fas fa-trash"></i>
+                            Tout supprimer
+                        </button>
+                    </div>
                 </div>
 
                 <div class="notifications-list">
@@ -265,6 +522,12 @@
                                 <div class="notification-type">
                                     {{ notification.type|replace({'_': ' '})|title }}
                                 </div>
+                            </div>
+                            <div class="notification-actions">
+                                <button class="btn-delete-notification" data-notification-id="{{ notification.id }}">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Supprimer
+                                </button>
                             </div>
                         </div>
                     {% endfor %}

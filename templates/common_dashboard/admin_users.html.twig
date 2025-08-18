@@ -1,0 +1,283 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Utilisateurs - Interface Commune{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-users-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin-top: -90px;
+            padding-top: 90px;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .admin-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .users-table {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table th {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+
+        .table td {
+            color: white;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .role-badge.admin {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .role-badge.organisateur {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .role-badge.participant {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-action {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-delete {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .actions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .btn-invite {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-invite:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="admin-users-container">
+    <div class="container py-4">
+        <!-- En-tête -->
+        <div class="admin-header">
+            <h1 class="admin-title">
+                <i class="fas fa-users me-3"></i>
+                Gestion des Utilisateurs
+            </h1>
+            <p class="admin-subtitle">
+                Consultez et gérez tous les utilisateurs de la plateforme
+            </p>
+        </div>
+
+        <!-- Actions -->
+        <div class="actions-header">
+            <div>
+                <h3 style="color: white; margin: 0;">
+                    <i class="fas fa-list me-2"></i>
+                    Liste des Utilisateurs ({{ users|length }})
+                </h3>
+            </div>
+            <div>
+                <a href="{{ path('common_admin_invite') }}" class="btn-invite">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Inviter un Utilisateur
+                </a>
+            </div>
+        </div>
+
+        <!-- Tableau des utilisateurs -->
+        {% if users|length > 0 %}
+        <div class="users-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Utilisateur</th>
+                        <th>Email</th>
+                        <th>Rôle</th>
+                        <th>Département</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-3">
+                                    {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                                </div>
+                                <div>
+                                    <div style="color: white; font-weight: 600;">{{ user.fullName }}</div>
+                                    <small style="color: rgba(255, 255, 255, 0.7);">ID: {{ user.id }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% for role in user.roles %}
+                                {% if role == 'ROLE_ADMIN' %}
+                                    <span class="role-badge admin">Administrateur</span>
+                                {% elseif role == 'ROLE_ORGANISATEUR' %}
+                                    <span class="role-badge organisateur">Organisateur</span>
+                                {% elseif role == 'ROLE_PARTICIPANT' %}
+                                    <span class="role-badge participant">Participant</span>
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if user.departement %}
+                                {{ user.departement.nom }}
+                            {% else %}
+                                <span style="color: rgba(255, 255, 255, 0.5);">Non assigné</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('common_admin_edit', {'id': user.id}) }}" class="btn-action btn-edit">
+                                    <i class="fas fa-edit"></i>
+                                    Modifier
+                                </a>
+                                <a href="{{ path('common_admin_delete', {'id': user.id}) }}" 
+                                   class="btn-action btn-delete"
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                    <i class="fas fa-trash"></i>
+                                    Supprimer
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-users"></i>
+            <h3>Aucun utilisateur trouvé</h3>
+            <p>Commencez par inviter des utilisateurs pour les voir apparaître ici.</p>
+            <a href="{{ path('common_admin_invite') }}" class="btn-invite">
+                <i class="fas fa-user-plus me-2"></i>
+                Inviter le Premier Utilisateur
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Retour au dashboard -->
+        <div class="text-center mt-4">
+            <a href="{{ path('common_dashboard') }}" class="btn-action btn-edit">
+                <i class="fas fa-arrow-left me-2"></i>
+                Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

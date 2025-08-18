@@ -107,6 +107,64 @@
         background: #4338ca;
     }
 
+    .participant-info {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 1px solid #e9ecef;
+    }
+
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+
+    .btn-primary, .btn-secondary {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        margin: 0.5rem 0.5rem 0.5rem 0;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
     .btn-cancel {
         background: #ef4444;
         color: white;
@@ -118,6 +176,22 @@
 
     .btn-cancel:hover {
         background: #dc2626;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        margin-left: 0.5rem;
+    }
+
+    .btn-secondary:hover {
+        background: #4b5563;
+        color: white;
+        text-decoration: none;
     }
 </style>
 {% endblock %}
@@ -152,6 +226,7 @@
                     {% endif %}
                 {% else %}
                     <i class="fas fa-question-circle me-2"></i>Non défini
+
                 {% endif %}
             </div>
         </div>
@@ -196,9 +271,39 @@
             <h4>Participants</h4>
             <p>Voir les présences</p>
         </a>
+
+        {% if event.category == 'Réunion' and (isCreator or hasAdminAccess) %}
+            {% if procesVerbal %}
+                <a href="{{ path('proces_verbal_show', {'id': procesVerbal.id}) }}" class="tool-card" style="border: 2px solid #8b5cf6;">
+                    <div class="tool-icon" style="color: #8b5cf6;">📝</div>
+                    <h4 style="color: #8b5cf6;">Procès-verbal</h4>
+                    <p>
+                        {% if procesVerbal.finalise %}
+                            <span style="color: #059669;">✓ Finalisé</span>
+                        {% else %}
+                            <span style="color: #d97706;">📝 Brouillon</span>
+                        {% endif %}
+                    </p>
+                </a>
+            {% else %}
+                <a href="{{ path('proces_verbal_create', {'eventId': event.id}) }}" class="tool-card" style="border: 2px dashed #8b5cf6;">
+                    <div class="tool-icon" style="color: #8b5cf6;">📝</div>
+                    <h4 style="color: #8b5cf6;">Procès-verbal</h4>
+                    <p>Créer le PV de réunion</p>
+                </a>
+            {% endif %}
+        {% endif %}
+
+        {% if event.category|lower == 'formation' and (isCreator or hasAdminAccess) %}
+        <a href="{{ path('event_training_attendance', {'id': event.id}) }}" class="tool-card" style="border: 2px solid #28a745;">
+            <div class="tool-icon" style="color: #28a745;">📋</div>
+            <h4 style="color: #28a745;">Liste de présence</h4>
+            <p>Cocher présents/absents</p>
+        </a>
+        {% endif %}
     </div>
 
-    {% if isOrganizer %}
+    {% if isCreator %}
     <div class="action-buttons">
         <a href="{{ path('event_edit', {'id': event.id}) }}" class="btn-edit">
             <i class="fas fa-edit"></i> Modifier
@@ -209,6 +314,28 @@
                 <i class="fas fa-times"></i> Annuler
             </a>
         {% endif %}
+
+        <a href="{{ path('event_list') }}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+    {% elseif hasAcceptedInvitation %}
+    <div class="participant-info">
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <strong>Événement accepté</strong> - Vous participez à cet événement
+        </div>
+        <div class="action-buttons">
+            <a href="{{ path('participant_events') }}" class="btn-primary">
+                <i class="fas fa-arrow-left"></i> Retour à mes événements
+            </a>
+        </div>
+    </div>
+    {% else %}
+    <div class="action-buttons">
+        <a href="{{ path('event_list') }}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à la liste des événements
+        </a>
     </div>
     {% endif %}
 </div>

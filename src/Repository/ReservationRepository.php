@@ -153,8 +153,11 @@ class ReservationRepository extends ServiceEntityRepository
         $reservations = $this->createQueryBuilder('r')
             ->select('r.id', 'r.dateDebut', 'r.dateFin', 'r.motif', 'r.reservePar', 'r.statut', 's.nom as salle_nom', 's.id as salle_id')
             ->join('r.salle', 's')
+            ->leftJoin('r.event', 'e')
             ->andWhere('r.statut = :statut')
+            ->andWhere('e.status IS NULL OR e.status != :cancelled')
             ->setParameter('statut', 'confirmee')
+            ->setParameter('cancelled', 'annulé')
             ->getQuery()
             ->getResult();
 

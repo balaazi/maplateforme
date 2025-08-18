@@ -2,5 +2,9 @@
 <p>Bonjour {{ invitation.receiver.username }},</p>
 <p>Vous avez été invité à l'événement "{{ invitation.event.title }}" organisé par {{ invitation.event.organizer.username }}.</p>
 <p>Vous pouvez accepter ou refuser l'invitation en cliquant sur les liens ci-dessous :</p>
-<p><a href="{{ accept_url }}">Accepter l'invitation</a></p>
-<p><a href="{{ decline_url }}">Refuser l'invitation</a></p>
+<p><a href="{{ accept_url }}" class="btn btn-success">
+    <i class="fas fa-check"></i> Accepter l'invitation
+</a></p>
+<p><a href="{{ decline_url }}" class="btn btn-danger">
+    <i class="fas fa-times"></i> Refuser l'invitation
+</a></p>

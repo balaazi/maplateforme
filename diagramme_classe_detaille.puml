@@ -1,0 +1,772 @@
+@startuml Diagramme de Classe - MaPlateforme
+
+!define ENTITY_COLOR #E1F5FE
+!define USER_COLOR #F3E5F5
+!define EVENT_COLOR #E8F5E8
+!define SALLE_COLOR #FFF3E0
+!define NOTIFICATION_COLOR #FFEBEE
+
+' Styles
+skinparam class {
+    BackgroundColor white
+    BorderColor #333333
+    FontColor #333333
+    FontSize 10
+}
+
+' User Entity
+class User << (E,#USER_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -email: string
+    -password: string
+    -roles: array
+    -googleToken: string
+    -nom: string
+    -prenom: string
+    -dateNaissance: DateTime
+    -notifyByEmail: boolean
+    -notifyBySms: boolean
+    -enableSoundNotifications: boolean
+    -enableVisualNotifications: boolean
+    -reminderFrequency: int
+    -notificationPriority: string
+    -photo: string
+    -societe: string
+    -specialite: string
+    -telephone: string
+    -updatedAt: DateTime
+    -createdAt: DateTime
+    --
+    -- Relations --
+    -departement: Departement
+    -participations: Collection<Participation>
+    --
+    -- Méthodes --
+    +getId(): int
+    +getEmail(): string
+    +setEmail(string): User
+    +getPassword(): string
+    +setPassword(string): User
+    +getRoles(): array
+    +setRoles(array): User
+    +getGoogleToken(): string
+    +setGoogleToken(string): User
+    +getNom(): string
+    +setNom(string): User
+    +getPrenom(): string
+    +setPrenom(string): User
+    +getDateNaissance(): DateTime
+    +setDateNaissance(DateTime): User
+    +getDepartement(): Departement
+    +setDepartement(Departement): User
+    +isNotifyByEmail(): boolean
+    +setNotifyByEmail(boolean): User
+    +isNotifyBySms(): boolean
+    +setNotifyBySms(boolean): User
+    +isEnableSoundNotifications(): boolean
+    +setEnableSoundNotifications(boolean): User
+    +isEnableVisualNotifications(): boolean
+    +setEnableVisualNotifications(boolean): User
+    +getReminderFrequency(): int
+    +setReminderFrequency(int): User
+    +getNotificationPriority(): string
+    +setNotificationPriority(string): User
+    +getPhoto(): string
+    +setPhoto(string): User
+    +getSociete(): string
+    +setSociete(string): User
+    +getSpecialite(): string
+    +setSpecialite(string): User
+    +getTelephone(): string
+    +setTelephone(string): User
+    +getUpdatedAt(): DateTime
+    +setUpdatedAt(DateTime): User
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): User
+    +eraseCredentials(): void
+    +getUserIdentifier(): string
+    +getFullName(): string
+    +__toString(): string
+    +getParticipations(): Collection<Participation>
+    +addParticipation(Participation): User
+    +removeParticipation(Participation): User
+}
+
+' Event Entity
+class Event << (E,#EVENT_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -title: string
+    -description: string
+    -lieu: string
+    -dateHeure: DateTime
+    -duree: int
+    -category: string
+    -status: string
+    -googleDriveUrl: string
+    -googleDriveFolderId: string
+    -etherpadUrl: string
+    -uploadedDocuments: array
+    -fileName: string
+    -updatedAt: DateTimeImmutable
+    -archive: boolean
+    --
+    -- Relations --
+    -salle: Salle
+    -organizer: User
+    -departement: Departement
+    -createdBy: User
+    -invitations: Collection<Invitation>
+    -documents: Collection<Document>
+    -participations: Collection<Participation>
+    -files: Collection<EventFile>
+    -collaborativeNotes: Collection<CollaborativeNote>
+    --
+    -- Méthodes --
+    +getId(): int
+    +getTitle(): string
+    +setTitle(string): Event
+    +getDescription(): string
+    +setDescription(string): Event
+    +getLieu(): string
+    +setLieu(string): Event
+    +getSalle(): Salle
+    +setSalle(Salle): Event
+    +getDateHeure(): DateTime
+    +setDateHeure(DateTime): Event
+    +getDuree(): int
+    +setDuree(int): Event
+    +getCategory(): string
+    +setCategory(string): Event
+    +getStatus(): string
+    +setStatus(string): Event
+    +getOrganizer(): User
+    +setOrganizer(User): Event
+    +getDepartement(): Departement
+    +setDepartement(Departement): Event
+    +getGoogleDriveUrl(): string
+    +setGoogleDriveUrl(string): Event
+    +getGoogleDriveFolderId(): string
+    +setGoogleDriveFolderId(string): Event
+    +getEtherpadUrl(): string
+    +setEtherpadUrl(string): Event
+    +getFileName(): string
+    +setFileName(string): Event
+    +getUpdatedAt(): DateTimeImmutable
+    +setUpdatedAt(DateTimeImmutable): Event
+    +getInvitations(): Collection<Invitation>
+    +addInvitation(Invitation): Event
+    +removeInvitation(Invitation): Event
+    +getDocuments(): Collection<Document>
+    +addDocument(Document): Event
+    +removeDocument(Document): Event
+    +getUploadedDocuments(): array
+    +setUploadedDocuments(array): Event
+    +getFiles(): Collection<EventFile>
+    +addFile(EventFile): Event
+    +removeFile(EventFile): Event
+    +getCollaborativeNotes(): Collection<CollaborativeNote>
+    +addCollaborativeNote(CollaborativeNote): Event
+    +removeCollaborativeNote(CollaborativeNote): Event
+    +isArchive(): boolean
+    +setArchive(boolean): Event
+    +getParticipations(): Collection<Participation>
+    +addParticipation(Participation): Event
+    +removeParticipation(Participation): Event
+    +getCreatedBy(): User
+    +setCreatedBy(User): Event
+    +setImageFile(File): void
+    +getImageFile(): File
+}
+
+' Salle Entity
+class Salle << (E,#SALLE_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -nom: string
+    -debutReservation: DateTime
+    -finReservation: DateTime
+    -capacite: int
+    -disponible: boolean
+    -description: string
+    -localisation: string
+    -equipements: array
+    -horairesParJour: array
+    -type: string
+    -superficie: decimal
+    -photo: string
+    -accessibilite: boolean
+    -tarif: decimal
+    -priorite: int
+    --
+    -- Méthodes --
+    +getId(): int
+    +getNom(): string
+    +setNom(string): Salle
+    +getDebutReservation(): DateTime
+    +setDebutReservation(DateTime): Salle
+    +getFinReservation(): DateTime
+    +setFinReservation(DateTime): Salle
+    +getCapacite(): int
+    +setCapacite(int): Salle
+    +isDisponible(): boolean
+    +setDisponible(boolean): Salle
+    +getDescription(): string
+    +setDescription(string): Salle
+    +getLocalisation(): string
+    +setLocalisation(string): Salle
+    +getEquipements(): array
+    +setEquipements(array): Salle
+    +addEquipement(string): Salle
+    +removeEquipement(string): Salle
+    +hasEquipement(string): boolean
+    +getType(): string
+    +setType(string): Salle
+    +getSuperficie(): string
+    +setSuperficie(string): Salle
+    +getPhoto(): string
+    +setPhoto(string): Salle
+    +isAccessibilite(): boolean
+    +setAccessibilite(boolean): Salle
+    +getTarif(): string
+    +setTarif(string): Salle
+    +getPriorite(): int
+    +setPriorite(int): Salle
+    +getPrioriteLabel(): string
+    +getTypeLabel(): string
+    +getHorairesParJour(): array
+    +setHorairesParJour(array): Salle
+    +__toString(): string
+}
+
+' Departement Entity
+class Departement << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -nom: string
+    -code: string
+    -description: string
+    -responsable: string
+    -emailContact: string
+    -telephone: string
+    -localisation: string
+    -budgetAnnuel: int
+    -actif: boolean
+    -createdAt: DateTime
+    -updatedAt: DateTime
+    --
+    -- Relations --
+    -users: Collection<User>
+    -events: Collection<Event>
+    --
+    -- Méthodes --
+    +getId(): int
+    +getNom(): string
+    +setNom(string): Departement
+    +getCode(): string
+    +setCode(string): Departement
+    +getDescription(): string
+    +setDescription(string): Departement
+    +getResponsable(): string
+    +setResponsable(string): Departement
+    +getEmailContact(): string
+    +setEmailContact(string): Departement
+    +getTelephone(): string
+    +setTelephone(string): Departement
+    +getLocalisation(): string
+    +setLocalisation(string): Departement
+    +getBudgetAnnuel(): int
+    +setBudgetAnnuel(int): Departement
+    +isActif(): boolean
+    +setActif(boolean): Departement
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Departement
+    +getUpdatedAt(): DateTime
+    +setUpdatedAt(DateTime): Departement
+    +getUsers(): Collection<User>
+    +addUser(User): Departement
+    +removeUser(User): Departement
+    +getEvents(): Collection<Event>
+    +addEvent(Event): Departement
+    +removeEvent(Event): Departement
+    +__toString(): string
+}
+
+' Invitation Entity
+class Invitation << (E,#ENTITY_COLOR) >> {
+    -- Constantes --
+    +STATUS_PENDING: string
+    +STATUS_ACCEPTED: string
+    +STATUS_DECLINED: string
+    --
+    -- Propriétés --
+    -id: int
+    -email: string
+    -name: string
+    -status: string
+    -token: string
+    -createdAt: DateTime
+    -updatedAt: DateTime
+    --
+    -- Relations --
+    -event: Event
+    -participant: Participant
+    --
+    -- Méthodes --
+    +getId(): int
+    +getEmail(): string
+    +setEmail(string): Invitation
+    +getName(): string
+    +setName(string): Invitation
+    +getStatus(): string
+    +setStatus(string): Invitation
+    +getToken(): string
+    +setToken(string): Invitation
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Invitation
+    +getUpdatedAt(): DateTime
+    +setUpdatedAt(DateTime): Invitation
+    +getEvent(): Event
+    +setEvent(Event): Invitation
+    +getParticipant(): Participant
+    +setParticipant(Participant): Invitation
+    +isPending(): boolean
+    +isAccepted(): boolean
+    +isDeclined(): boolean
+}
+
+' Participation Entity
+class Participation << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -invitationStatus: string
+    -isPresent: boolean
+    -createdAt: DateTime
+    -feedback: string
+    --
+    -- Relations --
+    -user: User
+    -event: Event
+    --
+    -- Méthodes --
+    +getId(): int
+    +getUser(): User
+    +setUser(User): Participation
+    +getEvent(): Event
+    +setEvent(Event): Participation
+    +getInvitationStatus(): string
+    +setInvitationStatus(string): Participation
+    +isPresent(): boolean
+    +setIsPresent(boolean): Participation
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Participation
+    +getFeedback(): string
+    +setFeedback(string): Participation
+}
+
+' Reminder Entity
+class Reminder << (E,#NOTIFICATION_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -title: string
+    -description: string
+    -dueDate: DateTime
+    -isDone: boolean
+    -isTriggered: boolean
+    -createdAt: DateTime
+    -triggeredAt: DateTime
+    -type: string
+    -priority: string
+    -sendEmail: boolean
+    -showNotification: boolean
+    -playSound: boolean
+    -metadata: array
+    --
+    -- Relations --
+    -user: User
+    -event: Event
+    --
+    -- Méthodes --
+    +getId(): int
+    +getTitle(): string
+    +setTitle(string): Reminder
+    +getDescription(): string
+    +setDescription(string): Reminder
+    +getDueDate(): DateTime
+    +setDueDate(DateTime): Reminder
+    +isDone(): boolean
+    +setIsDone(boolean): Reminder
+    +isTriggered(): boolean
+    +setIsTriggered(boolean): Reminder
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Reminder
+    +getTriggeredAt(): DateTime
+    +setTriggeredAt(DateTime): Reminder
+    +getType(): string
+    +setType(string): Reminder
+    +getPriority(): string
+    +setPriority(string): Reminder
+    +isSendEmail(): boolean
+    +setSendEmail(boolean): Reminder
+    +isShowNotification(): boolean
+    +setShowNotification(boolean): Reminder
+    +isPlaySound(): boolean
+    +setPlaySound(boolean): Reminder
+    +getMetadata(): array
+    +setMetadata(array): Reminder
+    +getUser(): User
+    +setUser(User): Reminder
+    +getEvent(): Event
+    +setEvent(Event): Reminder
+    +shouldTrigger(): boolean
+    +trigger(): Reminder
+    +markAsDone(): Reminder
+    +getNotificationConfig(): array
+    +getFormattedMessage(): string
+    +getTimeUntilDue(): DateInterval
+    +isOverdue(): boolean
+}
+
+' Notification Entity
+class Notification << (E,#NOTIFICATION_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -title: string
+    -message: string
+    -isRead: boolean
+    -createdAt: DateTime
+    -type: string
+    --
+    -- Relations --
+    -user: User
+    -event: Event
+    --
+    -- Méthodes --
+    +getId(): int
+    +getTitle(): string
+    +setTitle(string): Notification
+    +getMessage(): string
+    +setMessage(string): Notification
+    +isRead(): boolean
+    +setIsRead(boolean): Notification
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Notification
+    +getType(): string
+    +setType(string): Notification
+    +getUser(): User
+    +setUser(User): Notification
+    +getEvent(): Event
+    +setEvent(Event): Notification
+    +getIcon(): string
+    +getTypeColor(): string
+    +getTimeAgo(): string
+}
+
+' Reservation Entity
+class Reservation << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -dateDebut: DateTime
+    -dateFin: DateTime
+    -reservePar: string
+    -motif: string
+    -statut: string
+    -dateCreation: DateTime
+    -nombreParticipants: int
+    -notes: string
+    -contactTelephone: string
+    -contactEmail: string
+    -recurrente: boolean
+    -typeRecurrence: string
+    -finRecurrence: DateTime
+    -dateModification: DateTime
+    -modifiePar: string
+    --
+    -- Relations --
+    -salle: Salle
+    --
+    -- Méthodes --
+    +getId(): int
+    +getSalle(): Salle
+    +setSalle(Salle): Reservation
+    +getDateDebut(): DateTime
+    +setDateDebut(DateTime): Reservation
+    +getDateFin(): DateTime
+    +setDateFin(DateTime): Reservation
+    +getReservePar(): string
+    +setReservePar(string): Reservation
+    +getMotif(): string
+    +setMotif(string): Reservation
+    +getStatut(): string
+    +setStatut(string): Reservation
+    +getDateCreation(): DateTime
+    +setDateCreation(DateTime): Reservation
+    +chevaucheAvec(DateTime, DateTime): boolean
+    +estActive(): boolean
+    +getNombreParticipants(): int
+    +setNombreParticipants(int): Reservation
+    +getNotes(): string
+    +setNotes(string): Reservation
+    +getContactTelephone(): string
+    +setContactTelephone(string): Reservation
+    +getContactEmail(): string
+    +setContactEmail(string): Reservation
+    +isRecurrente(): boolean
+    +setRecurrente(boolean): Reservation
+    +getTypeRecurrence(): string
+    +setTypeRecurrence(string): Reservation
+    +getFinRecurrence(): DateTime
+    +setFinRecurrence(DateTime): Reservation
+    +getDateModification(): DateTime
+    +setDateModification(DateTime): Reservation
+    +getModifiePar(): string
+    +setModifiePar(string): Reservation
+    +getStatutLabel(): string
+    +getDuree(): DateInterval
+    +getDureeEnHeures(): float
+}
+
+' Document Entity
+class Document << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -file: File
+    -fileName: string
+    -createdAt: DateTimeImmutable
+    --
+    -- Relations --
+    -event: Event
+    --
+    -- Méthodes --
+    +getId(): int
+    +setFile(File): void
+    +getFile(): File
+    +setFileName(string): void
+    +getFileName(): string
+    +getEvent(): Event
+    +setEvent(Event): Document
+    +setCreatedAt(DateTimeImmutable): void
+    +getCreatedAt(): DateTimeImmutable
+}
+
+' CollaborativeNote Entity
+class CollaborativeNote << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -title: string
+    -content: string
+    -createdAt: DateTimeImmutable
+    -updatedAt: DateTimeImmutable
+    --
+    -- Relations --
+    -event: Event
+    -createdBy: User
+    --
+    -- Méthodes --
+    +getId(): int
+    +getTitle(): string
+    +setTitle(string): CollaborativeNote
+    +getContent(): string
+    +setContent(string): CollaborativeNote
+    +getEvent(): Event
+    +setEvent(Event): CollaborativeNote
+    +getCreatedBy(): User
+    +setCreatedBy(User): CollaborativeNote
+    +getCreatedAt(): DateTimeImmutable
+    +setCreatedAt(DateTimeImmutable): CollaborativeNote
+    +getUpdatedAt(): DateTimeImmutable
+    +setUpdatedAt(DateTimeImmutable): CollaborativeNote
+}
+
+' EventFile Entity
+class EventFile << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -fileName: string
+    -filePath: string
+    -fileSize: int
+    -mimeType: string
+    -uploadedAt: DateTime
+    --
+    -- Relations --
+    -event: Event
+    --
+    -- Méthodes --
+    +getId(): int
+    +getFileName(): string
+    +setFileName(string): EventFile
+    +getFilePath(): string
+    +setFilePath(string): EventFile
+    +getFileSize(): int
+    +setFileSize(int): EventFile
+    +getMimeType(): string
+    +setMimeType(string): EventFile
+    +getUploadedAt(): DateTime
+    +setUploadedAt(DateTime): EventFile
+    +getEvent(): Event
+    +setEvent(Event): EventFile
+}
+
+' Participant Entity
+class Participant << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -email: string
+    -nom: string
+    -prenom: string
+    -telephone: string
+    -createdAt: DateTime
+    --
+    -- Relations --
+    -invitations: Collection<Invitation>
+    --
+    -- Méthodes --
+    +getId(): int
+    +getEmail(): string
+    +setEmail(string): Participant
+    +getNom(): string
+    +setNom(string): Participant
+    +getPrenom(): string
+    +setPrenom(string): Participant
+    +getTelephone(): string
+    +setTelephone(string): Participant
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): Participant
+    +getInvitations(): Collection<Invitation>
+    +addInvitation(Invitation): Participant
+    +removeInvitation(Invitation): Participant
+}
+
+' ResetPasswordRequest Entity
+class ResetPasswordRequest << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -token: string
+    -expiresAt: DateTime
+    -createdAt: DateTime
+    --
+    -- Relations --
+    -user: User
+    --
+    -- Méthodes --
+    +getId(): int
+    +getToken(): string
+    +setToken(string): ResetPasswordRequest
+    +getExpiresAt(): DateTime
+    +setExpiresAt(DateTime): ResetPasswordRequest
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): ResetPasswordRequest
+    +getUser(): User
+    +setUser(User): ResetPasswordRequest
+    +isExpired(): boolean
+}
+
+' GestionSalle Entity
+class GestionSalle << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -nom: string
+    -description: string
+    -capacite: int
+    -disponible: boolean
+    -createdAt: DateTime
+    --
+    -- Méthodes --
+    +getId(): int
+    +getNom(): string
+    +setNom(string): GestionSalle
+    +getDescription(): string
+    +setDescription(string): GestionSalle
+    +getCapacite(): int
+    +setCapacite(int): GestionSalle
+    +isDisponible(): boolean
+    +setDisponible(boolean): GestionSalle
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): GestionSalle
+}
+
+' CalendarEvent Entity
+class CalendarEvent << (E,#ENTITY_COLOR) >> {
+    -- Propriétés --
+    -id: int
+    -title: string
+    -start: DateTime
+    -end: DateTime
+    -allDay: boolean
+    -backgroundColor: string
+    -borderColor: string
+    -textColor: string
+    -createdAt: DateTime
+    --
+    -- Relations --
+    -user: User
+    --
+    -- Méthodes --
+    +getId(): int
+    +getTitle(): string
+    +setTitle(string): CalendarEvent
+    +getStart(): DateTime
+    +setStart(DateTime): CalendarEvent
+    +getEnd(): DateTime
+    +setEnd(DateTime): CalendarEvent
+    +isAllDay(): boolean
+    +setAllDay(boolean): CalendarEvent
+    +getBackgroundColor(): string
+    +setBackgroundColor(string): CalendarEvent
+    +getBorderColor(): string
+    +setBorderColor(string): CalendarEvent
+    +getTextColor(): string
+    +setTextColor(string): CalendarEvent
+    +getCreatedAt(): DateTime
+    +setCreatedAt(DateTime): CalendarEvent
+    +getUser(): User
+    +setUser(User): CalendarEvent
+}
+
+' Relations entre les entités
+User ||--o{ Participation : "participe à"
+User ||--o{ Reminder : "a des rappels"
+User ||--o{ Notification : "reçoit"
+User ||--o{ CalendarEvent : "crée"
+User ||--o{ CollaborativeNote : "crée"
+User ||--o{ ResetPasswordRequest : "demande"
+
+Event ||--o{ Invitation : "envoie"
+Event ||--o{ Participation : "reçoit"
+Event ||--o{ Document : "contient"
+Event ||--o{ EventFile : "contient"
+Event ||--o{ CollaborativeNote : "contient"
+Event ||--o{ Reminder : "génère"
+Event ||--o{ Notification : "génère"
+
+Salle ||--o{ Reservation : "est réservée"
+Salle ||--o{ Event : "accueille"
+
+Departement ||--o{ User : "contient"
+Departement ||--o{ Event : "organise"
+
+Participant ||--o{ Invitation : "reçoit"
+
+User ||--|| Departement : "appartient à"
+Event ||--|| User : "est organisé par"
+Event ||--|| User : "est créé par"
+Event ||--|| Departement : "appartient à"
+Event ||--o| Salle : "se déroule dans"
+Invitation ||--|| Event : "concerne"
+Invitation ||--o| Participant : "est envoyée à"
+Participation ||--|| User : "implique"
+Participation ||--|| Event : "concerne"
+Reminder ||--|| User : "notifie"
+Reminder ||--o| Event : "rappelle"
+Notification ||--|| User : "notifie"
+Notification ||--o| Event : "concerne"
+Reservation ||--|| Salle : "réserve"
+Document ||--|| Event : "appartient à"
+CollaborativeNote ||--|| Event : "appartient à"
+CollaborativeNote ||--|| User : "est créée par"
+EventFile ||--|| Event : "appartient à"
+CalendarEvent ||--|| User : "appartient à"
+ResetPasswordRequest ||--|| User : "demande"
+
+@enduml 

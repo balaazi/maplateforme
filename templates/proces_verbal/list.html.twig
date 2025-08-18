@@ -1,0 +1,248 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des procès-verbaux{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .pv-list-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    .pv-header {
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .pv-title {
+        font-size: 2rem;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+    }
+
+    .pv-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .pv-table th,
+    .pv-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .pv-table th {
+        background: #f8fafc;
+        font-weight: 600;
+        color: #374151;
+    }
+
+    .pv-table tr:hover {
+        background: #f9fafb;
+    }
+
+    .pv-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .status-finalise {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-brouillon {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.25rem;
+        font-size: 0.875rem;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: none;
+    }
+
+    .btn-outline-primary {
+        background: transparent;
+        color: #4f46e5;
+        border: 1px solid #4f46e5;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #6b7280;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #d1d5db;
+    }
+
+    .filter-section {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .stats-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1a202c;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pv-list-container">
+    <div class="pv-header">
+        <div>
+            <h1 class="pv-title">
+                <i class="fas fa-file-alt text-primary"></i>
+                Procès-verbaux
+            </h1>
+            <p class="text-muted">Gérez vos procès-verbaux de réunion</p>
+        </div>
+        <div>
+            <a href="{{ path('event_list') }}" class="btn btn-outline-primary">
+                <i class="fas fa-calendar-plus"></i> Voir les événements
+            </a>
+        </div>
+    </div>
+
+    {% set totalPV = procesVerbaux|length %}
+    {% set pvFinalises = procesVerbaux|filter(pv => pv.finalise)|length %}
+    {% set pvBrouillons = totalPV - pvFinalises %}
+
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ totalPV }}</div>
+            <div class="stat-label">Total des PV</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ pvFinalises }}</div>
+            <div class="stat-label">PV finalisés</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ pvBrouillons }}</div>
+            <div class="stat-label">Brouillons</div>
+        </div>
+    </div>
+
+    {% if procesVerbaux|length > 0 %}
+        <table class="pv-table">
+            <thead>
+                <tr>
+                    <th>Événement</th>
+                    <th>Date de la réunion</th>
+                    <th>Rédacteur</th>
+                    <th>Date de création</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pv in procesVerbaux %}
+                    <tr>
+                        <td>
+                            <strong>{{ pv.event.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ pv.event.category }}</small>
+                        </td>
+                        <td>{{ pv.dateHeure|date('d/m/Y à H:i') }}</td>
+                        <td>{{ pv.redacteur.prenom }} {{ pv.redacteur.nom }}</td>
+                        <td>{{ pv.dateCreation|date('d/m/Y à H:i') }}</td>
+                        <td>
+                            <span class="pv-status {{ pv.finalise ? 'status-finalise' : 'status-brouillon' }}">
+                                {% if pv.finalise %}
+                                    <i class="fas fa-check-circle"></i> Finalisé
+                                {% else %}
+                                    <i class="fas fa-edit"></i> Brouillon
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ path('proces_verbal_show', {'id': pv.id}) }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Voir
+                            </a>
+                            {% if not pv.finalise and (pv.redacteur == app.user or is_granted('ROLE_ADMIN')) %}
+                                <a href="{{ path('proces_verbal_edit', {'id': pv.id}) }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                            {% endif %}
+                            <a href="{{ path('event_show', {'id': pv.event.id}) }}" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-calendar-alt"></i> Événement
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-file-alt"></i>
+            <h3>Aucun procès-verbal</h3>
+            <p>Vous n'avez pas encore créé de procès-verbal.</p>
+            <p>Les procès-verbaux sont créés à partir des événements de type "Réunion".</p>
+            <a href="{{ path('event_list') }}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus"></i> Voir les événements
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

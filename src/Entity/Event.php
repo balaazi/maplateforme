@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Symfony\Component\HttpFoundation\File\File;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: \App\Repository\EventRepository::class)]
 #[Vich\Uploadable]
 class Event
 {
@@ -84,6 +84,24 @@ class Event
 
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: CollaborativeNote::class, cascade: ['persist', 'remove'])]
     private Collection $collaborativeNotes;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $archive = false;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?User $createdBy = null;
+
+    public function getCreatedBy(): ?User
+    {
+        return $this->createdBy;
+    }
+
+    public function setCreatedBy(?User $user): self
+    {
+        $this->createdBy = $user;
+        return $this;
+    }
 
     public function __construct()
     {
@@ -276,17 +294,28 @@ public function addCollaborativeNote(CollaborativeNote $note): self
     return $this;
 }
 
-public function removeCollaborativeNote(CollaborativeNote $note): self
-{
-    if ($this->collaborativeNotes->removeElement($note)) {
-        if ($note->getEvent() === $this) {
-            $note->setEvent(null);
+    public function removeCollaborativeNote(CollaborativeNote $note): self
+    {
+        if ($this->collaborativeNotes->removeElement($note)) {
+            if ($note->getEvent() === $this) {
+                $note->setEvent(null);
+            }
         }
+        return $this;
     }
-    return $this;
-}
 
-public function getParticipations(): Collection
+    public function isArchive(): bool
+    {
+        return $this->archive;
+    }
+
+    public function setArchive(bool $archive): self
+    {
+        $this->archive = $archive;
+        return $this;
+    }
+
+    public function getParticipations(): Collection
 {
     return $this->participations;
 }

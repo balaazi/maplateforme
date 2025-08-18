@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Service\GlobalNotificationService;
-
+use App\Form\ReservationType;
 
 
 #[Route('/gestion-salles')]
@@ -51,6 +51,20 @@ class SalleController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Initialiser les horaires par défaut si pas définis
+            if (!$salle->getHorairesParJour()) {
+                $horairesParDefaut = [
+                    'monday' =>    ['debut' => '08:00', 'fin' => '18:00'],
+                    'tuesday' =>   ['debut' => '08:00', 'fin' => '18:00'],
+                    'wednesday' => ['debut' => '08:00', 'fin' => '18:00'],
+                    'thursday' =>  ['debut' => '08:00', 'fin' => '18:00'],
+                    'friday' =>    ['debut' => '08:00', 'fin' => '18:00'],
+                    'saturday' =>  ['debut' => '10:00', 'fin' => '14:00'],
+                    'sunday' =>    null
+                ];
+                $salle->setHorairesParJour($horairesParDefaut);
+            }
+            
             $entityManager->persist($salle);
             $entityManager->flush();
 
@@ -222,7 +236,7 @@ class SalleController extends AbstractController
                     $diagnostic[] = "❌ La salle est désactivée";
                 }
                 
-                // Vérification des heures d'ouverture
+                // Vérification des heures d'ouverture générales
                 $heureOuverture = $salle->getDebutReservation();
                 $heureFermeture = $salle->getFinReservation();
                 if ($heureOuverture && $heureFermeture) {
@@ -232,10 +246,50 @@ class SalleController extends AbstractController
                     $fermetureHeure = $heureFermeture->format('H:i');
                     
                     $diagnostic[] = "🕒 Votre créneau : {$debutHeure} - {$finHeure}";
-                    $diagnostic[] = "🏢 Heures d'ouverture : {$ouvertureHeure} - {$fermetureHeure}";
+                    $diagnostic[] = "🏢 Heures d'ouverture générales : {$ouvertureHeure} - {$fermetureHeure}";
                     
                     if ($debutHeure < $ouvertureHeure || $finHeure > $fermetureHeure) {
-                        $diagnostic[] = "❌ Hors des heures d'ouverture de la salle";
+                        $diagnostic[] = "❌ Hors des heures d'ouverture générales de la salle";
+                    }
+                }
+                
+                // Vérification des horaires par jour de la semaine
+                $horairesParJour = $salle->getHorairesParJour();
+                if ($horairesParJour) {
+                    $dateCourante = new \DateTime($dateDebut->format('Y-m-d'));
+                    $dateFin = new \DateTime($dateFin->format('Y-m-d'));
+                    
+                    while ($dateCourante <= $dateFin) {
+                        $jourSemaine = strtolower($dateCourante->format('l'));
+                        $jourFrancais = [
+                            'monday' => 'lundi', 'tuesday' => 'mardi', 'wednesday' => 'mercredi',
+                            'thursday' => 'jeudi', 'friday' => 'vendredi', 'saturday' => 'samedi', 'sunday' => 'dimanche'
+                        ];
+                        $jourNom = $jourFrancais[$jourSemaine] ?? $jourSemaine;
+                        
+                        if (!isset($horairesParJour[$jourSemaine]) || $horairesParJour[$jourSemaine] === null) {
+                            $diagnostic[] = "❌ La salle est fermée le {$jourNom} ({$dateCourante->format('d/m/Y')})";
+                        } else {
+                            $horairesJour = $horairesParJour[$jourSemaine];
+                            
+                            // Si la réservation commence ce jour-là
+                            if ($dateCourante->format('Y-m-d') === $dateDebut->format('Y-m-d')) {
+                                $heureDebut = $dateDebut->format('H:i');
+                                if ($heureDebut < $horairesJour['debut']) {
+                                    $diagnostic[] = "❌ Trop tôt le {$jourNom} : {$heureDebut} < {$horairesJour['debut']}";
+                                }
+                            }
+                            
+                            // Si la réservation se termine ce jour-là
+                            if ($dateCourante->format('Y-m-d') === $dateFin->format('Y-m-d')) {
+                                $heureFin = $dateFin->format('H:i');
+                                if ($heureFin > $horairesJour['fin']) {
+                                    $diagnostic[] = "❌ Trop tard le {$jourNom} : {$heureFin} > {$horairesJour['fin']}";
+                                }
+                            }
+                        }
+                        
+                        $dateCourante->add(new \DateInterval('P1D'));
                     }
                 }
                 
@@ -293,6 +347,20 @@ class SalleController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Initialiser les horaires par défaut si pas définis
+            if (!$salle->getHorairesParJour()) {
+                $horairesParDefaut = [
+                    'monday' =>    ['debut' => '08:00', 'fin' => '18:00'],
+                    'tuesday' =>   ['debut' => '08:00', 'fin' => '18:00'],
+                    'wednesday' => ['debut' => '08:00', 'fin' => '18:00'],
+                    'thursday' =>  ['debut' => '08:00', 'fin' => '18:00'],
+                    'friday' =>    ['debut' => '08:00', 'fin' => '18:00'],
+                    'saturday' =>  ['debut' => '10:00', 'fin' => '14:00'],
+                    'sunday' =>    null
+                ];
+                $salle->setHorairesParJour($horairesParDefaut);
+            }
+            
             $entityManager->flush();
 
             // Notification globale pour la modification de salle
@@ -406,6 +474,24 @@ class SalleController extends AbstractController
             'sallesActives' => $sallesActives,
             'reservationsAujourdhui' => count($reservationsAujourdhui),
             'tauxOccupation' => $tauxOccupation,
+        ]);
+    }
+
+    #[Route('/reservation/{id}/edit', name: 'reservation_edit')]
+    public function editReservation(Reservation $reservation, Request $request, EntityManagerInterface $em): Response
+    {
+        $form = $this->createForm(ReservationType::class, $reservation);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em->flush();
+            $this->addFlash('success', 'Réservation modifiée avec succès.');
+            return $this->redirectToRoute('app_salle_disponibilite', ['id' => $reservation->getSalle()->getId()]);
+        }
+
+        return $this->render('reservation/edit.html.twig', [
+            'form' => $form->createView(),
+            'reservation' => $reservation,
         ]);
     }
 } 

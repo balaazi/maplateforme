@@ -84,6 +84,7 @@ class AppAuthenticator extends AbstractLoginFormAuthenticator
 
         // Redirection basée sur le rôle RÉEL de l'utilisateur (pas les rôles hérités)
         $redirectRoute = match (true) {
+            in_array('ROLE_ADMIN', $realRoles) && in_array('ROLE_ORGANISATEUR', $realRoles) => 'common_dashboard',
             in_array('ROLE_ADMIN', $realRoles) => 'admin_dashboard',
             in_array('ROLE_ORGANISATEUR', $realRoles) => 'organisateur_dashboard',
             in_array('ROLE_PARTICIPANT', $realRoles) => 'participant_dashboard',

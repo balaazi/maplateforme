@@ -1,0 +1,497 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques Détaillées - Administration EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-container {
+            background: #f8f9fa;
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .stats-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stats-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(255,255,255,0.03) 2px,
+                rgba(255,255,255,0.03) 4px
+            );
+            animation: movePattern 20s linear infinite;
+        }
+        
+        @keyframes movePattern {
+            0% { transform: translateX(-100px) translateY(-100px); }
+            100% { transform: translateX(100px) translateY(100px); }
+        }
+        
+        .stats-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.95;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .stat-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .chart-title i {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .top-organizers {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .top-organizers::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ffc107, #e0a800);
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .organizer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+        
+        .organizer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .organizer-item:hover {
+            background: rgba(255,193,7,0.05);
+            border-radius: 10px;
+            padding-left: 0.5rem;
+        }
+        
+        .organizer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .organizer-avatar {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        
+        .organizer-details h6 {
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .organizer-details small {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+        
+        .event-count {
+            background: rgba(255,193,7,0.1);
+            color: #ffc107;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-container {
+                padding: 1rem;
+            }
+            
+            .stats-header {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            
+            .stats-header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .stat-card {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="stats-container">
+        <div class="container-fluid">
+            <!-- En-tête des statistiques -->
+            <div class="stats-header fade-in">
+                <h1>
+                    <i class="fas fa-chart-line me-2"></i>
+                    Statistiques Détaillées
+                </h1>
+                <p>Analyse complète de votre plateforme EventHub</p>
+            </div>
+
+            <!-- Cartes de statistiques principales -->
+            <div class="stats-grid">
+                <div class="stat-card fade-in" style="animation-delay: 0.1s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.totalUsers }}</div>
+                    <div class="stat-label">Utilisateurs totaux</div>
+                </div>
+                
+                <div class="stat-card fade-in" style="animation-delay: 0.2s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.totalEvents }}</div>
+                    <div class="stat-label">Événements totaux</div>
+                </div>
+                
+                <div class="stat-card fade-in" style="animation-delay: 0.3s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.totalInvitations }}</div>
+                    <div class="stat-label">Invitations envoyées</div>
+                </div>
+                
+                <div class="stat-card fade-in" style="animation-delay: 0.4s;">
+                    <div class="stat-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-number">{{ stats.totalParticipations }}</div>
+                    <div class="stat-label">Participations</div>
+                </div>
+            </div>
+
+            <!-- Graphiques -->
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="chart-container fade-in" style="animation-delay: 0.5s;">
+                        <h5 class="chart-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Événements par mois
+                        </h5>
+                        <canvas id="monthlyChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="top-organizers fade-in" style="animation-delay: 0.6s;">
+                        <h5 class="chart-title">
+                            <i class="fas fa-trophy"></i>
+                            Top Organisateurs
+                        </h5>
+                        {% if stats.topOrganizers|length > 0 %}
+                            {% for organizer in stats.topOrganizers %}
+                                <div class="organizer-item">
+                                    <div class="organizer-info">
+                                        <div class="organizer-avatar">
+                                            {{ organizer.prenom|first|upper }}{{ organizer.nom|first|upper }}
+                                        </div>
+                                        <div class="organizer-details">
+                                            <h6>{{ organizer.prenom }} {{ organizer.nom }}</h6>
+                                            <small>{{ organizer.eventCount }} événement(s)</small>
+                                        </div>
+                                    </div>
+                                    <div class="event-count">
+                                        {{ organizer.eventCount }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted text-center">Aucun organisateur trouvé</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistiques supplémentaires -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="chart-container fade-in" style="animation-delay: 0.7s;">
+                        <h5 class="chart-title">
+                            <i class="fas fa-archive"></i>
+                            État des événements
+                        </h5>
+                        <canvas id="eventsStatusChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="chart-container fade-in" style="animation-delay: 0.8s;">
+                        <h5 class="chart-title">
+                            <i class="fas fa-percentage"></i>
+                            Taux de participation
+                        </h5>
+                        <div class="text-center">
+                            <div class="stat-number" style="font-size: 4rem; color: #28a745;">
+                                {% set participationRate = stats.totalInvitations > 0 ? ((stats.totalParticipations / stats.totalInvitations) * 100)|round : 0 %}
+                                {{ participationRate }}%
+                            </div>
+                            <p class="text-muted">{{ stats.totalParticipations }} participations sur {{ stats.totalInvitations }} invitations</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Graphique des événements par mois
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            const monthlyChart = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: {{ stats.monthlyEvents|keys|json_encode|raw }},
+                    datasets: [{
+                        label: 'Événements',
+                        data: {{ stats.monthlyEvents|values|json_encode|raw }},
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Graphique de l'état des événements
+            const eventsStatusCtx = document.getElementById('eventsStatusChart').getContext('2d');
+            const eventsStatusChart = new Chart(eventsStatusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Actifs', 'Archivés'],
+                    datasets: [{
+                        data: [{{ stats.activeEvents }}, {{ stats.archivedEvents }}],
+                        backgroundColor: [
+                            '#28a745',
+                            '#6c757d'
+                        ],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Animation des éléments
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.fade-in').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+{% endblock %} 

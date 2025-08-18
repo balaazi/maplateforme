@@ -8,6 +8,8 @@ use App\Entity\Event;
 use App\Form\InvitationType;
 use App\Repository\EventRepository;
 use App\Repository\InvitationRepository;
+use App\Repository\UserRepository;
+use App\Repository\DepartementRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +33,8 @@ class InvitationController extends AbstractController
         EntityManagerInterface $entityManager,
         MailerInterface $mailer,
         EventRepository $eventRepository,
+        UserRepository $userRepository,
+        DepartementRepository $departementRepository,
         GlobalNotificationService $globalNotificationService
     ): Response {
         $event = $eventRepository->find($eventId);
@@ -45,36 +49,124 @@ class InvitationController extends AbstractController
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à gérer les invitations de cet événement.');
         }
 
+        // Récupérer les données pour les options de ciblage
+        $departements = $departementRepository->findBy(['actif' => true], ['nom' => 'ASC']);
+        $users = $userRepository->findBy([], ['nom' => 'ASC', 'prenom' => 'ASC']);
+
+        // Traitement direct des invitations sans formulaire Symfony
+        if ($request->isMethod('POST')) {
+            // Récupérer les données du ciblage depuis la requête
+            $targetingType = $request->request->get('targeting_type');
+            $targetingData = $request->request->get('targeting_data');
+
+            if ($targetingType) {
+                // Log pour débogage
+                error_log("InvitationController: Traitement invitation - Type: $targetingType, Data: " . print_r($targetingData, true));
+                
+                $this->processTargetedInvitations(
+                    $targetingType,
+                    $targetingData,
+                    $event,
+                    new Invitation(), // Invitation vide comme base
+                    $entityManager,
+                    $mailer,
+                    $userRepository,
+                    $globalNotificationService
+                );
+
+                $this->addFlash('success', 'Invitation(s) envoyée(s) avec succès');
+                return $this->redirectToRoute('invitation_index', ['eventId' => $eventId]);
+            } else {
+                $this->addFlash('error', 'Veuillez sélectionner un type de destinataire');
+                error_log("InvitationController: Aucun type de ciblage reçu");
+            }
+        }
+
+        // Créer un formulaire vide pour la compatibilité du template (non utilisé)
         $invitation = new Invitation();
         $form = $this->createForm(InvitationType::class, $invitation);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $invitation->setToken(bin2hex(random_bytes(32)))
+        return $this->render('invitation/new.html.twig', [
+            'form' => $form->createView(),
+            'event' => $event,
+            'departements' => $departements,
+            'users' => $users
+        ]);
+    }
+
+    private function processTargetedInvitations(
+        $targetingType,
+        $targetingData,
+        Event $event,
+        Invitation $baseInvitation,
+        EntityManagerInterface $entityManager,
+        MailerInterface $mailer,
+        UserRepository $userRepository,
+        GlobalNotificationService $globalNotificationService
+    ): void {
+        $recipients = [];
+
+        error_log("processTargetedInvitations: Type=$targetingType, Data=" . print_r($targetingData, true));
+
+        switch ($targetingType) {
+            case 'all':
+                // Tous les employés
+                $recipients = $userRepository->findAll();
+                error_log("processTargetedInvitations: Mode 'all' - " . count($recipients) . " utilisateurs trouvés");
+                break;
+
+            case 'department':
+                // Par département
+                if ($targetingData) {
+                    $recipients = $userRepository->findBy(['departement' => $targetingData]);
+                    error_log("processTargetedInvitations: Mode 'department' - " . count($recipients) . " utilisateurs trouvés pour département ID=$targetingData");
+                }
+                break;
+
+            case 'specific':
+                // Employés spécifiques
+                if ($targetingData) {
+                    // Les données peuvent être sous forme de chaîne séparée par des virgules
+                    $userIds = is_array($targetingData) ? $targetingData : explode(',', $targetingData);
+                    $userIds = array_filter(array_map('trim', $userIds)); // Nettoyer les espaces
+                    if (!empty($userIds)) {
+                        $recipients = $userRepository->findBy(['id' => $userIds]);
+                        error_log("processTargetedInvitations: Mode 'specific' - " . count($recipients) . " utilisateurs trouvés pour IDs: " . implode(',', $userIds));
+                    }
+                }
+                break;
+        }
+
+        // Créer et envoyer les invitations pour chaque destinataire
+        error_log("processTargetedInvitations: Début de la boucle d'envoi pour " . count($recipients) . " destinataires");
+        
+        foreach ($recipients as $user) {
+            $invitation = new Invitation();
+            $invitation->setName($user->getNom() . ' ' . $user->getPrenom())
+                ->setEmail($user->getEmail())
+                ->setToken(bin2hex(random_bytes(32)))
                 ->setStatus('pending')
                 ->setCreatedAt(new \DateTime())
                 ->setEvent($event);
 
             $entityManager->persist($invitation);
-            $entityManager->flush();
-
-            // Notification globale pour la création d'invitation
+            
             try {
                 $globalNotificationService->notifyPlatformModification('créé', 'invitation', $invitation);
             } catch (\Exception $e) {
                 error_log('Erreur notification globale création invitation: ' . $e->getMessage());
             }
 
-            $this->sendInvitationEmail($invitation, $mailer);
-            $this->addFlash('success', 'Invitation envoyée avec succès');
-
-            return $this->redirectToRoute('invitation_index', ['eventId' => $eventId]);
+            try {
+                $this->sendInvitationEmail($invitation, $mailer);
+                error_log("Invitation envoyée avec succès à: " . $user->getEmail());
+            } catch (\Exception $e) {
+                error_log("Erreur envoi email à " . $user->getEmail() . ": " . $e->getMessage());
+            }
         }
 
-        return $this->render('invitation/new.html.twig', [
-            'form' => $form->createView(),
-            'event' => $event
-        ]);
+        $entityManager->flush();
+        error_log("processTargetedInvitations: " . count($recipients) . " invitations traitées et sauvegardées");
     }
 
     #[Route('/invitations/{eventId}', name: 'invitation_index', requirements: ['eventId' => '\d+'], methods: ['GET'])]
@@ -82,64 +174,64 @@ class InvitationController extends AbstractController
         int $eventId,
         Request $request,
         EventRepository $eventRepository,
-        InvitationRepository $invitationRepository
+        InvitationRepository $invitationRepository,
+        EntityManagerInterface $entityManager
     ): Response {
-        // Debug information
         $user = $this->getUser();
-        $roles = $user ? $user->getRoles() : ['not authenticated'];
-        
-        // Log the request information
-        $this->addFlash('info', sprintf(
-            'Request Debug: Method: %s, Path: %s, EventId: %s',
-            $request->getMethod(),
-            $request->getPathInfo(),
-            $eventId
-        ));
-        
         $event = $eventRepository->find($eventId);
         
         if (!$event) {
-            $this->addFlash('error', sprintf(
-                'Événement non trouvé (ID: %d). Debug: User: %s, Roles: %s',
-                $eventId,
-                $user ? $user->getUserIdentifier() : 'none',
-                implode(', ', $roles)
-            ));
+            $this->addFlash('error', 'Événement non trouvé');
             return $this->redirectToRoute('event_list');
         }
 
-        // Debug information
+        // Vérifier si l'utilisateur est l'organisateur de l'événement
         if ($event->getOrganizer() !== $user) {
-            $this->addFlash('error', sprintf(
-                'Accès refusé. Organisateur attendu: %s, Utilisateur actuel: %s, Roles: %s',
-                $event->getOrganizer() ? $event->getOrganizer()->getUserIdentifier() : 'none',
-                $user ? $user->getUserIdentifier() : 'none',
-                implode(', ', $roles)
-            ));
             throw $this->createAccessDeniedException('Vous n\'êtes pas autorisé à voir les invitations de cet événement.');
         }
 
         $invitations = $invitationRepository->findBy(['event' => $event]);
+        
+        // Récupérer les participations pour chaque invitation
+        $participations = [];
+        foreach ($invitations as $invitation) {
+            // Chercher l'utilisateur par email
+            $user = $entityManager->getRepository(User::class)
+                ->findOneBy(['email' => $invitation->getEmail()]);
+            
+            if ($user) {
+                // Chercher la participation de cet utilisateur pour cet événement
+                $participation = $entityManager->getRepository(Participation::class)
+                    ->findOneBy([
+                        'user' => $user,
+                        'event' => $event
+                    ]);
+                
+                if ($participation) {
+                    $participations[$invitation->getId()] = $participation;
+                }
+            }
+        }
 
         return $this->render('invitation/index.html.twig', [
             'event' => $event,
             'invitations' => $invitations,
-            'debug' => [
-                'user' => $user ? $user->getUserIdentifier() : 'none',
-                'roles' => $roles,
-                'eventId' => $eventId,
-                'requestPath' => $request->getPathInfo(),
-                'requestMethod' => $request->getMethod()
-            ]
+            'participations' => $participations
         ]);
     }
 
     #[Route('/invitations/{id}/cancel', name: 'invitation_cancel', methods: ['GET'])]
     public function cancel(
-        Invitation $invitation,
+        int $id,
         EntityManagerInterface $entityManager,
-        GlobalNotificationService $globalNotificationService
+        GlobalNotificationService $globalNotificationService,
+        InvitationRepository $invitationRepository
     ): Response {
+        $invitation = $invitationRepository->find($id);
+        
+        if (!$invitation) {
+            throw $this->createNotFoundException('Invitation non trouvée.');
+        }
         $event = $invitation->getEvent();
         
         // Check if the current user is the event organizer
@@ -170,10 +262,10 @@ class InvitationController extends AbstractController
     private function sendInvitationEmail(Invitation $invitation, MailerInterface $mailer): void
     {
         $email = (new Email())
-            ->from($this->getParameter('app.mailer_from'))
+            ->from('nadiabalaazi@gmail.com')
             ->to($invitation->getEmail())
             ->subject('Invitation à l\'événement: ' . $invitation->getEvent()->getTitle())
-            ->html($this->renderView('emails/invitation.html.twig', [
+            ->html($this->renderView('emails/event_invitation.html.twig', [
                 'invitation' => $invitation,
             ]));
 

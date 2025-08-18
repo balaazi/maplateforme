@@ -44,9 +44,16 @@ class ParticipationController extends AbstractController
                 $entityManager->flush();
             }
             
+            // L'organisateur peut toujours marquer sa présence
+            $today = new \DateTime('today');
+            $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
+            $canMarkPresence = true; // L'organisateur peut toujours marquer sa présence
+            
             return $this->render('event/presence.html.twig', [
                 'event' => $event,
-                'participation' => $participation
+                'participation' => $participation,
+                'canMarkPresence' => $canMarkPresence,
+                'eventDate' => $eventDate
             ]);
         }
         
@@ -81,9 +88,16 @@ class ParticipationController extends AbstractController
             }
         }
 
+        // Vérifier que c'est le jour de l'événement pour les participants
+        $today = new \DateTime('today');
+        $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
+        $canMarkPresence = $eventDate <= $today;
+
         return $this->render('event/presence.html.twig', [
             'event' => $event,
-            'participation' => $participation
+            'participation' => $participation,
+            'canMarkPresence' => $canMarkPresence,
+            'eventDate' => $eventDate
         ]);
     }
 
@@ -96,6 +110,10 @@ class ParticipationController extends AbstractController
         InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
+        
+        // Vérifier que c'est le jour de l'événement (sauf pour l'organisateur)
+        $today = new \DateTime('today');
+        $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
         
         // Vérifier si l'utilisateur est l'organisateur de l'événement
         if ($event->getOrganizer() === $user) {
@@ -128,6 +146,14 @@ class ParticipationController extends AbstractController
                 'message' => $isPresent ? 'Présence confirmée' : 'Absence confirmée',
                 'isPresent' => $isPresent
             ]);
+        }
+        
+        // Vérifier la date pour les participants (pas pour l'organisateur)
+        if ($eventDate > $today) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Vous pourrez marquer votre présence le jour de l\'événement (' . $event->getDateHeure()->format('d/m/Y') . ')'
+            ], 403);
         }
         
         // Trouver la participation de l'utilisateur pour cet événement
@@ -174,6 +200,65 @@ class ParticipationController extends AbstractController
         return $this->json([
             'success' => true,
             'message' => $isPresent ? 'Présence confirmée' : 'Absence confirmée',
+            'isPresent' => $isPresent
+        ]);
+    }
+
+    #[Route('/participation/update-presence', name: 'update_participation_presence', methods: ['POST'])]
+    #[IsGranted('ROLE_ORGANISATEUR')]
+    public function updateParticipationPresence(
+        Request $request,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $participationId = $request->request->get('participation_id');
+        $isPresent = $request->request->get('is_present') === 'true';
+
+        if (!$participationId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'ID de participation manquant'
+            ], 400);
+        }
+
+        $participation = $participationRepository->find($participationId);
+        
+        if (!$participation) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Participation non trouvée'
+            ], 404);
+        }
+
+        $event = $participation->getEvent();
+        $user = $this->getUser();
+
+        // Vérifier que l'utilisateur est l'organisateur de l'événement
+        if ($event->getOrganizer() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Seul l\'organisateur peut modifier la présence'
+            ], 403);
+        }
+
+        // Vérifier que c'est le jour de l'événement
+        $today = new \DateTime('today');
+        $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
+        
+        if ($eventDate > $today) {
+            return $this->json([
+                'success' => false,
+                'message' => 'La gestion de présence ne sera disponible que le jour de l\'événement (' . $event->getDateHeure()->format('d/m/Y') . ')'
+            ], 403);
+        }
+
+        // Mettre à jour la présence
+        $participation->setIsPresent($isPresent);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => $isPresent ? 'Participant marqué présent' : 'Participant marqué absent',
             'isPresent' => $isPresent
         ]);
     }

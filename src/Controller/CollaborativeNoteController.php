@@ -6,6 +6,7 @@ use App\Entity\CollaborativeNote;
 use App\Entity\Event;
 use App\Form\CollaborativeNoteType;
 use App\Repository\CollaborativeNoteRepository;
+use App\Repository\EventRepository;
 use App\Repository\ParticipationRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +23,11 @@ class CollaborativeNoteController extends AbstractController
     {
         $user = $this->getUser();
         
+        // Correction : l'administrateur a toujours accès
+        if (in_array('ROLE_ADMIN', $user->getRoles())) {
+            return true;
+        }
+
         // L'organisateur a toujours accès
         if ($event->getOrganizer() === $user) {
             return true;
@@ -63,8 +69,13 @@ class CollaborativeNoteController extends AbstractController
     }
 
     #[Route('/event/{id}', name: 'app_collaborative_notes_list')]
-    public function list(Event $event, EntityManagerInterface $entityManager): Response
+    public function list(int $id, EntityManagerInterface $entityManager, EventRepository $eventRepository): Response
     {
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+        
         if (!$this->canAccessEvent($event, $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cet événement.');
         }
@@ -78,8 +89,13 @@ class CollaborativeNoteController extends AbstractController
     }
 
     #[Route('/event/{id}/new', name: 'app_collaborative_notes_new')]
-    public function new(Event $event, Request $request, EntityManagerInterface $entityManager): Response
+    public function new(int $id, Request $request, EntityManagerInterface $entityManager, EventRepository $eventRepository): Response
     {
+        $event = $eventRepository->find($id);
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+        
         if (!$this->canAccessEvent($event, $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cet événement.');
         }
@@ -106,8 +122,13 @@ class CollaborativeNoteController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_collaborative_notes_edit')]
-    public function edit(CollaborativeNote $note, Request $request, EntityManagerInterface $entityManager): Response
+    public function edit(int $id, Request $request, EntityManagerInterface $entityManager, CollaborativeNoteRepository $noteRepository): Response
     {
+        $note = $noteRepository->find($id);
+        if (!$note) {
+            throw $this->createNotFoundException('Note non trouvée.');
+        }
+        
         if (!$this->canAccessEvent($note->getEvent(), $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette note.');
         }
@@ -130,8 +151,13 @@ class CollaborativeNoteController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_collaborative_notes_delete', methods: ['POST'])]
-    public function delete(CollaborativeNote $note, Request $request, EntityManagerInterface $entityManager): Response
+    public function delete(int $id, Request $request, EntityManagerInterface $entityManager, CollaborativeNoteRepository $noteRepository): Response
     {
+        $note = $noteRepository->find($id);
+        if (!$note) {
+            throw $this->createNotFoundException('Note non trouvée.');
+        }
+        
         if (!$this->canAccessEvent($note->getEvent(), $entityManager)) {
             throw $this->createAccessDeniedException('Vous n\'avez pas accès à cette note.');
         }

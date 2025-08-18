@@ -29,15 +29,8 @@ class ReportController extends AbstractController
         InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
-        // Exclure les événements annulés des rapports
-        $events = $eventRepository->createQueryBuilder('e')
-            ->where('e.organizer = :organizer')
-            ->andWhere('e.status IS NULL OR e.status != :cancelled')
-            ->setParameter('organizer', $user)
-            ->setParameter('cancelled', 'annulé')
-            ->orderBy('e.dateHeure', 'DESC')
-            ->getQuery()
-            ->getResult();
+        // Utiliser le repository avec filtrage automatique des événements archivés
+        $events = $eventRepository->findByRole($user);
 
         // Filtrage par dates si demandé
         $startDate = $request->query->get('start_date');
@@ -45,28 +38,30 @@ class ReportController extends AbstractController
         $eventType = $request->query->get('event_type');
 
         if ($startDate || $endDate || $eventType) {
-            $qb = $eventRepository->createQueryBuilder('e')
-                ->where('e.organizer = :organizer')
-                ->andWhere('e.status IS NULL OR e.status != :cancelled')
-                ->setParameter('organizer', $user)
-                ->setParameter('cancelled', 'annulé');
-
-            if ($startDate) {
-                $qb->andWhere('e.dateHeure >= :startDate')
-                   ->setParameter('startDate', new \DateTime($startDate));
+            // Filtrer les événements déjà récupérés par date et type
+            $filteredEvents = [];
+            foreach ($events as $event) {
+                $includeEvent = true;
+                
+                if ($startDate && $event->getDateHeure() < new \DateTime($startDate)) {
+                    $includeEvent = false;
+                }
+                
+                if ($endDate && $event->getDateHeure() > new \DateTime($endDate . ' 23:59:59')) {
+                    $includeEvent = false;
+                }
+                
+                if ($eventType && $event->getTypeEvenement() !== $eventType) {
+                    $includeEvent = false;
+                }
+                
+                if ($includeEvent) {
+                    $filteredEvents[] = $event;
+                }
             }
+            $events = $filteredEvents;
 
-            if ($endDate) {
-                $qb->andWhere('e.dateHeure <= :endDate')
-                   ->setParameter('endDate', new \DateTime($endDate . ' 23:59:59'));
-            }
 
-            if ($eventType) {
-                $qb->andWhere('e.typeEvenement = :eventType')
-                   ->setParameter('eventType', $eventType);
-            }
-
-            $events = $qb->orderBy('e.dateHeure', 'DESC')->getQuery()->getResult();
         }
 
         // Calcul des statistiques de fréquentation
@@ -129,14 +124,8 @@ class ReportController extends AbstractController
         InvitationRepository $invitationRepository
     ): Response {
         $user = $this->getUser();
-        // Exclure les événements annulés des rapports de participation
-        $events = $eventRepository->createQueryBuilder('e')
-            ->where('e.organizer = :organizer')
-            ->andWhere('e.status IS NULL OR e.status != :cancelled')
-            ->setParameter('organizer', $user)
-            ->setParameter('cancelled', 'annulé')
-            ->getQuery()
-            ->getResult();
+        // Utiliser le repository avec filtrage automatique des événements archivés
+        $events = $eventRepository->findByRole($user);
 
         // Analyse des taux de participation
         $participationStats = [
@@ -216,14 +205,8 @@ class ReportController extends AbstractController
         ParticipationRepository $participationRepository
     ): Response {
         $user = $this->getUser();
-        // Exclure les événements annulés des rapports par département
-        $events = $eventRepository->createQueryBuilder('e')
-            ->where('e.organizer = :organizer')
-            ->andWhere('e.status IS NULL OR e.status != :cancelled')
-            ->setParameter('organizer', $user)
-            ->setParameter('cancelled', 'annulé')
-            ->getQuery()
-            ->getResult();
+        // Utiliser le repository avec filtrage automatique des événements archivés
+        $events = $eventRepository->findByRole($user);
 
         $departmentStats = [];
         $specialtyStats = [];
@@ -328,7 +311,7 @@ class ReportController extends AbstractController
 
     private function exportAttendanceCSV($eventRepository, $participationRepository, $user): Response
     {
-        $events = $eventRepository->findBy(['organizer' => $user], ['dateHeure' => 'DESC']);
+        $events = $eventRepository->findByRole($user);
         
         $csvContent = "Événement,Date,Lieu,Invités,Présents,Absents,Taux de présence\n";
         
@@ -360,7 +343,7 @@ class ReportController extends AbstractController
 
     private function exportParticipationCSV($eventRepository, $participationRepository, $user): Response
     {
-        $events = $eventRepository->findBy(['organizer' => $user], ['dateHeure' => 'DESC']);
+        $events = $eventRepository->findByRole($user);
         
         $csvContent = "Événement,Participant,Email,Département,Spécialité,Statut,Présent\n";
         

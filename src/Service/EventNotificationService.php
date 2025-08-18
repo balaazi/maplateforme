@@ -38,82 +38,102 @@ public function sendEventUpdateNotification(Event $event): void
 
         // 1. Notification à l'organisateur (NOUVELLE FONCTIONNALITÉ)
         $organizer = $event->getOrganizer();
-        if ($organizer && $organizer->getEmail() && $organizer->isNotifyByEmail()) {
+        if ($organizer && $organizer->getEmail()) {
+            // ✅ CRÉER TOUJOURS LA NOTIFICATION EN BASE DE DONNÉES
             try {
-                // Créer la notification en base de données
                 $this->notificationService->createEventUpdateNotification($organizer, $event);
-
-                // Envoyer l'email à l'organisateur
-                $email = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                    ->to($organizer->getEmail())
-                    ->subject('✏️ Confirmation : Votre événement a été modifié - ' . $event->getTitle())
-                    ->html($this->renderOrganizerUpdateTemplate($event, $organizer));
-
-                $this->mailer->send($email);
-                $sentCount++;
-                
-                $this->logger->info('Email de modification envoyé à l\'organisateur', [
-                    'event_id' => $event->getId(),
-                    'organizer_email' => $organizer->getEmail()
-                ]);
             } catch (\Exception $e) {
-                $errors[] = sprintf('Erreur envoi email organisateur %s: %s', $organizer->getEmail(), $e->getMessage());
-                $this->logger->error('Erreur envoi email organisateur', [
+                $this->logger->error('Erreur création notification organisateur en base', [
                     'event_id' => $event->getId(),
                     'organizer_email' => $organizer->getEmail(),
                     'error' => $e->getMessage()
                 ]);
             }
-        }
 
-        // 2. Envoyer aux participants de l'événement
-        foreach ($event->getParticipations() as $participation) {
-            $user = $participation->getUser();
-            if ($user && $user->getEmail() && $user->isNotifyByEmail()) {
+            // Envoyer l'email seulement si activé
+            if ($organizer->isNotifyByEmail()) {
                 try {
-                // Créer la notification en base de données
-                $this->notificationService->createEventUpdateNotification($user, $event);
+                    $email = (new Email())
+                        ->from('nadiabalaazi@gmail.com')
+                        ->to($organizer->getEmail())
+                        ->subject('✏️ Confirmation : Votre événement a été modifié - ' . $event->getTitle())
+                        ->html($this->renderOrganizerUpdateTemplate($event, $organizer));
 
-                // Envoyer l'email
-                $email = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                    ->to($user->getEmail())
-                    ->subject('🔔 Événement modifié : ' . $event->getTitle())
-                    ->html($this->renderUpdateTemplate($event, $user));
-
-                $this->mailer->send($email);
+                    $this->mailer->send($email);
                     $sentCount++;
                     
-                    $this->logger->info('Email de modification envoyé au participant', [
+                    $this->logger->info('Email de modification envoyé à l\'organisateur', [
                         'event_id' => $event->getId(),
-                        'participant_email' => $user->getEmail()
+                        'organizer_email' => $organizer->getEmail()
                     ]);
                 } catch (\Exception $e) {
-                    $errors[] = sprintf('Erreur envoi email participant %s: %s', $user->getEmail(), $e->getMessage());
-                    $this->logger->error('Erreur envoi email participant', [
+                    $errors[] = sprintf('Erreur envoi email organisateur %s: %s', $organizer->getEmail(), $e->getMessage());
+                    $this->logger->error('Erreur envoi email organisateur', [
                         'event_id' => $event->getId(),
-                        'participant_email' => $user->getEmail(),
+                        'organizer_email' => $organizer->getEmail(),
                         'error' => $e->getMessage()
                     ]);
                 }
             }
         }
 
-        // 3. Envoyer aussi aux invités (invitations)
+        // 2. Envoyer aux participants de l'événement
+        foreach ($event->getParticipations() as $participation) {
+            $user = $participation->getUser();
+            if ($user && $user->getEmail()) {
+                // ✅ CRÉER TOUJOURS LA NOTIFICATION EN BASE DE DONNÉES
+                try {
+                    $this->notificationService->createEventUpdateNotification($user, $event);
+                } catch (\Exception $e) {
+                    $this->logger->error('Erreur création notification participant en base', [
+                        'event_id' => $event->getId(),
+                        'participant_email' => $user->getEmail(),
+                        'error' => $e->getMessage()
+                    ]);
+                }
+
+                // Envoyer l'email seulement si activé
+                if ($user->isNotifyByEmail()) {
+                    try {
+                        $email = (new Email())
+                            ->from('nadiabalaazi@gmail.com')
+                            ->to($user->getEmail())
+                            ->subject('🔔 Événement modifié : ' . $event->getTitle())
+                            ->html($this->renderUpdateTemplate($event, $user));
+
+                        $this->mailer->send($email);
+                        $sentCount++;
+                        
+                        $this->logger->info('Email de modification envoyé au participant', [
+                            'event_id' => $event->getId(),
+                            'participant_email' => $user->getEmail()
+                        ]);
+                    } catch (\Exception $e) {
+                        $errors[] = sprintf('Erreur envoi email participant %s: %s', $user->getEmail(), $e->getMessage());
+                        $this->logger->error('Erreur envoi email participant', [
+                            'event_id' => $event->getId(),
+                            'participant_email' => $user->getEmail(),
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // 3. Envoyer aussi aux invités (invitations) - EMAIL SEULEMENT
         foreach ($event->getInvitations() as $invitation) {
             if ($invitation->getEmail()) {
                 try {
-                $participantName = $invitation->getParticipant() ? 
-                    $invitation->getParticipant()->getFullName() : 'Invité(e)';
+                    $participantName = $invitation->getParticipant() ? 
+                        $invitation->getParticipant()->getFullName() : 'Invité(e)';
 
-                $email = (new Email())
-                        ->from('nadiabalaazi@gmail.com')
-                    ->to($invitation->getEmail())
-                    ->subject('🔔 Événement modifié : ' . $event->getTitle())
-                    ->html($this->renderUpdateTemplateForInvitation($event, $participantName));
+                    $email = (new Email())
+                            ->from('nadiabalaazi@gmail.com')
+                        ->to($invitation->getEmail())
+                        ->subject('🔔 Événement modifié : ' . $event->getTitle())
+                        ->html($this->renderUpdateTemplateForInvitation($event, $participantName));
 
-$this->mailer->send($email);
+                    $this->mailer->send($email);
                     $sentCount++;
                     
                     $this->logger->info('Email de modification envoyé à l\'invité', [
@@ -143,7 +163,7 @@ $this->mailer->send($email);
                 'event_id' => $event->getId(),
                 'errors' => $errors
             ]);
-}
+        }
     }
 
 public function sendEventCancelNotification(Event $event): void
@@ -153,93 +173,113 @@ public function sendEventCancelNotification(Event $event): void
 
         // 1. Notification à l'organisateur (NOUVELLE FONCTIONNALITÉ)
         $organizer = $event->getOrganizer();
-        if ($organizer && $organizer->getEmail() && $organizer->isNotifyByEmail()) {
+        if ($organizer && $organizer->getEmail()) {
+            // ✅ CRÉER TOUJOURS LA NOTIFICATION EN BASE DE DONNÉES
             try {
-                // Créer la notification en base de données
                 $this->notificationService->createEventCancelNotification($organizer, $event);
-
-                // Envoyer l'email à l'organisateur
-                $email = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                    ->to($organizer->getEmail())
-                    ->subject('❌ Confirmation : Votre événement a été annulé - ' . $event->getTitle())
-                    ->html($this->renderOrganizerCancelTemplate($event, $organizer));
-
-                $this->mailer->send($email);
-                $sentCount++;
-                
-                $this->logger->info('Email d\'annulation envoyé à l\'organisateur', [
-                    'event_id' => $event->getId(),
-                    'organizer_email' => $organizer->getEmail()
-                ]);
             } catch (\Exception $e) {
-                $errors[] = sprintf('Erreur envoi email organisateur %s: %s', $organizer->getEmail(), $e->getMessage());
-                $this->logger->error('Erreur envoi email organisateur', [
+                $this->logger->error('Erreur création notification annulation organisateur en base', [
                     'event_id' => $event->getId(),
                     'organizer_email' => $organizer->getEmail(),
                     'error' => $e->getMessage()
                 ]);
             }
-        }
 
-        // 2. Envoyer aux participants de l'événement
-        foreach ($event->getParticipations() as $participation) {
-            $user = $participation->getUser();
-            if ($user && $user->getEmail() && $user->isNotifyByEmail()) {
+            // Envoyer l'email seulement si activé
+            if ($organizer->isNotifyByEmail()) {
                 try {
-                // Créer la notification en base de données
-                $this->notificationService->createEventCancelNotification($user, $event);
+                    $email = (new Email())
+                        ->from('nadiabalaazi@gmail.com')
+                        ->to($organizer->getEmail())
+                        ->subject('❌ Confirmation : Votre événement a été annulé - ' . $event->getTitle())
+                        ->html($this->renderOrganizerCancelTemplate($event, $organizer));
 
-                // Envoyer l'email
-                $email = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                    ->to($user->getEmail())
-                    ->subject('❌ Événement annulé : ' . $event->getTitle())
-                    ->html($this->renderCancelTemplate($event, $user));
-
-                $this->mailer->send($email);
+                    $this->mailer->send($email);
                     $sentCount++;
                     
-                    $this->logger->info('Email d\'annulation envoyé au participant', [
+                    $this->logger->info('Email d\'annulation envoyé à l\'organisateur', [
                         'event_id' => $event->getId(),
-                        'participant_email' => $user->getEmail()
+                        'organizer_email' => $organizer->getEmail()
                     ]);
                 } catch (\Exception $e) {
-                    $errors[] = sprintf('Erreur envoi email participant %s: %s', $user->getEmail(), $e->getMessage());
-                    $this->logger->error('Erreur envoi email participant', [
+                    $errors[] = sprintf('Erreur envoi email organisateur %s: %s', $organizer->getEmail(), $e->getMessage());
+                    $this->logger->error('Erreur envoi email organisateur', [
                         'event_id' => $event->getId(),
-                        'participant_email' => $user->getEmail(),
+                        'organizer_email' => $organizer->getEmail(),
                         'error' => $e->getMessage()
                     ]);
                 }
             }
         }
 
-        // 3. Envoyer aussi aux invités (invitations)
-    foreach ($event->getInvitations() as $invit) {
-        if ($invit->getEmail()) {
+        // 2. Envoyer aux participants de l'événement
+        foreach ($event->getParticipations() as $participation) {
+            $user = $participation->getUser();
+            if ($user && $user->getEmail()) {
+                // ✅ CRÉER TOUJOURS LA NOTIFICATION EN BASE DE DONNÉES
                 try {
-            $participant = $invit->getParticipant();
-                $participantName = $participant ? $participant->getFullName() : 'Invité(e)';
+                    $this->notificationService->createEventCancelNotification($user, $event);
+                } catch (\Exception $e) {
+                    $this->logger->error('Erreur création notification annulation participant en base', [
+                        'event_id' => $event->getId(),
+                        'participant_email' => $user->getEmail(),
+                        'error' => $e->getMessage()
+                    ]);
+                }
 
-            $email = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                ->to($invit->getEmail())
-                ->subject('❌ Événement annulé : ' . $event->getTitle())
-                    ->html($this->renderCancelTemplateForInvitation($event, $participantName));
+                // Envoyer l'email seulement si activé
+                if ($user->isNotifyByEmail()) {
+                    try {
+                        $email = (new Email())
+                            ->from('nadiabalaazi@gmail.com')
+                            ->to($user->getEmail())
+                            ->subject('❌ Événement annulé : ' . $event->getTitle())
+                            ->html($this->renderCancelTemplate($event, $user));
 
-            $this->mailer->send($email);
+                        $this->mailer->send($email);
+                        $sentCount++;
+                        
+                        $this->logger->info('Email d\'annulation envoyé au participant', [
+                            'event_id' => $event->getId(),
+                            'participant_email' => $user->getEmail()
+                        ]);
+                    } catch (\Exception $e) {
+                        $errors[] = sprintf('Erreur envoi email participant %s: %s', $user->getEmail(), $e->getMessage());
+                        $this->logger->error('Erreur envoi email participant', [
+                            'event_id' => $event->getId(),
+                            'participant_email' => $user->getEmail(),
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // 3. Envoyer aussi aux invités (invitations) - EMAIL SEULEMENT
+        foreach ($event->getInvitations() as $invitation) {
+            if ($invitation->getEmail()) {
+                try {
+                    $participantName = $invitation->getParticipant() ? 
+                        $invitation->getParticipant()->getFullName() : 'Invité(e)';
+
+                    $email = (new Email())
+                            ->from('nadiabalaazi@gmail.com')
+                        ->to($invitation->getEmail())
+                        ->subject('❌ Événement annulé : ' . $event->getTitle())
+                        ->html($this->renderCancelTemplateForInvitation($event, $participantName));
+
+                    $this->mailer->send($email);
                     $sentCount++;
                     
                     $this->logger->info('Email d\'annulation envoyé à l\'invité', [
                         'event_id' => $event->getId(),
-                        'invite_email' => $invit->getEmail()
+                        'invite_email' => $invitation->getEmail()
                     ]);
                 } catch (\Exception $e) {
-                    $errors[] = sprintf('Erreur envoi email invité %s: %s', $invit->getEmail(), $e->getMessage());
+                    $errors[] = sprintf('Erreur envoi email invité %s: %s', $invitation->getEmail(), $e->getMessage());
                     $this->logger->error('Erreur envoi email invité', [
                         'event_id' => $event->getId(),
-                        'invite_email' => $invit->getEmail(),
+                        'invite_email' => $invitation->getEmail(),
                         'error' => $e->getMessage()
                     ]);
                 }

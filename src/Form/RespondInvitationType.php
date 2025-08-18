@@ -18,6 +18,7 @@ class RespondInvitationType extends AbstractType
                 'choices' => [
                     'Accepter' => InvitationStatus::ACCEPTED,
                     'Refuser' => InvitationStatus::DECLINED,
+                    'Marquer comme expiré' => InvitationStatus::EXPIRED,
                 ],
                 'expanded' => true, // boutons radios
                 'multiple' => false,

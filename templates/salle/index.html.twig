@@ -528,10 +528,41 @@
                                     {{ salle.capacite }} personnes
                                 </td>
                                 <td class="room-schedule-cell">
-                                    <div>
-                                        <i class="fas fa-clock text-primary me-1"></i>
-                                        {{ salle.debutReservation|date('H:i') }} - {{ salle.finReservation|date('H:i') }}
-                                    </div>
+                                    {% set horaires = salle.horairesParJour ?? {} %}
+                                    <span
+                                        data-bs-toggle="tooltip"
+                                        title="
+                                            {% for jour, h in horaires %}
+                                                {{ jour|capitalize }} :
+                                                {% if h %}
+                                                    {{ h.debut|replace({':':'h'}) }} – {{ h.fin|replace({':':'h'}) }}
+                                                {% else %}
+                                                    fermé
+                                                {% endif %}
+                                                {% if not loop.last %}&#10;{% endif %}
+                                            {% endfor %}
+                                        " aria-label="Horaires détaillés"
+                                    >
+                                        <i class="fa fa-clock-o text-primary me-1" aria-hidden="true"></i>
+                                        {# Résumé compact : Lun-Ven 08h00–18h00, Sam 10h00–14h00 #}
+                                        {% set groupes = {} %}
+                                        {% for jour, h in horaires %}
+                                            {% if h %}
+                                                {% set cle = h.debut ~ '-' ~ h.fin %}
+                                                {% set groupes = groupes|merge({ (cle): (groupes[cle]|default([]))|merge([jour|capitalize]) }) %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% set resume = [] %}
+                                        {% for cle, jours in groupes %}
+                                            {% set debut = cle|split('-')[0]|replace({':':'h'}) %}
+                                            {% set fin = cle|split('-')[1]|replace({':':'h'}) %}
+                                            {% set jours_str = jours|length > 1
+                                                ? jours[0]|slice(0,3) ~ '-' ~ (jours|last)|slice(0,3)
+                                                : jours[0]|slice(0,3) %}
+                                            {% set resume = resume|merge([jours_str ~ ' ' ~ debut ~ '–' ~ fin]) %}
+                                        {% endfor %}
+                                        {{ resume|join(', ') }}
+                                    </span>
                                 </td>
                                 <td>
                                     <div>

@@ -1,0 +1,678 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste de présence - Formation {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .training-attendance-container {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            padding: 2rem 0;
+        }
+        
+        .training-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 25px;
+            margin-bottom: 3rem;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(40,167,69,0.2);
+        }
+        
+        .training-icon {
+            background: rgba(255,255,255,0.25);
+            width: 100px;
+            height: 100px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            font-size: 2.5rem;
+        }
+        
+        .training-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 0 1rem 0;
+        }
+        
+        .event-info {
+            background: rgba(255,255,255,0.2);
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            margin-top: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .attendance-form-card {
+            background: white;
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .form-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .participants-count {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+        
+        .participant-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+        
+        .participant-row:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+            border-left-color: #28a745;
+        }
+        
+        .participant-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .participant-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .participant-details h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .participant-details .text-muted {
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+        
+        .attendance-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .attendance-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .attendance-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dc3545;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #28a745;
+        }
+        
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+        
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-present {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+        }
+        
+        .status-absent {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .btn-primary-custom {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(40,167,69,0.3);
+        }
+        
+        .btn-secondary-custom {
+            background: white;
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary-custom:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .btn-print-custom {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-print-custom:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,123,255,0.3);
+        }
+        
+        .bulk-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .bulk-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .bulk-btn.present {
+            border-color: #28a745;
+            color: #28a745;
+        }
+        
+        .bulk-btn.present:hover {
+            background: #28a745;
+            color: white;
+        }
+        
+        .bulk-btn.absent {
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        .bulk-btn.absent:hover {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 768px) {
+            .participant-row {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+            
+            .bulk-actions {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+        
+        .success-message {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        .error-message {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        
+        /* Styles pour l'impression */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            
+            .print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            
+            .action-buttons,
+            .bulk-actions,
+            .success-message,
+            .error-message {
+                display: none !important;
+            }
+            
+            .attendance-switch {
+                display: none !important;
+            }
+            
+            .status-badge {
+                display: inline-block !important;
+            }
+            
+            .participant-row {
+                border: 1px solid #ddd;
+                page-break-inside: avoid;
+                background: white !important;
+            }
+            
+            .training-header {
+                background: #28a745 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            .participants-count {
+                background: #667eea !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            /* Ajout d'espace pour signatures */
+            .signature-line {
+                border-bottom: 1px solid #000;
+                height: 30px;
+                margin-top: 20px;
+                display: block;
+            }
+            
+            .signature-section {
+                margin-top: 50px;
+                page-break-inside: avoid;
+            }
+            
+            .signature-label {
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+            
+            .signature-section {
+                display: block !important;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="training-attendance-container">
+        <div class="container print-area">
+            <!-- En-tête -->
+            <div class="training-header">
+                <div class="training-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h1>Liste de présence - Formation</h1>
+                <div class="event-info">
+                    <strong>{{ event.title }}</strong><br>
+                    <i class="fas fa-calendar me-2"></i>{{ event.dateHeure|date('d/m/Y à H:i') }}<br>
+                    <i class="fas fa-clock me-2"></i>Durée: {{ event.duree }} minutes
+                    {% if event.lieu %}
+                        <br><i class="fas fa-map-marker-alt me-2"></i>{{ event.lieu }}
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Messages de retour -->
+            <div id="success-message" class="success-message">
+                <i class="fas fa-check-circle me-2"></i><span id="success-text"></span>
+            </div>
+            
+            <div id="error-message" class="error-message">
+                <i class="fas fa-exclamation-triangle me-2"></i><span id="error-text"></span>
+            </div>
+
+            <!-- Formulaire de présence -->
+            <div class="attendance-form-card">
+                <div class="form-header">
+                    <h3><i class="fas fa-users me-2"></i>Participants inscrits</h3>
+                    <div class="participants-count">
+                        {{ participations|length }} participant{{ participations|length > 1 ? 's' : '' }}
+                    </div>
+                </div>
+
+                {% if participations|length > 0 %}
+                    <!-- Actions en lot -->
+                    <div class="bulk-actions">
+                        <button type="button" class="bulk-btn present" onclick="markAllPresent()">
+                            <i class="fas fa-check-circle me-2"></i>Tous présents
+                        </button>
+                        <button type="button" class="bulk-btn absent" onclick="markAllAbsent()">
+                            <i class="fas fa-times-circle me-2"></i>Tous absents
+                        </button>
+                    </div>
+
+                    <!-- Formulaire -->
+                    <form id="attendance-form">
+                        {% for participation in participations %}
+                            <div class="participant-row">
+                                <div class="participant-info">
+                                    <div class="participant-avatar">
+                                        {{ participation.user.prenom|first|upper }}{{ participation.user.nom|first|upper }}
+                                    </div>
+                                    <div class="participant-details">
+                                        <h4>{{ participation.user.prenom }} {{ participation.user.nom }}</h4>
+                                        <div class="text-muted">{{ participation.user.email }}</div>
+
+                                    </div>
+                                </div>
+                                
+                                <div class="attendance-controls">
+                                    <div class="status-badge" id="status-{{ participation.id }}">
+                                        {% if participation.isPresent %}
+                                            <span class="status-present">Présent</span>
+                                        {% else %}
+                                            <span class="status-absent">Absent</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <label class="attendance-switch">
+                                        <input type="checkbox" 
+                                               name="attendance[{{ participation.id }}]" 
+                                               value="1"
+                                               {{ participation.isPresent ? 'checked' : '' }}
+                                               onchange="updateStatus({{ participation.id }}, this.checked)">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </form>
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h4>Aucun participant inscrit</h4>
+                        <p>Il n'y a pas encore de participants qui ont accepté l'invitation à cette formation.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Section signatures (visible seulement à l'impression) -->
+            <div class="signature-section" style="display: none;">
+                <div class="signature-label">Signature de l'organisateur :</div>
+                <div class="signature-line"></div>
+                
+                <div style="margin-top: 30px;">
+                    <div class="signature-label">Date et heure de fin de formation :</div>
+                    <div class="signature-line"></div>
+                </div>
+                
+                <div style="margin-top: 30px;">
+                    <div class="signature-label">Observations :</div>
+                    <div style="border: 1px solid #000; min-height: 60px; margin-top: 10px;"></div>
+                </div>
+            </div>
+
+            <!-- Boutons d'action -->
+            <div class="action-buttons">
+                <a href="{{ path('event_show', {'id': event.id}) }}" class="btn-secondary-custom">
+                    <i class="fas fa-arrow-left me-2"></i>Retour à l'événement
+                </a>
+                
+                {% if participations|length > 0 %}
+                    <button type="button" class="btn-primary-custom" onclick="saveAttendance()">
+                        <i class="fas fa-save me-2"></i>Enregistrer la présence
+                    </button>
+                    
+                    <button type="button" class="btn-print-custom" onclick="printAttendanceList()">
+                        <i class="fas fa-print me-2"></i>Imprimer la liste
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        function updateStatus(participationId, isPresent) {
+            const statusElement = document.getElementById('status-' + participationId);
+            if (isPresent) {
+                statusElement.innerHTML = '<span class="status-present">Présent</span>';
+            } else {
+                statusElement.innerHTML = '<span class="status-absent">Absent</span>';
+            }
+        }
+        
+        function markAllPresent() {
+            const checkboxes = document.querySelectorAll('input[name^="attendance"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                const participationId = checkbox.name.match(/\[(\d+)\]/)[1];
+                updateStatus(participationId, true);
+            });
+        }
+        
+        function markAllAbsent() {
+            const checkboxes = document.querySelectorAll('input[name^="attendance"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                const participationId = checkbox.name.match(/\[(\d+)\]/)[1];
+                updateStatus(participationId, false);
+            });
+        }
+        
+        function saveAttendance() {
+            const form = document.getElementById('attendance-form');
+            const formData = new FormData(form);
+            
+            // Ajouter les valeurs non cochées (absent = 0)
+            const checkboxes = document.querySelectorAll('input[name^="attendance"]');
+            checkboxes.forEach(checkbox => {
+                if (!checkbox.checked) {
+                    formData.append(checkbox.name, '0');
+                }
+            });
+            
+            fetch('{{ path("event_update_training_attendance", {"id": event.id}) }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('success', data.message);
+                } else {
+                    showMessage('error', data.message || 'Une erreur est survenue');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showMessage('error', 'Erreur de connexion');
+            });
+        }
+        
+        function showMessage(type, text) {
+            const successMsg = document.getElementById('success-message');
+            const errorMsg = document.getElementById('error-message');
+            
+            // Cacher tous les messages
+            successMsg.style.display = 'none';
+            errorMsg.style.display = 'none';
+            
+            // Afficher le bon message
+            if (type === 'success') {
+                document.getElementById('success-text').textContent = text;
+                successMsg.style.display = 'block';
+            } else {
+                document.getElementById('error-text').textContent = text;
+                errorMsg.style.display = 'block';
+            }
+            
+            // Auto-hide après 5 secondes
+            setTimeout(() => {
+                successMsg.style.display = 'none';
+                errorMsg.style.display = 'none';
+            }, 5000);
+            
+            // Scroll vers le haut pour voir le message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        // Fonction d'impression
+        function printAttendanceList() {
+            // Sauvegarder d'abord si des modifications ont été faites
+            const checkboxes = document.querySelectorAll('input[name^="attendance"]');
+            let hasChanges = false;
+            
+            checkboxes.forEach(checkbox => {
+                if (checkbox.dataset.originalValue !== undefined && 
+                    checkbox.checked.toString() !== checkbox.dataset.originalValue) {
+                    hasChanges = true;
+                }
+            });
+            
+            if (hasChanges) {
+                if (confirm('Des modifications non sauvegardées ont été détectées. Voulez-vous les sauvegarder avant d\'imprimer ?')) {
+                    saveAttendance();
+                    // Attendre un peu avant d'imprimer
+                    setTimeout(() => window.print(), 1000);
+                    return;
+                }
+            }
+            
+            // Imprimer directement
+            window.print();
+        }
+        
+        // Animation d'entrée
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.participant-row');
+            rows.forEach((row, index) => {
+                row.style.opacity = '0';
+                row.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    row.style.transition = 'all 0.5s ease';
+                    row.style.opacity = '1';
+                    row.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // Stocker les valeurs originales pour détecter les changements
+            const checkboxes = document.querySelectorAll('input[name^="attendance"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.dataset.originalValue = checkbox.checked.toString();
+            });
+        });
+    </script>
+{% endblock %}

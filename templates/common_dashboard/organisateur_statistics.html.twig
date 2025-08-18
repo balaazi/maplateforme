@@ -1,0 +1,399 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques Organisateur - Interface Commune{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .organisateur-stats-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin-top: -90px;
+            padding-top: 90px;
+        }
+
+        .organisateur-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .organisateur-title {
+            color: white;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .organisateur-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .stat-icon.events {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .stat-icon.participants {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-icon.attendance {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-icon.satisfaction {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-description {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+
+        .charts-section {
+            margin-bottom: 2rem;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-placeholder {
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+        }
+
+        .recent-activity {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+
+        .activity-icon.event {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .activity-icon.participant {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .activity-icon.notification {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .activity-details h5 {
+            color: white;
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .activity-details p {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .activity-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+            margin-left: auto;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="organisateur-stats-container">
+    <div class="container py-4">
+        <!-- En-tête -->
+        <div class="organisateur-header">
+            <h1 class="organisateur-title">
+                <i class="fas fa-chart-line me-3"></i>
+                Statistiques Organisateur
+            </h1>
+            <p class="organisateur-subtitle">
+                Analysez vos performances et l'engagement de vos événements
+            </p>
+        </div>
+
+        <!-- Statistiques principales -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon events">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-number">12</div>
+                <div class="stat-label">Événements Créés</div>
+                <div class="stat-description">Total des événements organisés cette année</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon participants">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">156</div>
+                <div class="stat-label">Participants Totaux</div>
+                <div class="stat-description">Nombre total de participants à vos événements</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon attendance">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-number">89%</div>
+                <div class="stat-label">Taux de Présence</div>
+                <div class="stat-description">Moyenne de présence à vos événements</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon satisfaction">
+                    <i class="fas fa-star"></i>
+                </div>
+                <div class="stat-number">4.7/5</div>
+                <div class="stat-label">Satisfaction</div>
+                <div class="stat-description">Note moyenne de vos événements</div>
+            </div>
+        </div>
+
+        <!-- Graphiques -->
+        <div class="charts-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-bar"></i>
+                            Événements par Mois
+                        </h3>
+                        <div class="chart-placeholder">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Graphique des événements par mois
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="chart-container">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Répartition des Participants
+                        </h3>
+                        <div class="chart-placeholder">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Graphique de répartition des participants
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activité récente -->
+        <div class="recent-activity">
+            <h3 class="chart-title">
+                <i class="fas fa-clock"></i>
+                Activité Récente
+            </h3>
+            
+            <div class="activity-item">
+                <div class="activity-icon event">
+                    <i class="fas fa-calendar-plus"></i>
+                </div>
+                <div class="activity-details">
+                    <h5>Nouvel événement créé</h5>
+                    <p>Formation Symfony - 15 participants inscrits</p>
+                </div>
+                <div class="activity-time">Il y a 2 heures</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon participant">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="activity-details">
+                    <h5>Nouveau participant</h5>
+                    <p>Marie Dupont s'est inscrite à "Réunion équipe"</p>
+                </div>
+                <div class="activity-time">Il y a 4 heures</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon notification">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="activity-details">
+                    <h5>Rappel envoyé</h5>
+                    <p>Rappel automatique pour "Atelier développement"</p>
+                </div>
+                <div class="activity-time">Il y a 6 heures</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon event">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="activity-details">
+                    <h5>Événement terminé</h5>
+                    <p>"Réunion projet" s'est terminé avec succès</p>
+                </div>
+                <div class="activity-time">Il y a 1 jour</div>
+            </div>
+
+            <div class="activity-item">
+                <div class="activity-icon participant">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="activity-details">
+                    <h5>Participants confirmés</h5>
+                    <p>8 participants ont confirmé leur présence</p>
+                </div>
+                <div class="activity-time">Il y a 2 jours</div>
+            </div>
+        </div>
+
+        <!-- Retour au dashboard -->
+        <div class="text-center mt-4">
+            <a href="{{ path('common_dashboard') }}" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>
+                Retour au Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

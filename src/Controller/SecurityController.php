@@ -39,6 +39,10 @@ class SecurityController extends AbstractController
         }
 
         // Redirection par rôle
+        if (in_array('ROLE_ADMIN', $user->getRoles()) && in_array('ROLE_ORGANISATEUR', $user->getRoles())) {
+            return $this->redirectToRoute('common_dashboard');
+        }
+        
         if (in_array('ROLE_ADMIN', $user->getRoles())) {
             return $this->redirectToRoute('admin_dashboard');
         }

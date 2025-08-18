@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\Repository\EventRepository;
-use App\Service\EmailService;
+use App\Service\MailerService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -22,7 +22,7 @@ class SendEventRemindersCommand extends Command
 {
     public function __construct(
         private EventRepository $eventRepository,
-        private EmailService $emailService,
+        private MailerService $mailerService,
         private NotificationService $notificationService,
         private EntityManagerInterface $em,
         private MailerInterface $mailer
@@ -73,7 +73,7 @@ class SendEventRemindersCommand extends Command
                 
                 if (!in_array($uniqueKey, $usersNotified)) {
                     try {
-                        $this->emailService->sendReminder($organizer, $event);
+                        $this->mailerService->sendReminderEmail($organizer, $event);
                         $this->notificationService->createEventReminderNotification($organizer, $event);
                         $usersNotified[] = $uniqueKey;
                         $eventReminders++;
@@ -93,7 +93,7 @@ class SendEventRemindersCommand extends Command
                     
                     if (!in_array($uniqueKey, $usersNotified)) {
                         try {
-                            $this->emailService->sendReminder($user, $event);
+                            $this->mailerService->sendReminderEmail($user, $event);
                             $this->notificationService->createEventReminderNotification($user, $event);
                             $usersNotified[] = $uniqueKey;
                             $eventReminders++;

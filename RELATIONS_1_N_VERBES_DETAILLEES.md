@@ -1,0 +1,42 @@
+# 🔗 RELATIONS (1:N) DÉTAILLÉES AVEC VERBES, CLÉS ET EXEMPLES
+
+| Source         | Cardinalité | Verbe métier         | Cible             | Clé étrangère (DB)                | Explication claire                                      | Exemple concret                                      |
+|--------------- |-------------|----------------------|-------------------|------------------------------------|--------------------------------------------------------|------------------------------------------------------|
+| Utilisateur    | 1:N         | possède              | Participation     | participation.user_id              | Un utilisateur peut avoir plusieurs participations      | "Marie participe à 3 événements différents"          |
+| Utilisateur    | 1:N         | reçoit               | Notification      | notification.user_id               | Un utilisateur reçoit plusieurs notifications           | "Paul reçoit une notification d'annulation"         |
+| Utilisateur    | 1:N         | reçoit               | Reminder          | reminder.user_id                   | Un utilisateur reçoit plusieurs rappels                | "Sophie reçoit 2 rappels pour ses réunions"         |
+| Utilisateur    | 1:N         | organise             | Événement         | event.organizer_id                 | Un utilisateur organise plusieurs événements           | "Ahmed organise la réunion du lundi et du jeudi"    |
+| Utilisateur    | 1:N         | crée                 | Événement         | event.created_by_id                | Un utilisateur crée plusieurs événements               | "Julie crée un nouvel atelier chaque mois"          |
+| Utilisateur    | 1:N         | rédige               | CollaborativeNote | collaborative_note.user_id         | Un utilisateur rédige plusieurs notes collaboratives   | "Lucas rédige la note de synthèse de la réunion"    |
+| Utilisateur    | 1:N         | possède              | CalendarEvent     | calendar_event.user_id             | Un utilisateur a plusieurs événements de calendrier    | "Emma a 5 événements dans son calendrier"           |
+| Utilisateur    | 1:N         | demande              | Reservation       | reservation.user_id                | Un utilisateur demande plusieurs réservations          | "Nina réserve 2 salles pour ses formations"         |
+| Utilisateur    | 1:N         | demande              | ResetPasswordRequest | reset_password_request.user_id  | Un utilisateur fait plusieurs demandes de réinitialisation | "Thomas demande un lien de réinitialisation"    |
+| Administrateur | 1:N         | gère                 | Utilisateur       | user.admin_id (exemple)            | Un administrateur gère plusieurs utilisateurs          | "L'admin suspend 2 comptes utilisateurs"            |
+| Administrateur | 1:N         | gère                 | Événement         | event.admin_id (exemple)           | Un administrateur gère plusieurs événements            | "L'admin valide 3 événements en attente"            |
+| Organisateur   | 1:N         | organise             | Événement         | event.organizer_id                 | Un organisateur organise plusieurs événements          | "Le chef de projet organise 4 ateliers"             |
+| Organisateur   | 1:N         | invite               | Invitation        | invitation.organizer_id (exemple)  | Un organisateur envoie plusieurs invitations           | "L'organisateur invite 10 participants"             |
+| Organisateur   | 1:N         | rédige               | CollaborativeNote | collaborative_note.user_id         | Un organisateur rédige plusieurs notes collaboratives  | "L'organisateur rédige le compte-rendu"             |
+| Participation  | N:1         | appartient à         | Utilisateur       | participation.user_id              | Chaque participation appartient à un utilisateur       | "La participation de Paul est liée à son compte"     |
+| Participation  | N:1         | concerne             | Événement         | participation.event_id             | Chaque participation concerne un événement             | "La participation de Marie concerne la réunion A"    |
+| Événement      | 1:N         | génère               | Invitation        | invitation.event_id                | Un événement génère plusieurs invitations              | "L'événement 'AG' génère 50 invitations"            |
+| Événement      | 1:N         | contient             | Document          | document.event_id                  | Un événement contient plusieurs documents              | "La réunion contient 3 documents à télécharger"      |
+| Événement      | 1:N         | possède              | Participation     | participation.event_id             | Un événement a plusieurs participations                | "L'événement a 20 participants inscrits"             |
+| Événement      | 1:N         | contient             | CollaborativeNote | collaborative_note.event_id        | Un événement contient plusieurs notes collaboratives   | "L'événement a 2 notes partagées"                   |
+| Événement      | 1:N         | génère               | Reminder          | reminder.event_id                  | Un événement génère plusieurs rappels                  | "L'événement génère un rappel automatique"           |
+| Événement      | 1:N         | possède              | Reservation       | reservation.event_id               | Un événement a plusieurs réservations associées        | "L'événement occupe 2 salles différentes"            |
+| Document       | N:1         | appartient à         | Événement         | document.event_id                  | Un document appartient à un événement                  | "Le document PDF appartient à la réunion"            |
+| Invitation     | N:1         | concerne             | Événement         | invitation.event_id                | Une invitation concerne un événement                   | "L'invitation concerne la conférence annuelle"        |
+| Invitation     | N:1         | est envoyée à        | Utilisateur       | invitation.user_id                 | Une invitation est envoyée à un utilisateur            | "L'invitation est envoyée à Sophie"                  |
+| Notification   | N:1         | concerne             | Utilisateur       | notification.user_id               | Une notification concerne un utilisateur               | "La notification concerne le compte de Paul"         |
+| Reservation    | N:1         | réserve              | Salle             | reservation.salle_id               | Une réservation réserve une salle                      | "La réservation réserve la salle A101"               |
+| CollaborativeNote | N:1      | concerne             | Événement         | collaborative_note.event_id        | Une note collaborative concerne un événement           | "La note concerne la réunion du 10/10"               |
+| Reminder       | N:1         | concerne             | Utilisateur       | reminder.user_id                   | Un rappel concerne un utilisateur                      | "Le rappel concerne l'utilisateur Emma"              |
+| Reminder       | N:1         | concerne             | Événement         | reminder.event_id                  | Un rappel concerne un événement                        | "Le rappel concerne la réunion trimestrielle"        |
+| Gestion Salle  | 1:N         | gère                 | Salle             | salle.gestion_id (exemple)         | Une gestion salle gère plusieurs salles                | "La gestion salle gère 5 salles de réunion"          |
+| Calendar Event | N:1         | appartient à         | Utilisateur       | calendar_event.user_id             | Un calendar event appartient à un utilisateur          | "L'événement Google Calendar appartient à Julie"     |
+| Salle          | 1:N         | accueille            | Événement         | event.salle_id                     | Une salle accueille plusieurs événements               | "La salle A101 accueille 3 réunions cette semaine"    |
+| Salle          | 1:N         | possède              | Reservation       | reservation.salle_id               | Une salle a plusieurs réservations                     | "La salle B202 a 4 réservations ce mois-ci"          |
+
+---
+
+*📝 Tableau détaillé des relations 1:N avec verbe, clé étrangère, explication et exemple concret pour chaque entité principale de l'application.* 

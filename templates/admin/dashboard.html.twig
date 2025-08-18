@@ -1,8 +1,490 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Tableau de bord{% endblock %}
+{% block title %}Tableau de bord Administrateur - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            /* Schéma de couleurs unifié pour tous les dashboards */
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #a855f7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Gradients unifiés (alignés sur les titres/base) */
+            --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 50%, var(--primary-light) 100%);
+            --secondary-gradient: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            
+            /* Couleurs de base unifiées */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(226, 232, 240, 0.8);
+            --shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+            --glass-border: rgba(99, 102, 241, 0.1);
+            
+            /* Variables spécifiques administrateur (alignées au brand) */
+            --admin-accent: var(--primary-color);
+            --admin-gradient: var(--primary-gradient);
+        }
+
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .admin-container { max-width: 1400px; margin: 0 auto; padding: 10px; }
+
+        .admin-hero { background: var(--admin-gradient); border-radius: 25px; padding: 20px; margin-bottom: 20px; color: white; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(99,102,241,.3); }
+        .hero-content { position: relative; z-index: 2; display:flex; justify-content:space-between; align-items:center; }
+        .hero-text { flex: 1; }
+        .hero-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .hero-subtitle { font-size: 1.2rem; opacity: .9; margin: 0; }
+        .invite-btn { background: rgba(255,255,255,.2); color:white; text-decoration:none; padding:15px 30px; border-radius:25px; font-weight:600; transition:.3s; display:flex; align-items:center; gap:10px; backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,.3); }
+        .invite-btn:hover { background: rgba(255,255,255,.3); transform: translateY(-3px); color:white; }
+
+        .section-title { font-size:1.8rem; font-weight:700; margin-bottom:15px; color:var(--text-primary); display:flex; align-items:center; gap:12px; }
+        .section-title i { color: var(--admin-accent); }
+
+        .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); gap:20px; margin-bottom:20px; }
+        .stat-card { background:var(--card-bg); border:1px solid var(--glass-border); border-radius:20px; padding:20px; box-shadow:var(--shadow); transition:.4s; position:relative; overflow:hidden; }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background:var(--admin-gradient); transform: scaleX(0); transition: transform .4s; }
+        .stat-card:hover::before { transform: scaleX(1); }
+        .stat-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(99,102,241,.2); }
+        .stat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+        .stat-icon { width:60px; height:60px; border-radius:18px; background: var(--admin-gradient); display:flex; align-items:center; justify-content:center; font-size:1.6rem; color:white; }
+        .stat-trend { display:flex; align-items:center; gap:8px; padding:10px 15px; border-radius:25px; font-size:.9rem; font-weight:600; }
+        .stat-trend.positive { background: rgba(16,185,129,.1); color: var(--success-color); }
+        .stat-content h3 { margin:0 0 15px 0; font-size:1.3rem; font-weight:600; color:var(--text-primary); }
+        .stat-number { font-size:2.5rem; font-weight:800; margin-bottom:12px; background: var(--admin-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .stat-content p { margin:0; color:var(--text-secondary); font-size:1rem; line-height:1.6; }
+
+        /* Section contenu principal harmonisée */
+        .main-content { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:15px; }
+        .content-card { background:var(--card-bg); border:1px solid var(--glass-border); border-radius:20px; padding:20px; box-shadow:var(--shadow); transition:.4s; }
+        .content-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(99,102,241,.15); }
+        .card-title { font-size:1.4rem; font-weight:700; margin-bottom:15px; color:var(--text-primary); display:flex; align-items:center; gap:12px; }
+        .card-title i { color: var(--admin-accent); }
+
+        .role-list { display:flex; flex-direction:column; gap:12px; }
+        .role-item { display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-secondary); border-radius:12px; transition:.3s; }
+        .role-item:hover { transform: translateX(10px); background: var(--admin-accent); color:white; }
+        .role-info { display:flex; align-items:center; gap:12px; }
+        .role-dot { width:18px; height:18px; border-radius:50%; flex-shrink:0; }
+        .role-dot.admin { background: var(--danger-color); }
+        .role-dot.organisateur { background: var(--admin-accent); }
+        .role-dot.participant { background: var(--success-color); }
+        .role-name { font-weight:600; font-size:1rem; }
+        .role-count { font-weight:700; font-size:1.1rem; }
+
+        .event-list { display:flex; flex-direction:column; gap:10px; }
+        .event-item { display:flex; align-items:center; gap:10px; padding:10px; background:var(--bg-secondary); border-radius:10px; transition:.3s; }
+        .event-item:hover { transform: translateX(8px); background: var(--admin-accent); color:white; }
+        .event-icon { width:45px; height:45px; border-radius:12px; background: var(--admin-gradient); display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:white; flex-shrink:0; }
+        .event-details { flex:1; }
+        .event-title { font-weight:600; margin-bottom:4px; }
+        .event-date { font-size:.85rem; opacity:.8; }
+
+        .users-section { background:var(--card-bg); border:1px solid var(--glass-border); border-radius:20px; padding:20px; box-shadow:var(--shadow); }
+        .users-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px; }
+        .search-box { display:flex; align-items:center; gap:15px; background:var(--bg-secondary); border-radius:25px; padding:15px 25px; border:1px solid var(--border-color); flex:1; max-width:400px; }
+        .search-box input { border:none; background:none; outline:none; flex:1; font-size:1rem; color:var(--text-primary); }
+        .search-box input::placeholder { color:var(--text-secondary); }
+        .role-filter { background: var(--admin-gradient); color:white; border:none; padding:15px 25px; border-radius:25px; font-weight:600; cursor:pointer; transition:.3s; }
+        .role-filter:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99,102,241,.3); }
+        .users-count { font-weight:600; color:var(--text-secondary); }
+        .users-table { width:100%; border-collapse:collapse; margin-top:15px; }
+        .users-table th { text-align:left; padding:15px 12px; border-bottom:2px solid var(--border-color); font-weight:600; color:var(--text-primary); text-transform:uppercase; font-size:.9rem; letter-spacing:1px; }
+        .users-table td { padding:15px 12px; border-bottom:1px solid var(--border-color); vertical-align:middle; }
+        .user-info { display:flex; align-items:center; gap:15px; }
+        .user-avatar { width:50px; height:50px; border-radius:50%; background: var(--admin-gradient); display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:1.2rem; }
+        .user-details h4 { margin:0 0 5px 0; font-weight:600; }
+        .user-email { font-size:.9rem; color:var(--text-secondary); }
+        .user-role { display:inline-block; padding:8px 16px; border-radius:20px; font-size:.85rem; font-weight:600; text-transform:uppercase; }
+        .user-role.admin { background: rgba(239,68,68,.1); color: var(--danger-color); }
+        .user-role.organisateur { background: rgba(99,102,241,.1); color: var(--admin-accent); }
+        .user-role.participant { background: rgba(16,185,129,.1); color: var(--success-color); }
+        .user-status { display:inline-block; width:12px; height:12px; border-radius:50%; background: var(--success-color); }
+        .user-actions { display:flex; gap:10px; }
+        .action-btn { padding:8px 12px; border-radius:15px; text-decoration:none; font-size:.85rem; font-weight:600; transition:.3s; display:flex; align-items:center; gap:5px; }
+        .action-btn.edit { background: var(--admin-accent); color:white; }
+        .action-btn.delete { background: var(--danger-color); color:white; }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,.2); }
+
+        @media (max-width:1200px){ .main-content{ grid-template-columns:1fr; gap:20px; } }
+        @media (max-width:768px){ .admin-container{ padding:15px; } .admin-hero{ padding:30px 20px; } .hero-content{ flex-direction:column; gap:30px; text-align:center; } .hero-title{ font-size:2rem; } .stats-grid{ grid-template-columns:1fr; } .users-header{ flex-direction:column; align-items:stretch; } .search-box{ max-width:none; } }
+
+        .fade-in-up{ animation: fadeInUp .8s ease-out; }
+        @keyframes fadeInUp{ from{opacity:0; transform:translateY(30px)} to{opacity:1; transform:translateY(0)} }
+        .stagger-1{animation-delay:.1s} .stagger-2{animation-delay:.2s} .stagger-3{animation-delay:.3s} .stagger-4{animation-delay:.4s}
+
+        /* Nettoyage des espacements (inchangé) */
+        .admin-container > *:last-child{ margin-bottom:0 !important; }
+        .users-section{ margin-bottom:0 !important; margin-top:0 !important; }
+        .stats-overview{ margin-bottom:15px; }
+        .stat-card{ padding:20px; margin-bottom:0; }
+        .admin-hero{ margin-bottom:15px; }
+        .users-table, .table-responsive{ margin-bottom:0; }
+        .admin-container{ min-height:auto !important; height:auto !important; padding-bottom:0 !important; }
+        body{ margin-bottom:0 !important; padding-bottom:0 !important; }
+        .admin-container::after{ content:''; display:block; height:0; }
+        .hero-title{ font-size:2.2rem; margin:0 0 8px 0; }
+        .hero-subtitle{ font-size:1.1rem; }
+        .invite-btn{ padding:12px 25px; }
+        .search-box{ padding:12px 20px; }
+        .role-filter{ padding:12px 20px; }
+        .action-btn{ padding:6px 10px; font-size:.8rem; }
+        .user-avatar{ width:45px; height:45px; font-size:1.1rem; }
+        .user-info{ gap:12px; }
+</style>
+{% endblock %}
 
 {% block body %}
-    <h1>Tableau de bord Administrateur</h1>
-    <a href="{{ path('admin_users_list') }}">Gérer les utilisateurs</a>
+<div class="admin-container">
+    <!-- Header admin premium -->
+    <div class="admin-hero fade-in-up">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    <i class="fas fa-chart-line"></i>
+                    Tableau de bord Administrateur
+                </h1>
+                <p class="hero-subtitle">Gérez et supervisez votre plateforme EventHub</p>
+            </div>
+            <div class="hero-actions">
+                <a href="{{ path('admin_invite') }}" class="invite-btn">
+                    <i class="fas fa-user-plus"></i>
+                    INVITER UN UTILISATEUR
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section statistiques avancées -->
+    <div class="stats-overview">
+        <h2 class="section-title fade-in-up">
+            <i class="fas fa-chart-bar"></i>
+            Vue d'ensemble des performances
+        </h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card fade-in-up stagger-1">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +{{ stats.userGrowth }}%
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <h3>Utilisateurs totaux</h3>
+                    <div class="stat-number">{{ stats.totalUsers }}</div>
+                    <p>Croissance par rapport au mois dernier</p>
+                </div>
+            </div>
+
+            <div class="stat-card fade-in-up stagger-2">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +2
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <h3>Événements actifs</h3>
+                    <div class="stat-number">{{ stats.activeEvents }}</div>
+                    <p>Événements non archivés sur la plateforme</p>
+                </div>
+            </div>
+
+            <div class="stat-card fade-in-up stagger-3">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +1
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <h3>Invitations envoyées</h3>
+                    <div class="stat-number">{{ stats.totalInvitations }}</div>
+                    <p>Total des invitations sur la plateforme</p>
+                </div>
+            </div>
+
+            <div class="stat-card fade-in-up stagger-4">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +12%
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <h3>Taux de participation</h3>
+                    <div class="stat-number">{{ stats.participationRate }}%</div>
+                    <p>Engagement des participants aux événements</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section contenu principal -->
+    <div class="main-content">
+        <!-- Répartition par rôle -->
+        <div class="content-card fade-in-up stagger-1">
+            <h3 class="card-title">
+                <i class="fas fa-users"></i>
+                Répartition par rôle
+            </h3>
+            
+            <div class="role-list">
+                <div class="role-item">
+                    <div class="role-info">
+                        <div class="role-dot admin"></div>
+                        <span class="role-name">Administrateurs</span>
+                    </div>
+                    <span class="role-count">{{ stats.roleStats.admin }} utilisateur{% if stats.roleStats.admin > 1 %}s{% endif %}</span>
+                </div>
+                
+                <div class="role-item">
+                    <div class="role-info">
+                        <div class="role-dot organisateur"></div>
+                        <span class="role-name">Organisateurs</span>
+                    </div>
+                    <span class="role-count">{{ stats.roleStats.organisateur }} utilisateur{% if stats.roleStats.organisateur > 1 %}s{% endif %}</span>
+                </div>
+                
+                <div class="role-item">
+                    <div class="role-info">
+                        <div class="role-dot participant"></div>
+                        <span class="role-name">Participants</span>
+                    </div>
+                    <span class="role-count">{{ stats.roleStats.participant }} utilisateur{% if stats.roleStats.participant > 1 %}s{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Événements récents -->
+        <div class="content-card fade-in-up stagger-2">
+            <h3 class="card-title">
+                <i class="fas fa-calendar"></i>
+                Événements récents
+            </h3>
+            
+            <div class="event-list">
+                {% if stats.recentEvents|length > 0 %}
+                    {% for event in stats.recentEvents %}
+                    <div class="event-item">
+                        <div class="event-icon">
+                            {% if event.category == 'Formation' %}
+                                <i class="fas fa-graduation-cap"></i>
+                            {% elseif event.category == 'Réunion' %}
+                                <i class="fas fa-building"></i>
+                            {% else %}
+                                <i class="fas fa-calendar"></i>
+                            {% endif %}
+                        </div>
+                        <div class="event-details">
+                            <div class="event-title">{{ event.title }}</div>
+                            <div class="event-date">{{ event.dateHeure|date('d/m/Y H:i') }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="event-item" style="text-align: center; color: var(--text-secondary);">
+                        <i class="fas fa-calendar-times" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <p>Aucun événement récent</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Section gestion des utilisateurs -->
+    <div class="users-section fade-in-up stagger-3">
+        <div class="users-header">
+            <h3 class="card-title" style="margin: 0;">
+                <i class="fas fa-cog"></i>
+                Gestion des utilisateurs {{ stats.totalUsers }}
+            </h3>
+            
+            <div class="search-box">
+                <i class="fas fa-search" style="color: var(--text-secondary);"></i>
+                <input type="text" placeholder="Rechercher par nom, email, organisation..." id="userSearch">
+            </div>
+            
+            <select class="role-filter" id="roleFilter">
+                <option value="">Tous les rôles</option>
+                <option value="admin">Administrateurs</option>
+                <option value="organisateur">Organisateurs</option>
+                <option value="participant">Participants</option>
+            </select>
+            
+            <div class="users-count">{{ stats.totalUsers }}/{{ stats.totalUsers }} utilisateurs</div>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>UTILISATEUR</th>
+                        <th>ORGANISATION</th>
+                        <th>RÔLES</th>
+                        <th>STATUT</th>
+                        <th>ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="user-row" data-email="{{ user.email|lower }}" data-roles="{{ user.roles|join(' ')|lower }}">
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar">
+                                    {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
+                                </div>
+                                <div class="user-details">
+                                    <h4>{{ user.prenom }} {{ user.nom }}</h4>
+                                    <div class="user-email">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ user.departement ? user.departement.nom : 'Non défini' }}</td>
+                        <td>
+                            {% for role in user.roles %}
+                                {% set roleName = role|replace({'ROLE_': ''})|lower %}
+                                <span class="user-role {{ roleName }}">{{ roleName|title }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <div class="user-status"></div>
+                        </td>
+                        <td>
+                            <div class="user-actions">
+                                <a href="{{ path('admin_edit', {'id': user.id}) }}" class="action-btn edit">
+                                    <i class="fas fa-edit"></i> Modifier
+                                </a>
+                                {% if user.id != app.user.id %}
+                                <a href="{{ path('admin_delete', {'id': user.id}) }}" class="action-btn delete" 
+                                   onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// Animation d'entrée pour les éléments
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+// Observer tous les éléments avec animation
+document.querySelectorAll('.fade-in-up').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(30px)';
+    el.style.transition = 'all 0.8s ease-out';
+        observer.observe(el);
+    });
+    
+// Système de recherche et filtrage des utilisateurs
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('userSearch');
+    const roleFilter = document.getElementById('roleFilter');
+    const userRows = document.querySelectorAll('.user-row');
+    
+    function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedRole = roleFilter.value.toLowerCase();
+        
+        userRows.forEach(row => {
+            const email = row.dataset.email;
+            const roles = row.dataset.roles;
+            
+            const matchesSearch = email.includes(searchTerm) || 
+                                row.textContent.toLowerCase().includes(searchTerm);
+            const matchesRole = !selectedRole || roles.includes(selectedRole);
+            
+            if (matchesSearch && matchesRole) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+        
+        // Mettre à jour le compteur
+        const visibleUsers = document.querySelectorAll('.user-row:not([style*="display: none"])').length;
+        document.querySelector('.users-count').textContent = `${visibleUsers}/${userRows.length} utilisateurs`;
+    }
+    
+    searchInput.addEventListener('input', filterUsers);
+    roleFilter.addEventListener('change', filterUsers);
+    
+    // Hover effects pour les cartes
+    document.querySelectorAll('.stat-card, .content-card, .users-section').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+    
+    // Animation des statistiques au chargement
+    setTimeout(() => {
+        document.querySelectorAll('.stat-number').forEach(stat => {
+            const finalValue = stat.textContent;
+            stat.textContent = '0';
+            
+            let currentValue = 0;
+            const increment = parseInt(finalValue) / 50;
+            
+            const timer = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= parseInt(finalValue)) {
+                    currentValue = parseInt(finalValue);
+                    clearInterval(timer);
+                }
+                stat.textContent = Math.floor(currentValue);
+            }, 50);
+        });
+    }, 1000);
+});
+</script>
 {% endblock %}

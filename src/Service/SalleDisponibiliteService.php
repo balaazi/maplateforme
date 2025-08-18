@@ -35,6 +35,11 @@ class SalleDisponibiliteService
             return false;
         }
 
+        // Vérifier les horaires spécifiques par jour de la semaine
+        if (!$this->estDansHorairesParJour($salle, $debut, $fin)) {
+            return false;
+        }
+
         // Chercher les réservations qui chevauchent avec la période demandée
         $reservationsConflictuelles = $this->reservationRepository->findReservationsConflictuelles(
             $salle, 
@@ -245,6 +250,55 @@ class SalleDisponibiliteService
 
         // Cas normal : salle ouverte de 08:00 à 18:00
         return $debutHeure >= $ouvertureHeure && $finHeure <= $fermetureHeure;
+    }
+
+    /**
+     * Vérifie si la période est dans les horaires spécifiques par jour de la semaine
+     */
+    private function estDansHorairesParJour(Salle $salle, \DateTimeInterface $debut, \DateTimeInterface $fin): bool
+    {
+        $horairesParJour = $salle->getHorairesParJour();
+        
+        if (!$horairesParJour) {
+            return true; // Si pas d'horaires par jour définis, considérer comme toujours ouvert
+        }
+
+        // Vérifier chaque jour de la période
+        $dateCourante = new \DateTime($debut->format('Y-m-d'));
+        $dateFin = new \DateTime($fin->format('Y-m-d'));
+        
+        while ($dateCourante < $dateFin) {
+            $jourSemaine = strtolower($dateCourante->format('l')); // lundi, mardi, etc.
+            
+            // Vérifier si le jour a des horaires définis
+            if (!isset($horairesParJour[$jourSemaine]) || $horairesParJour[$jourSemaine] === null) {
+                // Le jour est fermé
+                return false;
+            }
+            
+            $horairesJour = $horairesParJour[$jourSemaine];
+            
+            // Si la réservation commence ce jour-là
+            if ($dateCourante->format('Y-m-d') === $debut->format('Y-m-d')) {
+                $heureDebut = $debut->format('H:i');
+                if ($heureDebut < $horairesJour['debut']) {
+                    return false; // Trop tôt
+                }
+            }
+            
+            // Si la réservation se termine ce jour-là
+            if ($dateCourante->format('Y-m-d') === $fin->format('Y-m-d')) {
+                $heureFin = $fin->format('H:i');
+                if ($heureFin > $horairesJour['fin']) {
+                    return false; // Trop tard
+                }
+            }
+            
+            // Passer au jour suivant
+            $dateCourante->add(new \DateInterval('P1D'));
+        }
+        
+        return true;
     }
 
     /**

@@ -240,14 +240,7 @@
                 <input type="checkbox" id="filter-formation" checked>
                 <span>Formations</span>
             </label>
-            <label class="filter-checkbox">
-                <input type="checkbox" id="filter-conference" checked>
-                <span>Conférences</span>
-            </label>
-            <label class="filter-checkbox">
-                <input type="checkbox" id="filter-workshop" checked>
-                <span>Ateliers</span>
-            </label>
+
         </div>
     </div>
 
@@ -261,14 +254,7 @@
             <div class="legend-color" style="background: linear-gradient(135deg, #48bb78, #38a169);"></div>
             <span>Formations</span>
         </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #ed8936, #dd6b20);"></div>
-            <span>Conférences</span>
-        </div>
-        <div class="legend-item">
-            <div class="legend-color" style="background: linear-gradient(135deg, #9f7aea, #805ad5);"></div>
-            <span>Ateliers</span>
-        </div>
+
     </div>
 
     <!-- Calendrier -->
@@ -339,10 +325,7 @@
                     className = 'event-reunion';
                 } else if (motif.toLowerCase().includes('formation')) {
                     className = 'event-formation';
-                } else if (motif.toLowerCase().includes('conférence') || motif.toLowerCase().includes('conference')) {
-                    className = 'event-conference';
-                } else if (motif.toLowerCase().includes('atelier') || motif.toLowerCase().includes('workshop')) {
-                    className = 'event-workshop';
+
                 }
                 
                 info.el.classList.add(className);
@@ -372,14 +355,7 @@
                     motif.toLowerCase().includes('formation')) {
                     show = true;
                 }
-                if (document.getElementById('filter-conference').checked && 
-                    (motif.toLowerCase().includes('conférence') || motif.toLowerCase().includes('conference'))) {
-                    show = true;
-                }
-                if (document.getElementById('filter-workshop').checked && 
-                    (motif.toLowerCase().includes('atelier') || motif.toLowerCase().includes('workshop'))) {
-                    show = true;
-                }
+
 
                 event.setProp('display', show ? 'auto' : 'none');
             });

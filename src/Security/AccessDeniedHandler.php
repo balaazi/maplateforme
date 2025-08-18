@@ -19,7 +19,43 @@ class AccessDeniedHandler implements AccessDeniedHandlerInterface
 
     public function handle(Request $request, AccessDeniedException $exception): Response
     {
-        // Rediriger vers la page d'accueil après un refus d'accès
-        return new RedirectResponse($this->router->generate('app_home'));
+        $route = $request->attributes->get('_route');
+        $message = $exception->getMessage();
+        
+        // Analyser le type d'erreur d'accès
+        if (strpos($message, 'ROLE_ORGANISATEUR') !== false) {
+            return new RedirectResponse($this->router->generate('calendar_index'));
+        }
+        
+        if (strpos($message, 'ROLE_ADMIN') !== false) {
+            return new RedirectResponse($this->router->generate('app_home'));
+        }
+        
+        if (strpos($message, 'ROLE_PARTICIPANT') !== false) {
+            return new RedirectResponse($this->router->generate('app_home'));
+        }
+        
+        // Erreurs liées aux événements
+        if (strpos($route, 'event') !== false) {
+            return new RedirectResponse($this->router->generate('event_list'));
+        }
+        
+        // Erreurs liées à l'administration
+        if (strpos($route, 'admin') !== false) {
+            return new RedirectResponse($this->router->generate('app_home'));
+        }
+        
+        // Erreurs liées aux salles
+        if (strpos($route, 'salle') !== false || strpos($route, 'gestion-salle') !== false) {
+            return new RedirectResponse($this->router->generate('calendar_index'));
+        }
+        
+        // Redirection vers la page d'erreur personnalisée avec les détails
+        $errorUrl = $this->router->generate('error_access_denied', [
+            'message' => urlencode($message),
+            'route' => $route
+        ]);
+        
+        return new RedirectResponse($errorUrl);
     }
 }

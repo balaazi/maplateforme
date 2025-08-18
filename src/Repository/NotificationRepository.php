@@ -73,4 +73,17 @@ class NotificationRepository extends ServiceEntityRepository
             ->getQuery()
             ->execute();
     }
+
+    /**
+     * Supprime toutes les notifications liées à un événement
+     */
+    public function deleteByEvent($event): void
+    {
+        $this->createQueryBuilder('n')
+            ->delete()
+            ->andWhere('n.event = :event')
+            ->setParameter('event', $event)
+            ->getQuery()
+            ->execute();
+    }
 } 

@@ -43,11 +43,8 @@ class ProfileType extends AbstractType
                 'label' => 'Département',
                 'required' => false,
                 'placeholder' => 'Choisissez votre département',
-            ])
-            ->add('societe', TextType::class, [
-                'required' => false,
-                'label' => 'Société'
             ]);
+
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -6,29 +6,41 @@
     {{ parent() }}
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --purple-gradient: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
-            --ocean-gradient: linear-gradient(135deg, #0984e3 0%, #74b9ff 100%);
-            --forest-gradient: linear-gradient(135deg, #00b894 0%, #55efc4 100%);
-            --sunset-gradient: linear-gradient(135deg, #e17055 0%, #fdcb6e 100%);
-            --cosmic-gradient: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --shadow-light: 0 10px 40px rgba(0, 0, 0, 0.08);
-            --shadow-medium: 0 20px 60px rgba(0, 0, 0, 0.12);
-            --shadow-heavy: 0 30px 80px rgba(0, 0, 0, 0.16);
-            --border-radius: 25px;
+            /* Schéma de couleurs unifié pour tous les dashboards */
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #a855f7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Gradients unifiés (alignés sur les titres/base) */
+            --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 50%, var(--primary-light) 100%);
+            --secondary-gradient: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            
+            /* Couleurs de base unifiées */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(226, 232, 240, 0.8);
+            --shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+            --glass-border: rgba(99, 102, 241, 0.1);
+            
+            /* Variables spécifiques participant (alignées au brand) */
+            --participant-accent: var(--primary-color);
+            --participant-gradient: var(--primary-gradient);
         }
 
         body {
             font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             margin: 0;
             padding: 0;
             min-height: 100vh;
@@ -36,7 +48,7 @@
         }
 
         .participant-container {
-            background: #f8f9fa;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             min-height: 100vh;
             margin-top: -90px;
             padding-top: 90px;
@@ -44,21 +56,21 @@
             overflow: hidden;
         }
 
-
-
-        /* En-tête ultra-moderne */
+        /* En-tête harmonisé */
         .participant-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             backdrop-filter: blur(40px);
             color: white;
-            padding: 3.5rem 2.5rem;
-            border-radius: 30px;
+            padding: 4rem 3rem;
+            border-radius: 25px;
+            margin: 2rem;
             margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
-            box-shadow: var(--shadow-heavy);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             animation: slideInFromTop 1s ease-out;
+            z-index: 2;
         }
 
         .participant-header::before {
@@ -144,7 +156,7 @@
             font-weight: 900;
             margin: 0 0 1rem 0;
             text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(45deg, #fff, #f0f8ff, #fff);
+            background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -164,7 +176,7 @@
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        /* Mini statistiques redesignées */
+        /* Mini statistiques harmonisées */
         .welcome-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -220,25 +232,84 @@
             letter-spacing: 1px;
         }
 
-        /* Grille des cartes statistiques premium */
+        /* Grille des cartes statistiques harmonisées */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2.5rem;
-            margin-bottom: 4rem;
-            padding: 0 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 2rem;
+            margin: 0 2rem 4rem 2rem;
+            z-index: 2;
+            position: relative;
         }
 
         .stat-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 30px;
-            padding: 3rem;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 2.5rem;
             position: relative;
             overflow: hidden;
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: var(--shadow-light);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
             cursor: pointer;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 0 2rem 3rem 2rem;
+            z-index: 2;
+            position: relative;
+        }
+
+        .quick-action-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            background: var(--bg-primary);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .quick-action-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem auto;
+            color: white;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-card:hover .quick-action-icon {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        .quick-action-title {
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .quick-action-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
         }
 
         .stat-card::before {
@@ -259,7 +330,7 @@
             left: 50%;
             width: 0;
             height: 0;
-            background: radial-gradient(circle, rgba(102,126,234,0.08) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
             transition: all 0.8s ease;
             transform: translate(-50%, -50%);
             border-radius: 50%;
@@ -281,7 +352,7 @@
 
         .stat-card:hover {
             transform: translateY(-20px) scale(1.03);
-            box-shadow: var(--shadow-heavy);
+            box-shadow: 0 25px 50px rgba(99, 102, 241, 0.2);
         }
 
         .stat-icon {
@@ -310,7 +381,7 @@
         }
 
         .stat-number {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 900;
             color: var(--text-primary);
             margin-bottom: 1rem;
@@ -321,9 +392,9 @@
 
         .stat-label {
             color: var(--text-primary);
-            font-size: 1.2rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             position: relative;
@@ -332,33 +403,37 @@
 
         .stat-description {
             color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
             position: relative;
             z-index: 2;
         }
 
-        /* Boutons d'action premium */
+        /* Boutons d'action harmonisés */
         .btn-action {
             background: var(--primary-gradient);
             border: none;
             color: white;
-            padding: 1.2rem 2.5rem;
-            border-radius: 15px;
-            font-weight: 700;
+            padding: 1rem 1.4rem;
+            border-radius: 14px;
+            font-weight: 800;
             transition: all 0.4s ease;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             gap: 1rem;
-            font-size: 1rem;
+            font-size: 1.05rem;
             position: relative;
             z-index: 2;
             overflow: hidden;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+            letter-spacing: 0.6px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08), 0 8px 24px rgba(168,85,247,0.25);
+            border: 2px solid rgba(255,255,255,0.9);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.25);
+            width: 100%;
+            justify-content: center;
         }
 
         .btn-action::before {
@@ -378,39 +453,48 @@
 
         .btn-action:hover {
             transform: translateY(-4px) scale(1.05);
-            box-shadow: 0 15px 40px rgba(102,126,234,0.5);
+            box-shadow: 0 15px 40px rgba(99,102,241,0.5);
             color: white;
             text-decoration: none;
         }
 
+        .btn-action:focus-visible {
+            outline: 3px solid rgba(255,255,255,0.95);
+            outline-offset: 2px;
+        }
+
         .btn-action.warning {
             background: var(--warning-gradient);
-            box-shadow: 0 8px 25px rgba(240,147,251,0.3);
+            box-shadow: 0 8px 25px rgba(245,158,11,0.3);
+            border-color: rgba(255,255,255,0.9);
         }
 
         .btn-action.warning:hover {
-            box-shadow: 0 15px 40px rgba(240,147,251,0.5);
+            box-shadow: 0 15px 40px rgba(245,158,11,0.5);
         }
 
         .btn-action.info {
             background: var(--info-gradient);
-            box-shadow: 0 8px 25px rgba(79,172,254,0.3);
+            box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+            border-color: rgba(255,255,255,0.9);
         }
 
         .btn-action.info:hover {
-            box-shadow: 0 15px 40px rgba(79,172,254,0.5);
+            box-shadow: 0 15px 40px rgba(59,130,246,0.5);
         }
 
-        /* Section activité récente ultra-moderne */
+        /* Section activité récente harmonisée */
         .activity-section {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 35px;
-            box-shadow: var(--shadow-medium);
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: var(--shadow);
             overflow: hidden;
             position: relative;
             max-width: 1000px;
-            margin: 0 auto 2rem auto;
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin: 0 2rem 2rem 2rem;
+            border: 1px solid var(--glass-border);
+            z-index: 2;
         }
 
         .activity-section::before {
@@ -420,13 +504,13 @@
             left: 0;
             right: 0;
             height: 6px;
-            background: var(--forest-gradient);
+            background: var(--success-gradient);
         }
 
         .section-header {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 3rem;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, #e9ecef 100%);
+            padding: 2.5rem;
+            border-bottom: 1px solid var(--glass-border);
             position: relative;
         }
 
@@ -438,14 +522,14 @@
             transform: translateX(-50%);
             width: 80px;
             height: 4px;
-            background: var(--forest-gradient);
+            background: var(--primary-gradient);
             border-radius: 4px;
         }
 
         .section-header h3 {
             margin: 0;
-            font-size: 1.8rem;
-            font-weight: 900;
+            font-size: 1.6rem;
+            font-weight: 800;
             color: var(--text-primary);
             display: flex;
             align-items: center;
@@ -455,29 +539,29 @@
         }
 
         .icon-wrapper {
-            background: var(--forest-gradient);
-            width: 60px;
-            height: 60px;
-            border-radius: 18px;
+            background: var(--primary-gradient);
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            box-shadow: 0 10px 30px rgba(0,184,148,0.3);
+            box-shadow: 0 8px 25px rgba(99,102,241,0.3);
             transition: all 0.4s ease;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
         }
 
         .section-header:hover .icon-wrapper {
             transform: scale(1.15) rotate(15deg);
-            box-shadow: 0 15px 40px rgba(0,184,148,0.4);
+            box-shadow: 0 15px 40px rgba(99,102,241,0.4);
         }
 
         .section-content {
             padding: 3.5rem;
         }
 
-        /* Timeline ultra-moderne */
+        /* Timeline harmonisée */
         .activity-timeline {
             position: relative;
             padding-left: 3rem;
@@ -490,7 +574,7 @@
             top: 0;
             bottom: 0;
             width: 4px;
-            background: var(--forest-gradient);
+            background: var(--success-gradient);
             border-radius: 4px;
         }
 
@@ -500,17 +584,17 @@
             margin-bottom: 3rem;
             position: relative;
             padding: 2rem;
-            background: rgba(0,184,148,0.02);
+            background: rgba(16,185,129,0.02);
             border-radius: 20px;
             transition: all 0.4s ease;
             border-left: 4px solid transparent;
-            border-image: linear-gradient(135deg, #00b894, #55efc4) 1;
+            border-image: linear-gradient(135deg, #10b981, #059669) 1;
         }
 
         .timeline-item:hover {
-            background: rgba(0,184,148,0.05);
+            background: rgba(16,185,129,0.05);
             transform: translateX(15px);
-            box-shadow: 0 10px 30px rgba(0,184,148,0.1);
+            box-shadow: 0 10px 30px rgba(16,185,129,0.1);
         }
 
         .timeline-item::before {
@@ -521,20 +605,20 @@
             transform: translateY(-50%);
             width: 18px;
             height: 18px;
-            background: var(--forest-gradient);
+            background: var(--success-gradient);
             border-radius: 50%;
             border: 4px solid white;
-            box-shadow: 0 6px 20px rgba(0,184,148,0.3);
+            box-shadow: 0 6px 20px rgba(16,185,129,0.3);
             transition: all 0.3s ease;
         }
 
         .timeline-item:hover::before {
             transform: translateY(-50%) scale(1.2);
-            box-shadow: 0 8px 25px rgba(0,184,148,0.4);
+            box-shadow: 0 8px 25px rgba(16,185,129,0.4);
         }
 
         .timeline-icon {
-            background: var(--forest-gradient);
+            background: var(--success-gradient);
             width: 50px;
             height: 50px;
             border-radius: 15px;
@@ -544,26 +628,26 @@
             color: white;
             font-size: 1.2rem;
             flex-shrink: 0;
-            box-shadow: 0 8px 25px rgba(0,184,148,0.3);
+            box-shadow: 0 8px 25px rgba(16,185,129,0.3);
             transition: all 0.4s ease;
         }
 
         .timeline-item:hover .timeline-icon {
             transform: scale(1.15) rotate(20deg);
-            box-shadow: 0 12px 35px rgba(0,184,148,0.4);
+            box-shadow: 0 12px 35px rgba(16,185,129,0.4);
         }
 
         .timeline-content h5 {
             margin: 0 0 0.75rem 0;
-            font-size: 1.3rem;
-            font-weight: 800;
+            font-size: 1.2rem;
+            font-weight: 700;
             color: var(--text-primary);
         }
 
         .timeline-content p {
             margin: 0 0 1rem 0;
             color: var(--text-secondary);
-            font-size: 1rem;
+            font-size: 0.95rem;
             line-height: 1.6;
         }
 
@@ -704,34 +788,161 @@
             0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
             100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
         }
+
+        /* Nouvelles améliorations premium */
+        .floating-elements {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .floating-element:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .floating-element:nth-child(2) {
+            top: 60%;
+            left: 80%;
+            animation-delay: 2s;
+        }
+
+        .floating-element:nth-child(3) {
+            top: 80%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.6; }
+            50% { transform: translateY(-20px) rotate(180deg); opacity: 1; }
+        }
+
+        /* Effet de néon amélioré */
+        .neon-glow {
+            box-shadow: 
+                0 0 5px rgba(99, 102, 241, 0.5),
+                0 0 10px rgba(99, 102, 241, 0.3),
+                0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        .neon-glow:hover {
+            box-shadow: 
+                0 0 10px rgba(99, 102, 241, 0.8),
+                0 0 20px rgba(99, 102, 241, 0.6),
+                0 0 30px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Effet de profondeur 3D */
+        .depth-3d {
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .depth-3d:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
+        }
+
+        /* Animated brand gradient unifié */
+        .animated-gradient {
+            background: var(--primary-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Effet de morphing */
+        .morphing-card {
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .morphing-card:hover {
+            border-radius: 50px;
+            transform: scale(1.05) rotate(2deg);
+        }
+
+        /* Effet de glassmorphism amélioré */
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* Effet de particules interactives */
+        .particle-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleMove 3s linear infinite;
+        }
+
+        @keyframes particleMove {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        /* Masquer les mini-statistiques d'en-tête */
+        .welcome-stats { display: none !important; }
     </style>
 {% endblock %}
 
 {% block body %}
     <div class="participant-container">
-        <div class="container-fluid px-4">
-            <!-- En-tête participant ultra-moderne -->
-            <div class="participant-header shine-effect">
+        <div class="container-fluid px-2">
+            <!-- En-tête participant -->
+            <div class="participant-header shine-effect particle-container">
+                <div class="floating-elements">
+                    <div class="floating-element"></div>
+                    <div class="floating-element"></div>
+                    <div class="floating-element"></div>
+                </div>
                 <div class="d-flex align-items-center justify-content-between flex-wrap">
                     <div class="welcome-content">
-                        <div class="user-avatar">
-                            <i class="fas fa-user-astronaut"></i>
+                        <div class="user-avatar depth-3d neon-glow">
+                            <i class="fas fa-rocket"></i>
                         </div>
-                        <h1>🎉 Bienvenue {{ app.user ? app.user.prenom : 'Participant' }} !</h1>
-                        <p>Votre espace personnel ultra-moderne pour gérer vos événements et participations en toute simplicité</p>
-                        
-                        <!-- Mini statistiques redesignées -->
+                        <h1 class="animated-gradient">Salut {{ app.user ? app.user.prenom : 'Participant' }} !</h1>
+                        <p>Voici un tableau de bord plus clair pour tout gérer rapidement.</p>
                         <div class="welcome-stats">
-                            <div class="welcome-stat shine-effect">
-                                <div class="welcome-stat-number" data-target="8">0</div>
+                            <div class="welcome-stat glassmorphism morphing-card">
+                                <div class="welcome-stat-number neon-glow" data-target="{{ eventsCount|default(0) }}">0</div>
                                 <div class="welcome-stat-label">Événements</div>
                             </div>
-                            <div class="welcome-stat shine-effect">
-                                <div class="welcome-stat-number" data-target="{{ unreadNotificationsCount ?? 3 }}">0</div>
+                            <div class="welcome-stat glassmorphism morphing-card">
+                                <div class="welcome-stat-number neon-glow" data-target="{{ unreadNotificationsCount|default(0) }}">0</div>
                                 <div class="welcome-stat-label">Notifications</div>
                             </div>
-                            <div class="welcome-stat shine-effect">
-                                <div class="welcome-stat-number" data-target="12">0</div>
+                            <div class="welcome-stat glassmorphism morphing-card">
+                                <div class="welcome-stat-number neon-glow" data-target="{{ documentsCount|default(0) }}">0</div>
                                 <div class="welcome-stat-label">Documents</div>
                             </div>
                         </div>
@@ -739,104 +950,106 @@
                 </div>
             </div>
 
-            <!-- Cartes statistiques premium -->
-            <div class="stats-grid">
-                <div class="stat-card events fade-in shine-effect">
-                    <div class="stat-icon events">
-                        <i class="fas fa-rocket"></i>
+            <!-- Indicateurs clés -->
+            <div class="row g-4 px-3 mb-4">
+                <div class="col-12 col-md-4">
+                    <div class="stat-card events fade-in shine-effect depth-3d neon-glow h-100">
+                        <div class="stat-icon events animated-gradient">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-number pulse-animation neon-glow" data-target="{{ eventsCount|default(0) }}">0</div>
+                        <div class="stat-label">Mes Événements</div>
+                        <div class="stat-description">Tous vos événements à venir et passés</div>
+                        <a href="{{ path('participant_events') }}" class="btn-action">
+                            <i class="fas fa-arrow-right"></i> Ouvrir
+                        </a>
                     </div>
-                    <div class="stat-number pulse-animation" data-target="8">0</div>
-                    <div class="stat-label">Mes Événements</div>
-                    <div class="stat-description">Découvrez et gérez vos participations aux événements les plus passionnants organisés pour vous</div>
-                    <a href="{{ path('participant_events') }}" class="btn-action">
-                        <i class="fas fa-arrow-right"></i>
-                        Explorer
-                    </a>
                 </div>
-                
-                <div class="stat-card notifications fade-in shine-effect">
-                    <div class="stat-icon notifications">
-                        <i class="fas fa-bell"></i>
+
+                <div class="col-12 col-md-4">
+                    <div class="stat-card notifications fade-in shine-effect depth-3d neon-glow h-100">
+                        <div class="stat-icon notifications animated-gradient">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <div class="stat-number pulse-animation neon-glow" data-target="{{ unreadNotificationsCount|default(0) }}">0</div>
+                        <div class="stat-label">Notifications</div>
+                        <div class="stat-description">Rappels et annonces des organisateurs</div>
+                        <a href="{{ path('participant_notifications') }}" class="btn-action warning">
+                            <i class="fas fa-bell"></i> Consulter
+                        </a>
                     </div>
-                    <div class="stat-number pulse-animation" data-target="{{ unreadNotificationsCount ?? 3 }}">0</div>
-                    <div class="stat-label">Notifications</div>
-                    <div class="stat-description">Restez connecté avec les dernières mises à jour, rappels et messages importants de vos organisateurs</div>
-                    <a href="{{ path('participant_notifications') }}" class="btn-action warning">
-                        <i class="fas fa-bell"></i>
-                        Consulter
-                    </a>
                 </div>
-                
-                <div class="stat-card documents fade-in shine-effect">
-                    <div class="stat-icon documents">
-                        <i class="fas fa-folder-open"></i>
+
+                <div class="col-12 col-md-4">
+                    <div class="stat-card documents fade-in shine-effect depth-3d neon-glow h-100">
+                        <div class="stat-icon documents animated-gradient">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <div class="stat-number pulse-animation neon-glow" data-target="{{ documentsCount|default(0) }}">0</div>
+                        <div class="stat-label">Documents</div>
+                        <div class="stat-description">Documents partagés et ressources</div>
+                        <a href="{{ path('participant_documents') }}" class="btn-action info">
+                            <i class="fas fa-cloud-download-alt"></i> Accéder
+                        </a>
                     </div>
-                    <div class="stat-number pulse-animation" data-target="12">0</div>
-                    <div class="stat-label">Documents</div>
-                    <div class="stat-description">Accédez instantanément aux documents partagés, ressources et fichiers importants de vos événements</div>
-                    <a href="{{ path('participant_documents') }}" class="btn-action info">
-                        <i class="fas fa-cloud-download-alt"></i>
-                        Télécharger
-                    </a>
                 </div>
             </div>
 
-            <!-- Section activité récente ultra-moderne -->
-            <div class="activity-section fade-in shine-effect">
-                <div class="section-header">
+            <!-- Activité récente -->
+            <div class="activity-section fade-in shine-effect depth-3d neon-glow">
+                <div class="section-header glassmorphism">
                     <h3>
-                        <div class="icon-wrapper">
-                            <i class="fas fa-chart-line"></i>
+                        <div class="icon-wrapper animated-gradient neon-glow">
+                            <i class="fas fa-history"></i>
                         </div>
                         Activité récente
                     </h3>
                 </div>
-                
                 <div class="section-content">
                     <div class="activity-timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-check-circle"></i>
+                        {% if recentActivity is defined and recentActivity|length > 0 %}
+                            {% for activity in recentActivity %}
+                                <div class="timeline-item morphing-card neon-glow">
+                                    <div class="timeline-icon animated-gradient" style="background: {{ activity.color }};">
+                                        <i class="fas fa-{{ activity.icon }}"></i>
+                                    </div>
+                                    <div class="timeline-content">
+                                        <h5>{{ activity.title }}</h5>
+                                        <p>{{ activity.description }}</p>
+                                        <div class="timeline-time neon-glow">
+                                            {% if activity.date %}
+                                                {% set now = "now"|date('U') %}
+                                                {% set activityTime = activity.date|date('U') %}
+                                                {% set diff = now - activityTime %}
+                                                {% if diff < 3600 %}
+                                                    Il y a {{ (diff / 60)|round }} min
+                                                {% elseif diff < 86400 %}
+                                                    Il y a {{ (diff / 3600)|round }}h
+                                                {% elseif diff < 604800 %}
+                                                    Il y a {{ (diff / 86400)|round }} jours
+                                                {% else %}
+                                                    {{ activity.date|date('d/m/Y à H:i') }}
+                                                {% endif %}
+                                            {% else %}
+                                                Récemment
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Message par défaut si aucune activité -->
+                            <div class="timeline-item morphing-card neon-glow">
+                                <div class="timeline-icon animated-gradient">
+                                    <i class="fas fa-rocket"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <h5>Bienvenue sur EventHub !</h5>
+                                    <p>Commencez par participer à des événements pour voir votre activité récente.</p>
+                                    <div class="timeline-time neon-glow">Maintenant</div>
+                                </div>
                             </div>
-                            <div class="timeline-content">
-                                <h5>🎯 Présence confirmée</h5>
-                                <p>Vous avez confirmé votre participation à la formation sécurité informatique. Merci de votre engagement !</p>
-                                <div class="timeline-time">Il y a 2 heures</div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-calendar-plus"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>📅 Nouvel événement ajouté</h5>
-                                <p>Invitation reçue pour la réunion stratégique équipe projet innovant. Découvrez les détails maintenant !</p>
-                                <div class="timeline-time">Hier à 14h30</div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-download"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>📄 Document téléchargé</h5>
-                                <p>Téléchargement réussi du guide complet de procédures de sécurité mis à jour</p>
-                                <div class="timeline-time">Il y a 2 jours</div>
-                            </div>
-                        </div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-icon">
-                                <i class="fas fa-edit"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>✍️ Contribution collaborative</h5>
-                                <p>Ajout de vos idées innovantes aux notes de la réunion mensuelle d'équipe créative</p>
-                                <div class="timeline-time">Il y a 3 jours</div>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -983,6 +1196,42 @@
                 }, 800);
             });
 
+            // Interactions avec les cartes d'actions rapides
+            const quickActionCards = document.querySelectorAll('.quick-action-card');
+            quickActionCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-12px) scale(1.05)';
+                    this.style.background = 'rgba(255, 255, 255, 0.3)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                    this.style.background = 'rgba(255, 255, 255, 0.15)';
+                });
+            });
+
+            // Effet de vague au clic
+            document.addEventListener('click', function(e) {
+                const wave = document.createElement('div');
+                wave.style.position = 'fixed';
+                wave.style.left = e.clientX + 'px';
+                wave.style.top = e.clientY + 'px';
+                wave.style.width = '0px';
+                wave.style.height = '0px';
+                wave.style.borderRadius = '50%';
+                wave.style.background = 'rgba(255, 255, 255, 0.5)';
+                wave.style.transform = 'translate(-50%, -50%)';
+                wave.style.animation = 'waveEffect 0.8s ease-out';
+                wave.style.pointerEvents = 'none';
+                wave.style.zIndex = '9999';
+                
+                document.body.appendChild(wave);
+                
+                setTimeout(() => {
+                    wave.remove();
+                }, 800);
+            });
+
             // Effet de particules interactif
             function createParticle(x, y) {
                 const particle = document.createElement('div');
@@ -1015,9 +1264,62 @@
                     }, i * 50);
                 }
             });
+
+            // Effet de morphing avancé
+            const morphingCards = document.querySelectorAll('.morphing-card');
+            morphingCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderRadius = '50px';
+                    this.style.transform = 'scale(1.05) rotate(2deg)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.borderRadius = '20px';
+                    this.style.transform = 'scale(1) rotate(0deg)';
+                });
+            });
+
+            // Effet de profondeur 3D amélioré
+            const depth3dElements = document.querySelectorAll('.depth-3d');
+            depth3dElements.forEach(element => {
+                element.addEventListener('mousemove', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 10;
+                    const rotateY = (centerX - x) / 10;
+                    
+                    this.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(20px)`;
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    this.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+                });
+            });
+
+            // Animation des éléments flottants
+            const floatingElements = document.querySelectorAll('.floating-element');
+            floatingElements.forEach((element, index) => {
+                element.style.animationDelay = `${index * 2}s`;
+                element.style.animationDuration = `${6 + index}s`;
+            });
+
+            // Effet de néon pulsant
+            const neonElements = document.querySelectorAll('.neon-glow');
+            neonElements.forEach(element => {
+                setInterval(() => {
+                    element.style.filter = 'brightness(1.2)';
+                    setTimeout(() => {
+                        element.style.filter = 'brightness(1)';
+                    }, 200);
+                }, 3000 + Math.random() * 2000);
+            });
         });
 
-        // CSS pour l'effet ripple
+        // CSS pour les effets d'animation
         const style = document.createElement('style');
         style.textContent = `
             .ripple {
@@ -1032,6 +1334,30 @@
             @keyframes rippleEffect {
                 to {
                     transform: scale(4);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes waveEffect {
+                0% {
+                    width: 0px;
+                    height: 0px;
+                    opacity: 1;
+                }
+                100% {
+                    width: 200px;
+                    height: 200px;
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes particleFloat {
+                0% {
+                    transform: translateY(0px) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: translateY(-100px) rotate(360deg);
                     opacity: 0;
                 }
             }

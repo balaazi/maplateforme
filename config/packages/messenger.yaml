@@ -10,4 +10,5 @@ framework:
                     delete_after_ack: false
                     delete_after_reject: false
         routing:
-            'Symfony\Component\Mailer\Messenger\SendEmailMessage': async
+            # Commenté pour envoi synchrone
+            # 'Symfony\Component\Mailer\Messenger\SendEmailMessage': async

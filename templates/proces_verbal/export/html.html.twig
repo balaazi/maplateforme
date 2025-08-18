@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procès-verbal - {{ event.title }}</title>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+        }
+        
+        body {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .event-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 30px;
+        }
+        
+        .event-info table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .event-info td {
+            padding: 5px 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .event-info td:first-child {
+            font-weight: bold;
+            width: 150px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        
+        .section-content {
+            white-space: pre-wrap;
+            line-height: 1.8;
+        }
+        
+        .actions-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .action-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .action-description {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+        
+        .action-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        
+        .action-detail {
+            background: white;
+            padding: 8px;
+            border-radius: 3px;
+            border-left: 3px solid #007bff;
+        }
+        
+        .action-detail strong {
+            display: block;
+            color: #495057;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-style: italic;
+            color: #6c757d;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+        }
+        
+        .signatures {
+            margin-top: 50px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+        }
+        
+        .signature-block {
+            text-align: center;
+        }
+        
+        .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 40px;
+            padding-top: 5px;
+            font-size: 12px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-finalise {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-brouillon {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-en_attente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-en_cours {
+            background: #cce5ff;
+            color: #004085;
+        }
+        
+        .status-termine {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-annule {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Procès-verbal de réunion</h1>
+        <p>{{ event.title }}</p>
+        {% if procesVerbal.finalise %}
+            <span class="status-badge status-finalise">Document finalisé</span>
+        {% else %}
+            <span class="status-badge status-brouillon">Brouillon</span>
+        {% endif %}
+    </div>
+
+    <div class="event-info">
+        <table>
+            <tr>
+                <td>Événement :</td>
+                <td>{{ event.title }}</td>
+            </tr>
+            <tr>
+                <td>Date et heure :</td>
+                <td>{{ procesVerbal.dateHeure|date('d/m/Y à H:i') }}</td>
+            </tr>
+            <tr>
+                <td>Durée :</td>
+                <td>{{ event.duree }} minutes</td>
+            </tr>
+            {% if event.salle %}
+            <tr>
+                <td>Lieu :</td>
+                <td>{{ event.salle.nom }}</td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td>Organisateur :</td>
+                <td>{{ event.organizer.prenom }} {{ event.organizer.nom }}</td>
+            </tr>
+            <tr>
+                <td>Rédacteur :</td>
+                <td>{{ procesVerbal.redacteur.prenom }} {{ procesVerbal.redacteur.nom }}</td>
+            </tr>
+            <tr>
+                <td>Date de création :</td>
+                <td>{{ procesVerbal.dateCreation|date('d/m/Y à H:i') }}</td>
+            </tr>
+            {% if procesVerbal.dateModification %}
+            <tr>
+                <td>Dernière modification :</td>
+                <td>{{ procesVerbal.dateModification|date('d/m/Y à H:i') }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Participants</h2>
+        <div class="section-content">{{ procesVerbal.participants }}</div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Points abordés</h2>
+        <div class="section-content">{{ procesVerbal.pointsAbordes }}</div>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Décisions prises</h2>
+        <div class="section-content">{{ procesVerbal.decisionsPrises }}</div>
+    </div>
+
+    {% if procesVerbal.actions|length > 0 %}
+    <div class="section">
+        <h2 class="section-title">Actions à réaliser</h2>
+        <ul class="actions-list">
+            {% for action in procesVerbal.actions %}
+                <li class="action-item">
+                    <div class="action-description">{{ loop.index }}. {{ action.description }}</div>
+                    <div class="action-details">
+                        <div class="action-detail">
+                            <strong>Responsable</strong>
+                            {% if action.responsable %}
+                                {{ action.responsable.prenom }} {{ action.responsable.nom }}
+                            {% elseif action.responsableNom %}
+                                {{ action.responsableNom }}
+                            {% else %}
+                                Non assigné
+                            {% endif %}
+                        </div>
+                        <div class="action-detail">
+                            <strong>Délai</strong>
+                            {% if action.delai %}
+                                {{ action.delai|date('d/m/Y') }}
+                            {% else %}
+                                Non défini
+                            {% endif %}
+                        </div>
+                        <div class="action-detail">
+                            <strong>Statut</strong>
+                            <span class="status-badge status-{{ action.statut }}">
+                                {{ action.statut|replace({'_': ' '})|title }}
+                            </span>
+                        </div>
+                    </div>
+                    {% if action.notes %}
+                        <div style="margin-top: 10px;">
+                            <strong>Notes :</strong> {{ action.notes }}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <div class="signatures">
+        <div class="signature-block">
+            <div>Rédacteur</div>
+            <div class="signature-line">{{ procesVerbal.redacteur.prenom }} {{ procesVerbal.redacteur.nom }}</div>
+        </div>
+        <div class="signature-block">
+            <div>Organisateur</div>
+            <div class="signature-line">{{ event.organizer.prenom }} {{ event.organizer.nom }}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Document généré le {{ dateExport|date('d/m/Y à H:i') }}</p>
+        <p>{{ event.title }} - Procès-verbal de réunion</p>
+    </div>
+</body>
+</html>

@@ -13,6 +13,7 @@ class Invitation
     public const STATUS_PENDING = 'pending';
     public const STATUS_ACCEPTED = 'accepted';
     public const STATUS_DECLINED = 'declined';
+    public const STATUS_EXPIRED = 'expired';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -77,7 +78,7 @@ class Invitation
 
     public function setStatus(string $status): static
     {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_DECLINED])) {
+        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_DECLINED, self::STATUS_EXPIRED])) {
             throw new \InvalidArgumentException("Invalid status");
         }
 
@@ -130,4 +131,5 @@ class Invitation
     public function isPending(): bool { return $this->status === self::STATUS_PENDING; }
     public function isAccepted(): bool { return $this->status === self::STATUS_ACCEPTED; }
     public function isDeclined(): bool { return $this->status === self::STATUS_DECLINED; }
+    public function isExpired(): bool { return $this->status === self::STATUS_EXPIRED; }
 }

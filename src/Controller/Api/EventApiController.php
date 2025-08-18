@@ -20,11 +20,17 @@ class EventApiController extends AbstractController
         $user = $this->getUser();
 
         // Filtrer les événements selon le rôle de l'utilisateur
-        $events = $eventRepository->findByRole($user);
+        if ($this->isGranted('ROLE_ORGANISATEUR') || $this->isGranted('ROLE_ADMIN')) {
+            // ADMIN: voit tous les événements / ORGANISATEUR: voit ses événements + participations
+            $events = $eventRepository->findByRole($user);
+        } else {
+            // Les participants ne voient que les événements qu'ils ont acceptés
+            $events = $eventRepository->findAcceptedEventsForParticipant($user);
+        }
 
         $data = array_map(function (Event $event) use ($user) {
             // Récupération de la date de début
-        $start = \DateTime::createFromInterface($event->getDateHeure());
+            $start = \DateTime::createFromInterface($event->getDateHeure());
 
             // Clonage de l'objet DateTime et modification pour ajouter la durée
             $end = (clone $start)->modify('+' . $event->getDuree() . ' minutes');
@@ -35,6 +41,9 @@ class EventApiController extends AbstractController
             // Déterminer le rôle de l'utilisateur pour cet événement
             $userRole = $this->getUserRoleForEvent($event, $user);
             
+            // Pour les participants, les événements acceptés sont toujours en vert mais gardent leur type
+            $isAcceptedParticipant = !$this->isGranted('ROLE_ORGANISATEUR') && !$this->isGranted('ROLE_ADMIN');
+            
             // Générer l'URL uniquement si l'utilisateur a accès à l'événement
             $eventData = [
                 'id' => $event->getId(),
@@ -43,17 +52,19 @@ class EventApiController extends AbstractController
                 'end' => $end->format('Y-m-d\TH:i:s'),
                 'description' => $event->getDescription(),
                 'extendedProps' => [
-                    'type' => $type,
+                    'type' => $type, // Garder le type d'origine
+                    'originalType' => $type, // Type d'origine pour référence
                     'organizer' => $event->getOrganizer() ? $event->getOrganizer()->getNom() . ' ' . $event->getOrganizer()->getPrenom() : 'Non défini',
                     'lieu' => $event->getLieu(),
-                    'role' => $userRole
+                    'role' => $userRole,
+                    'isAccepted' => $isAcceptedParticipant
                 ]
             ];
             
-            // Ajouter l'URL uniquement si l'utilisateur peut accéder à l'événement
-            if ($userRole === 'organisateur' || $userRole === 'participant' || $userRole === 'administrateur') {
-                $eventData['url'] = $this->generateUrl('event_show', ['id' => $event->getId()]);
-            }
+            // Ajouter l'URL pour tous les événements visibles par l'utilisateur
+            $eventData['url'] = $this->generateUrl('event_show', ['id' => $event->getId()]);
+            
+
             
             return $eventData;
         }, $events);
@@ -76,13 +87,7 @@ class EventApiController extends AbstractController
             strpos($description, 'réunion') !== false || strpos($description, 'reunion') !== false) {
             return 'reunion';
         }
-        if (strpos($title, 'conférence') !== false || strpos($title, 'conference') !== false ||
-            strpos($description, 'conférence') !== false || strpos($description, 'conference') !== false) {
-            return 'conference';
-        }
-        if (strpos($title, 'atelier') !== false || strpos($description, 'atelier') !== false) {
-            return 'atelier';
-        }
+
         if (strpos($title, 'séminaire') !== false || strpos($title, 'seminaire') !== false ||
             strpos($description, 'séminaire') !== false || strpos($description, 'seminaire') !== false) {
             return 'seminaire';
@@ -96,23 +101,22 @@ class EventApiController extends AbstractController
      */
     private function getUserRoleForEvent(Event $event, $user): string
     {
-        $userRoles = $user->getRoles();
+        // Si l'utilisateur est le créateur de l'événement
+        if ($event->getCreatedBy() === $user) {
+            return 'créateur';
+        }
         
-        if (in_array('ROLE_ADMIN', $userRoles)) {
+        // Si l'utilisateur est administrateur, il peut voir tous les événements
+        if ($this->isGranted('ROLE_ADMIN')) {
             return 'administrateur';
         }
         
-        if ($event->getOrganizer() === $user) {
-            return 'organisateur';
+        // Si l'utilisateur est un participant simple, il a accepté l'événement
+        if (!$this->isGranted('ROLE_ORGANISATEUR')) {
+            return 'participant_accepté';
         }
         
-        // Vérifier si l'utilisateur est participant
-        foreach ($event->getParticipations() as $participation) {
-            if ($participation->getUser() === $user) {
-                return 'participant';
-            }
-        }
-        
-        return 'observateur';
+        // Pour les organisateurs qui visualisent des événements qu'ils n'ont pas créés
+        return 'organisateur_observateur';
     }
 }

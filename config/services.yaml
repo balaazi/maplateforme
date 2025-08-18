@@ -1,54 +1,75 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-  photos_directory: '%kernel.project_dir%\public\uploads\photos'
-  documents_directory: '%kernel.project_dir%/public/uploads/documents'
-  google_token_expiration: '%env(int:GOOGLE_TOKEN_EXPIRATION)%'
-  app.mailer_from: 'no-reply@votresite.com'
-  google_token_file: '%kernel.project_dir%/var/google_token.json'
-  app.mail_from: 'no-reply@maplateforme.com'
+    photos_directory: '%kernel.project_dir%\public\uploads\photos'
+    documents_directory: '%kernel.project_dir%\public\uploads\documents'
 
 services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
-    public: false
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-  App\:
-    resource: '../src/'
-    exclude:
-      - '../src/DependencyInjection/'
-      - '../src/Entity/'
-      - '../src/Kernel.php'
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
 
-  App\Security\AppAuthenticator:
-    arguments:
-      $userRepository: '@App\Repository\UserRepository'
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
 
-  App\Controller\UserController:
-    tags: ['controller.service_arguments']
+    # Services publics pour les tests
+    App\Service\EmailService:
+        public: true
 
-  App\Service\EventNotificationService:
-    arguments:
-      $mailer: '@mailer.mailer'
-      $userRepository: '@App\Repository\UserRepository'
+    App\Service\NotificationService:
+        public: true
 
-  App\Service\AdminNotificationService:
-    arguments:
-      $mailer: '@mailer.mailer'
+    App\Service\ReminderService:
+        public: true
 
-  App\Service\ReminderService: ~
+    App\Service\RealtimeNotificationService:
+        public: true
 
-  App\Service\FileUploadService:
-    arguments:
-      $documentsDirectory: '%documents_directory%'
+    App\Controller\Api\ReminderApiController:
+        public: true
 
-  App\Service\GoogleCalendarService:
-   arguments:
-        $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
-        $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
-        $googleRedirectUri: '%env(GOOGLE_REDIRECT_URI)%'
-        $projectDir: '%kernel.project_dir%'
+    App\Security\AppAuthenticator:
+        arguments:
+            $router: '@router.default'
+            $userRepository: '@App\Repository\UserRepository'
 
-  # Event listener pour capturer les erreurs d'accès
-  App\EventListener\AccessDeniedListener:
-    tags:
-      - { name: kernel.event_subscriber }
+    App\Controller\UserController:
+        tags: ['controller.service_arguments']
+
+    App\Service\EventNotificationService:
+        arguments:
+            $mailer: '@mailer.mailer'
+            $userRepository: '@App\Repository\UserRepository'
+
+    App\Service\AdminNotificationService:
+        arguments:
+            $mailer: '@mailer.mailer'
+
+    App\Service\FileUploadService:
+        arguments:
+            $documentsDirectory: '%documents_directory%'
+
+    App\Service\GoogleCalendarService:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+            $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
+            $googleRedirectUri: '%env(GOOGLE_REDIRECT_URI)%'
+            $projectDir: '%kernel.project_dir%'
+
+    # Event listener pour capturer les erreurs d'accès
+    App\EventListener\AccessDeniedListener:
+        tags:
+            - { name: kernel.event_subscriber }

@@ -64,6 +64,9 @@
             position: relative;
             z-index: 1;
             margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
         }
         
         .btn-admin-invite {
@@ -79,6 +82,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
+            white-space: nowrap;
         }
         
         .btn-admin-invite:hover {
@@ -441,6 +445,128 @@
                 transform: translateY(0);
             }
         }
+
+        /* Styles pour les nouvelles sections */
+        .role-distribution {
+            margin-top: 1rem;
+        }
+
+        .role-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .role-item:last-child {
+            border-bottom: none;
+        }
+
+        .role-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+        }
+
+        .role-color.admin {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .role-color.organisateur {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        .role-color.participant {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .role-name {
+            flex: 1;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .role-count {
+            background: rgba(102,126,234,0.1);
+            color: #667eea;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .recent-events {
+            margin-top: 1rem;
+        }
+
+        .recent-event-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .recent-event-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-event-item:hover {
+            background: rgba(102,126,234,0.05);
+            border-radius: 10px;
+            padding-left: 0.5rem;
+        }
+
+        .event-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .event-info {
+            flex: 1;
+        }
+
+        .event-title {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .event-date {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+        }
+
+        /* Amélioration des tendances */
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .stat-trend i {
+            font-size: 0.7rem;
+        }
+
+        /* Animation pour les cartes de statistiques */
+        .stat-card:hover .stat-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .stat-icon {
+            transition: all 0.3s ease;
+        }
     </style>
 {% endblock %}
 
@@ -469,39 +595,99 @@
             <!-- Cartes statistiques -->
             <div class="stats-grid">
                 <div class="stat-card fade-in" style="animation-delay: 0.1s;">
-                    <div class="stat-trend">+12%</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ stats.roleStats.admin > 0 ? '+' ~ stats.roleStats.admin : '0' }}
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <div class="stat-number" data-target="{{ users|length }}">0</div>
+                    <div class="stat-number" data-target="{{ stats.totalUsers }}">0</div>
                     <div class="stat-label">Utilisateurs totaux</div>
                 </div>
                 
                 <div class="stat-card fade-in" style="animation-delay: 0.2s;">
-                    <div class="stat-trend">+8%</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ stats.activeEvents > 0 ? '+' ~ stats.activeEvents : '0' }}
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-calendar-alt"></i>
                     </div>
-                    <div class="stat-number" data-target="24">0</div>
+                    <div class="stat-number" data-target="{{ stats.activeEvents }}">0</div>
                     <div class="stat-label">Événements actifs</div>
                 </div>
                 
                 <div class="stat-card fade-in" style="animation-delay: 0.3s;">
-                    <div class="stat-trend">+15%</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ stats.totalInvitations > 0 ? '+' ~ stats.totalInvitations : '0' }}
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <div class="stat-number" data-target="156">0</div>
+                    <div class="stat-number" data-target="{{ stats.totalInvitations }}">0</div>
                     <div class="stat-label">Invitations envoyées</div>
                 </div>
                 
                 <div class="stat-card fade-in" style="animation-delay: 0.4s;">
-                    <div class="stat-trend">+22%</div>
+                    <div class="stat-trend">
+                        <i class="fas fa-arrow-up"></i>
+                        {{ stats.participationRate }}%
+                    </div>
                     <div class="stat-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="stat-number" data-target="89">0</div>
+                    <div class="stat-number" data-target="{{ stats.participationRate }}">0</div>
                     <div class="stat-label">Taux de participation</div>
+                </div>
+            </div>
+
+            <!-- Section des statistiques détaillées -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="stat-card fade-in" style="animation-delay: 0.5s;">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Répartition par rôle</h5>
+                        <div class="role-distribution">
+                            <div class="role-item">
+                                <span class="role-color admin"></span>
+                                <span class="role-name">Administrateurs</span>
+                                <span class="role-count">{{ stats.roleStats.admin }}</span>
+                            </div>
+                            <div class="role-item">
+                                <span class="role-color organisateur"></span>
+                                <span class="role-name">Organisateurs</span>
+                                <span class="role-count">{{ stats.roleStats.organisateur }}</span>
+                            </div>
+                            <div class="role-item">
+                                <span class="role-color participant"></span>
+                                <span class="role-name">Participants</span>
+                                <span class="role-count">{{ stats.roleStats.participant }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card fade-in" style="animation-delay: 0.6s;">
+                        <h5><i class="fas fa-clock me-2"></i>Événements récents</h5>
+                        {% if stats.recentEvents|length > 0 %}
+                            <div class="recent-events">
+                                {% for event in stats.recentEvents %}
+                                    <div class="recent-event-item">
+                                        <div class="event-icon">
+                                            <i class="fas fa-calendar-day"></i>
+                                        </div>
+                                        <div class="event-info">
+                                            <div class="event-title">{{ event.title }}</div>
+                                            <div class="event-date">{{ event.dateHeure|date('d/m/Y H:i') }}</div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Aucun événement récent</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -571,19 +757,7 @@
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td>
-                                                <div class="company-info">
-                                                    {% if user.societe %}
-                                                        <i class="fas fa-building"></i>
-                                                        {{ user.societe }}
-                                                    {% else %}
-                                                        <span class="text-muted">
-                                                            <i class="fas fa-user"></i>
-                                                            Particulier
-                                                        </span>
-                                                    {% endif %}
-                                                </div>
-                                            </td>
+
                                             <td>
                                                 {% for role in user.roles %}
                                                     <span class="role-badge">

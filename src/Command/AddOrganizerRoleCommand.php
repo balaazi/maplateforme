@@ -48,7 +48,9 @@ class AddOrganizerRoleCommand extends Command
         }
 
         $roles[] = 'ROLE_ORGANISATEUR';
-        $user->setRoles(array_unique($roles));
+        $user->
+
+        setRoles(array_unique($roles));
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();

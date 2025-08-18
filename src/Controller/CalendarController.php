@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\CalendarEvent;
 use App\Entity\Event;
+use App\Repository\EventRepository;
 use App\Service\GoogleCalendarService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -63,7 +64,7 @@ class CalendarController extends AbstractController
     }
 
     #[Route('/calendar/sync', name: 'calendar_sync')]
-    public function syncCalendar(GoogleCalendarService $googleCalendarService, EntityManagerInterface $em): Response
+    public function syncCalendar(GoogleCalendarService $googleCalendarService, EntityManagerInterface $em, EventRepository $eventRepository): Response
     {
         if (!$googleCalendarService->isAuthenticated()) {
             $this->requestStack->getSession()->set('intended_route', 'calendar_sync');
@@ -73,8 +74,8 @@ class CalendarController extends AbstractController
         try {
             $syncResults = $googleCalendarService->synchronizeCalendars();
 
-            // Sync Events (Event -> CalendarEvent)
-            $events = $em->getRepository(Event::class)->findAll();
+            // Sync Events (Event -> CalendarEvent) - seulement les événements non archivés
+            $events = $eventRepository->findByRole($this->getUser());
             $exported = 0;
 
             foreach ($events as $event) {

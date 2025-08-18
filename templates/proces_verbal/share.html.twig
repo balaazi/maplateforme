@@ -1,0 +1,324 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Partager le procès-verbal - {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .share-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    .share-header {
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .share-title {
+        font-size: 2rem;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-info {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .participants-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
+
+    .participants-list .form-check {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .participants-list .form-check:hover {
+        background: #f0f9ff;
+        border-color: #3b82f6;
+    }
+
+    .participant-info {
+        display: flex;
+        flex-direction: column;
+        margin-left: 1.5rem;
+    }
+
+    .participant-name {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .participant-email {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .participant-status {
+        font-size: 0.75rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 10px;
+        display: inline-block;
+        margin-top: 0.25rem;
+        width: fit-content;
+    }
+
+    .status-accepted {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-declined {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.25rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-outline-success {
+        background: transparent;
+        color: #10b981;
+        border: 2px solid #10b981;
+    }
+
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+        font-size: 1.125rem;
+    }
+
+    .quick-actions {
+        background: #f0f9ff;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .select-all-btn {
+        background: transparent;
+        border: 1px solid #3b82f6;
+        color: #3b82f6;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        margin-bottom: 1rem;
+    }
+
+    .select-all-btn:hover {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .stats-info {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllBtn = document.getElementById('select-all-btn');
+    const checkboxes = document.querySelectorAll('input[name="proces_verbal_share[participants][]"]');
+    
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => cb.checked = !allChecked);
+            updateSelectAllButton();
+        });
+    }
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateSelectAllButton);
+    });
+    
+    function updateSelectAllButton() {
+        if (!selectAllBtn) return;
+        
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const totalCount = checkboxes.length;
+        
+        if (checkedCount === 0) {
+            selectAllBtn.textContent = 'Tout sélectionner';
+        } else if (checkedCount === totalCount) {
+            selectAllBtn.textContent = 'Tout désélectionner';
+        } else {
+            selectAllBtn.textContent = `Sélectionné: ${checkedCount}/${totalCount}`;
+        }
+    }
+    
+    updateSelectAllButton();
+});
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="share-container">
+    <div class="share-header">
+        <h1 class="share-title">
+            <i class="fas fa-share text-primary"></i>
+            Partager le procès-verbal
+        </h1>
+        <p class="text-muted">Envoyez le procès-verbal par email aux participants</p>
+    </div>
+
+    <div class="event-info">
+        <h3><i class="fas fa-calendar-alt"></i> {{ event.title }}</h3>
+        <p><strong>Date :</strong> {{ procesVerbal.dateHeure|date('d/m/Y à H:i') }}</p>
+        <p><strong>Rédacteur :</strong> {{ procesVerbal.redacteur.prenom }} {{ procesVerbal.redacteur.nom }}</p>
+        <p><strong>Statut :</strong> 
+            {% if procesVerbal.finalise %}
+                <span class="badge bg-success">Finalisé</span>
+            {% else %}
+                <span class="badge bg-warning">Brouillon</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <div class="quick-actions">
+        <h4><i class="fas fa-bolt"></i> Action rapide</h4>
+        <p>Envoyer le procès-verbal à tous les participants de la réunion :</p>
+        <form method="post" action="{{ path('proces_verbal_share_all', {'id': procesVerbal.id}) }}" style="display: inline;">
+            <button type="submit" class="btn btn-outline-success" onclick="return confirm('Envoyer le PV à tous les participants ?')">
+                <i class="fas fa-users"></i> Envoyer à tous les participants ({{ participants|length }})
+            </button>
+        </form>
+        <div class="stats-info">
+            <div><strong>Participants avec email :</strong> {{ participants|length }}</div>
+            <div><strong>Participants acceptés :</strong> {{ participants|filter(p => p.status == 'accepted')|length }}</div>
+        </div>
+    </div>
+
+    {{ form_start(form, {'attr': {'class': 'share-form'}}) }}
+    
+    {% if participants|length > 0 %}
+        <div class="form-group">
+            {{ form_label(form.participants) }}
+            <button type="button" id="select-all-btn" class="select-all-btn">Tout sélectionner</button>
+            <div class="participants-list">
+                {% for choice in form.participants %}
+                    <div class="form-check">
+                        {{ form_widget(choice) }}
+                        <div class="participant-info">
+                            {% set participant = participants|filter(p => p.email == choice.vars.value)|first %}
+                            {% if participant %}
+                                <span class="participant-name">{{ participant.name }}</span>
+                                <span class="participant-email">{{ participant.email }}</span>
+                                <span class="participant-status status-{{ participant.status }}">
+                                    {{ participant.status|replace({'_': ' '})|title }}
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {{ form_help(form.participants) }}
+            {{ form_errors(form.participants) }}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            Aucun participant avec adresse email trouvé pour cette réunion.
+        </div>
+    {% endif %}
+
+    <div class="form-group">
+        {{ form_label(form.additionalEmails) }}
+        {{ form_widget(form.additionalEmails) }}
+        {{ form_help(form.additionalEmails) }}
+        {{ form_errors(form.additionalEmails) }}
+    </div>
+
+    <div class="form-actions">
+        {{ form_widget(form.send, {'attr': {'class': 'btn btn-primary btn-lg'}}) }}
+        <a href="{{ path('proces_verbal_show', {'id': procesVerbal.id}) }}" class="btn btn-secondary btn-lg">
+            <i class="fas fa-arrow-left"></i> Annuler
+        </a>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+{% endblock %}

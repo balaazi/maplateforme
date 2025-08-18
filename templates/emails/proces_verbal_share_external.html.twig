@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procès-verbal - {{ event.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #007bff;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .event-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .event-info h2 {
+            margin-top: 0;
+            color: #495057;
+            font-size: 18px;
+        }
+        
+        .event-details {
+            margin: 15px 0;
+        }
+        
+        .event-details strong {
+            color: #495057;
+        }
+        
+        .message {
+            margin: 25px 0;
+            line-height: 1.8;
+        }
+        
+        .attachment-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2196f3;
+            margin: 20px 0;
+        }
+        
+        .attachment-info i {
+            color: #2196f3;
+            margin-right: 8px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .signature {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Procès-verbal de réunion</h1>
+            <p>{{ event.title }}</p>
+        </div>
+
+        <div class="message">
+            <p>Bonjour,</p>
+            
+            <p>Nous vous transmettons le procès-verbal de la réunion <strong>{{ event.title }}</strong>.</p>
+        </div>
+
+        <div class="event-info">
+            <h2>📅 Informations sur la réunion</h2>
+            <div class="event-details">
+                <p><strong>Date et heure :</strong> {{ procesVerbal.dateHeure|date('d/m/Y à H:i') }}</p>
+                <p><strong>Durée :</strong> {{ event.duree }} minutes</p>
+                {% if event.salle %}
+                    <p><strong>Lieu :</strong> {{ event.salle.nom }}</p>
+                {% endif %}
+                <p><strong>Organisateur :</strong> {{ event.organizer.prenom }} {{ event.organizer.nom }}</p>
+                <p><strong>Rédacteur du PV :</strong> {{ redacteur.prenom }} {{ redacteur.nom }}</p>
+            </div>
+        </div>
+
+        <div class="attachment-info">
+            <p><i class="fas fa-paperclip"></i><strong>Document en pièce jointe :</strong></p>
+            <p>Vous trouverez le procès-verbal complet en pièce jointe de cet email. Ce document contient :</p>
+            <ul>
+                <li>La liste des participants</li>
+                <li>Les points abordés durant la réunion</li>
+                <li>Les décisions prises</li>
+                <li>Les actions à réaliser avec les responsables et délais</li>
+            </ul>
+        </div>
+
+        <div class="signature">
+            <p><strong>Cordialement,</strong></p>
+            <p>{{ redacteur.prenom }} {{ redacteur.nom }}<br>
+            Rédacteur du procès-verbal</p>
+        </div>
+
+        <div class="footer">
+            <p>Ce message a été envoyé depuis la plateforme EventHub.</p>
+            <p>Document généré le {{ "now"|date('d/m/Y à H:i') }}</p>
+        </div>
+    </div>
+</body>
+</html>

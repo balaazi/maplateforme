@@ -550,9 +550,6 @@
                         </div>
                     </div>
                     <div class="header-actions">
-                        <a href="{{ path('event_presence', {'id': event.id}) }}" class="btn btn-info">
-                            <i class="fas fa-calendar-check"></i> Marquer ma présence
-                        </a>
                         <a href="{{ path('invitation_new', {'eventId': event.id}) }}" class="btn btn-primary">
                             <i class="fas fa-plus-circle"></i> Nouvelle invitation
                         </a>
@@ -593,24 +590,51 @@
                         </thead>
                         <tbody>
                             {% for invitation in invitations %}
-                                {% set participation = invitation.participant ? invitation.participant.participations|filter(p => p.event == event)|first : null %}
+                                {% set participation = participations[invitation.id] is defined ? participations[invitation.id] : null %}
                                 <tr>
                                     <td><strong>{{ invitation.name }}</strong></td>
                                     <td>{{ invitation.email }}</td>
                                     <td>
-                                        <span class="badge {% if invitation.status == 'accepted' %}bg-success{% elseif invitation.status == 'declined' %}bg-danger{% else %}bg-warning{% endif %}">
+                                        <span class="badge {% if invitation.status == 'accepted' %}bg-success{% elseif invitation.status == 'declined' %}bg-danger{% elseif invitation.status == 'expired' %}bg-secondary{% else %}bg-warning{% endif %}">
                                             {% if invitation.status == 'accepted' %}
-                                                <i class="fas fa-check"></i>
+                                                <i class="fas fa-check"></i> ACCEPTÉE
                                             {% elseif invitation.status == 'declined' %}
-                                                <i class="fas fa-times"></i>
+                                                <i class="fas fa-times"></i> REFUSÉE
+                                            {% elseif invitation.status == 'expired' %}
+                                                <i class="fas fa-clock"></i> EXPIRÉE
                                             {% else %}
-                                                <i class="fas fa-clock"></i>
+                                                <i class="fas fa-clock"></i> EN ATTENTE
                                             {% endif %}
-                                            {{ invitation.status|capitalize }}
                                         </span>
                                     </td>
                                     <td>
-                                        {% if participation %}
+                                        {% if participation and invitation.status == 'accepted' %}
+                                            {% set today = date() %}
+                                            {% set eventDate = event.dateHeure|date('Y-m-d') %}
+                                            {% set isEventDay = today|date('Y-m-d') >= eventDate %}
+                                            
+                                            {% if isEventDay %}
+                                                <div class="btn-group" role="group" data-participation-id="{{ participation.id }}">
+                                                    <button type="button" 
+                                                            class="btn btn-sm {% if participation.isPresent %}btn-success{% else %}btn-outline-success{% endif %} presence-btn"
+                                                            data-present="true"
+                                                            onclick="updateParticipationPresence({{ participation.id }}, true)">
+                                                        <i class="fas fa-check"></i> Présent
+                                                    </button>
+                                                    <button type="button" 
+                                                            class="btn btn-sm {% if not participation.isPresent %}btn-danger{% else %}btn-outline-danger{% endif %} presence-btn"
+                                                            data-present="false"
+                                                            onclick="updateParticipationPresence({{ participation.id }}, false)">
+                                                        <i class="fas fa-times"></i> Absent
+                                                    </button>
+                                                </div>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock"></i> En attente
+                                                </span>
+                                                <br><small class="text-muted">Le {{ event.dateHeure|date('d/m/Y') }}</small>
+                                            {% endif %}
+                                        {% elseif participation %}
                                             <span class="badge {% if participation.isPresent %}bg-success{% else %}bg-danger{% endif %}">
                                                 {% if participation.isPresent %}
                                                     <i class="fas fa-check-circle"></i> Présent(e)
@@ -632,7 +656,9 @@
                                                 <i class="fas fa-ban"></i> Annuler
                                             </a>
                                         {% else %}
-                                            <span class="text-muted" style="font-style: italic;">Aucune action</span>
+                                            <span class="text-muted" style="font-style: italic;">
+                                                <i class="fas fa-check-circle"></i> Répondue
+                                            </span>
                                         {% endif %}
                                     </td>
                                 </tr>
@@ -756,5 +782,81 @@
                 });
             });
         });
+        
+        // Fonction pour mettre à jour la présence d'un participant
+        window.updateParticipationPresence = function(participationId, isPresent) {
+            // Désactiver temporairement les boutons
+            const btnGroup = document.querySelector(`[data-participation-id="${participationId}"]`);
+            const buttons = btnGroup.querySelectorAll('.presence-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Créer les données à envoyer
+            const formData = new FormData();
+            formData.append('participation_id', participationId);
+            formData.append('is_present', isPresent ? 'true' : 'false');
+            
+            // Envoyer la requête AJAX
+            fetch('{{ path("update_participation_presence") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour l'apparence des boutons
+                    const presentBtn = btnGroup.querySelector('[data-present="true"]');
+                    const absentBtn = btnGroup.querySelector('[data-present="false"]');
+                    
+                    if (isPresent) {
+                        presentBtn.classList.remove('btn-outline-success');
+                        presentBtn.classList.add('btn-success');
+                        absentBtn.classList.remove('btn-danger');
+                        absentBtn.classList.add('btn-outline-danger');
+                    } else {
+                        absentBtn.classList.remove('btn-outline-danger');
+                        absentBtn.classList.add('btn-danger');
+                        presentBtn.classList.remove('btn-success');
+                        presentBtn.classList.add('btn-outline-success');
+                    }
+                    
+                    // Afficher un message de succès
+                    showNotification(data.message, 'success');
+                } else {
+                    // Afficher le message d'erreur
+                    showNotification(data.message || 'Erreur lors de la mise à jour', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur de connexion', 'error');
+            })
+            .finally(() => {
+                // Réactiver les boutons
+                buttons.forEach(btn => btn.disabled = false);
+            });
+        };
+        
+        // Fonction pour afficher les notifications
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+            notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            notification.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Supprimer automatiquement après 3 secondes
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 3000);
+        }
     </script>
 {% endblock %}

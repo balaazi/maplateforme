@@ -1,0 +1,344 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conflit d'horaires - EventHub{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .conflict-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    .conflict-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        padding: 2rem;
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+        color: white;
+        border-radius: 15px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .conflict-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/></svg>');
+        background-size: 50px 50px;
+        opacity: 0.3;
+    }
+
+    .conflict-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .conflict-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .conflict-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+    }
+
+    .warning-message {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 2rem 0;
+        text-align: center;
+        font-size: 1.1rem;
+        color: #856404;
+    }
+
+    .warning-message .icon {
+        font-size: 2rem;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .event-comparison {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 2rem;
+        align-items: center;
+        margin: 2rem 0;
+    }
+
+    .event-card {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 2px solid #e9ecef;
+        position: relative;
+    }
+
+    .event-card.new-event {
+        border-color: #28a745;
+    }
+
+    .event-card.conflict-event {
+        border-color: #dc3545;
+    }
+
+    .badge {
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #007bff;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .badge.new {
+        background: #28a745;
+    }
+
+    .badge.conflict {
+        background: #dc3545;
+    }
+
+    .event-title {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin: 1rem 0 1rem 0;
+        text-align: center;
+        color: #333;
+    }
+
+    .event-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .event-info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: #666;
+    }
+
+    .event-info-item i {
+        width: 16px;
+        color: #007bff;
+    }
+
+    .vs-separator {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #dc3545;
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #dc3545;
+    }
+
+    .conflict-explanation {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin: 2rem 0;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .conflict-explanation .icon {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-back:hover {
+        background: #5a6268;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-force {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-force:hover {
+        background: #c82333;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .btn-manage {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-manage:hover {
+        background: #0056b3;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .event-comparison {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .vs-separator {
+            transform: rotate(90deg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="conflict-container">
+    <!-- En-tête du conflit -->
+    <div class="conflict-header">
+        <div class="conflict-icon">⚠️</div>
+        <div class="conflict-title">Conflit d'horaires détecté !</div>
+        <div class="conflict-subtitle">Vous êtes déjà inscrit à un autre événement pendant cette période</div>
+    </div>
+
+    <!-- Message d'avertissement clair -->
+    <div class="warning-message">
+        <span class="icon">🚫</span>
+        <strong>Vous participez déjà à un autre événement à cette date et heure.</strong><br>
+        Il n'est pas possible d'accepter cette nouvelle invitation car elle créerait un conflit dans votre agenda.
+    </div>
+
+    <!-- Comparaison des événements -->
+    <div class="event-comparison">
+        <!-- Nouvel événement -->
+        <div class="event-card new-event">
+            <span class="badge new">Nouvel événement</span>
+            <div class="event-title">{{ newEvent.title }}</div>
+            <div class="event-info">
+                <div class="event-info-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>{{ newEvent.dateHeure|date('d/m/Y') }}</span>
+                </div>
+                <div class="event-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ newEvent.dateHeure|date('H:i') }} - {{ newEvent.dateHeure|date_modify('+'~newEvent.duree~' minutes')|date('H:i') }}</span>
+                </div>
+                <div class="event-info-item">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>{{ newEvent.duree }} minutes</span>
+                </div>
+                {% if newEvent.lieu %}
+                <div class="event-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ newEvent.lieu }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Séparateur VS -->
+        <div class="vs-separator">VS</div>
+
+        <!-- Événement en conflit -->
+        <div class="event-card conflict-event">
+            <span class="badge conflict">Déjà accepté</span>
+            <div class="event-title">{{ conflictingEvent.title }}</div>
+            <div class="event-info">
+                <div class="event-info-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>{{ conflictingEvent.dateHeure|date('d/m/Y') }}</span>
+                </div>
+                <div class="event-info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>{{ conflictingEvent.dateHeure|date('H:i') }} - {{ conflictingEvent.dateHeure|date_modify('+'~conflictingEvent.duree~' minutes')|date('H:i') }}</span>
+                </div>
+                <div class="event-info-item">
+                    <i class="fas fa-hourglass-half"></i>
+                    <span>{{ conflictingEvent.duree }} minutes</span>
+                </div>
+                {% if conflictingEvent.lieu %}
+                <div class="event-info-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>{{ conflictingEvent.lieu }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Explication du conflit -->
+    <div class="conflict-explanation">
+        <span class="icon">📋</span>
+        <strong>Pourquoi ce conflit ?</strong><br>
+        Vous avez déjà accepté l'événement "{{ conflictingEvent.title }}" qui se déroule pendant la même période. 
+        Pour participer au nouvel événement "{{ newEvent.title }}", vous devriez d'abord annuler votre participation à l'événement précédent.
+    </div>
+
+    <!-- Actions possibles -->
+    <div class="action-buttons">
+        <a href="javascript:history.back()" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+        
+        <a href="{{ path('app_home') }}" class="btn btn-manage">
+            <i class="fas fa-home"></i> Accueil
+        </a>
+        
+        <!-- Note: Pour une implémentation future, on pourrait ajouter un bouton "Forcer l'acceptation" 
+             qui annulerait automatiquement l'ancien événement -->
+    </div>
+</div>
+{% endblock %}

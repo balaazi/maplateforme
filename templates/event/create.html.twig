@@ -698,6 +698,75 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
     <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('event_dateHeure');
+        const dureeInput = document.getElementById('event_duree');
+        const salleSelect = document.getElementById('event_salle');
+        const submitBtn = document.querySelector('button[type="submit"]');
+
+        async function updateSallesDisponibles() {
+            const date = dateInput.value;
+            const duree = dureeInput.value || 60;
+            if (!date) return;
+
+            try {
+                const url = `/api/salles-disponibles?dateHeure=${encodeURIComponent(date)}&duree=${duree}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                salleSelect.innerHTML = '';
+                
+                // Ajouter l'option par défaut
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Choisir une salle...';
+                salleSelect.appendChild(defaultOption);
+
+                if (data.error) {
+                    // Erreur de l'API
+                    const errorOption = document.createElement('option');
+                    errorOption.value = '';
+                    errorOption.textContent = 'Erreur: ' + data.error;
+                    salleSelect.appendChild(errorOption);
+                    salleSelect.disabled = true;
+                    if (submitBtn) submitBtn.disabled = true;
+                } else if (data.disponibles && data.disponibles.length === 0) {
+                    // Aucune salle disponible
+                    const noSalleOption = document.createElement('option');
+                    noSalleOption.value = '';
+                    noSalleOption.textContent = 'Aucune salle disponible à ce créneau';
+                    salleSelect.appendChild(noSalleOption);
+                    salleSelect.disabled = true;
+                    if (submitBtn) submitBtn.disabled = true;
+                } else if (data.disponibles) {
+                    // Ajouter les salles disponibles
+                    data.disponibles.forEach(salle => {
+                        const option = document.createElement('option');
+                        option.value = salle.id;
+                        option.textContent = `${salle.nom} (${salle.capacite} personnes)`;
+                        salleSelect.appendChild(option);
+                    });
+                    salleSelect.disabled = false;
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des salles:', error);
+                const errorOption = document.createElement('option');
+                errorOption.value = '';
+                errorOption.textContent = 'Erreur de connexion';
+                salleSelect.appendChild(errorOption);
+                salleSelect.disabled = true;
+                if (submitBtn) submitBtn.disabled = true;
+            }
+        }
+
+        if (dateInput && dureeInput && salleSelect) {
+            dateInput.addEventListener('change', updateSallesDisponibles);
+            dureeInput.addEventListener('change', updateSallesDisponibles);
+        }
+    });
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Animation d'entrée
             const card = document.querySelector('.create-event-card');

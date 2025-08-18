@@ -1,0 +1,325 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Procès-verbal - {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+    .pv-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+
+    .pv-header {
+        border-bottom: 2px solid #f3f4f6;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+
+    .pv-title {
+        font-size: 2rem;
+        color: #1a202c;
+        margin-bottom: 0.5rem;
+    }
+
+    .pv-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .status-finalise {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-brouillon {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .event-info, .pv-meta {
+        background: #f8fafc;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #4f46e5;
+        margin-bottom: 2rem;
+    }
+
+    .pv-section {
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+    }
+
+    .section-content {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #4b5563;
+        white-space: pre-wrap;
+    }
+
+    .actions-list {
+        list-style: none;
+        padding: 0;
+    }
+
+    .action-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .action-description {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .action-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
+    .action-status {
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    .status-en_attente {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-en_cours {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-termine {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-annule {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0.25rem;
+    }
+
+    .btn-primary {
+        background: #4f46e5;
+        color: white;
+        border: none;
+    }
+
+    .btn-secondary {
+        background: #6b7280;
+        color: white;
+        border: none;
+    }
+
+    .btn-success {
+        background: #10b981;
+        color: white;
+        border: none;
+    }
+
+    .btn-danger {
+        background: #ef4444;
+        color: white;
+        border: none;
+    }
+
+    .btn-outline-primary {
+        background: transparent;
+        color: #4f46e5;
+        border: 2px solid #4f46e5;
+    }
+
+    .actions-toolbar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="pv-container">
+    <div class="pv-header">
+        <div>
+            <h1 class="pv-title">
+                <i class="fas fa-file-alt text-primary"></i>
+                Procès-verbal
+            </h1>
+            <p class="text-muted">Rédigé le {{ procesVerbal.dateCreation|date('d/m/Y à H:i') }}</p>
+            {% if procesVerbal.dateModification %}
+                <p class="text-muted small">Dernière modification : {{ procesVerbal.dateModification|date('d/m/Y à H:i') }}</p>
+            {% endif %}
+        </div>
+        <div>
+            <span class="pv-status {{ procesVerbal.finalise ? 'status-finalise' : 'status-brouillon' }}">
+                {% if procesVerbal.finalise %}
+                    <i class="fas fa-check-circle"></i> Finalisé
+                {% else %}
+                    <i class="fas fa-edit"></i> Brouillon
+                {% endif %}
+            </span>
+        </div>
+    </div>
+
+    <div class="event-info">
+        <h3><i class="fas fa-calendar-alt"></i> {{ event.title }}</h3>
+        <p><strong>Date de l'événement :</strong> {{ event.dateHeure|date('d/m/Y à H:i') }}</p>
+        <p><strong>Durée :</strong> {{ event.duree }} minutes</p>
+        {% if event.salle %}
+            <p><strong>Salle :</strong> {{ event.salle.nom }}</p>
+        {% endif %}
+        <p><strong>Organisateur :</strong> {{ event.organizer.prenom }} {{ event.organizer.nom }}</p>
+    </div>
+
+    <div class="pv-meta">
+        <p><strong>Rédacteur :</strong> {{ procesVerbal.redacteur.prenom }} {{ procesVerbal.redacteur.nom }}</p>
+        <p><strong>Date/heure de la réunion :</strong> {{ procesVerbal.dateHeure|date('d/m/Y à H:i') }}</p>
+    </div>
+
+    <div class="actions-toolbar">
+        {% if not procesVerbal.finalise and (procesVerbal.redacteur == app.user or is_granted('ROLE_ADMIN')) %}
+            <a href="{{ path('proces_verbal_edit', {'id': procesVerbal.id}) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+        {% endif %}
+        
+        <a href="{{ path('proces_verbal_export_print', {'id': procesVerbal.id}) }}" target="_blank" class="btn btn-success">
+            <i class="fas fa-print"></i> Imprimer
+        </a>
+        
+        <a href="{{ path('proces_verbal_export_pdf', {'id': procesVerbal.id}) }}" class="btn btn-outline-primary">
+            <i class="fas fa-download"></i> Télécharger PDF
+        </a>
+        
+        <a href="{{ path('proces_verbal_export_word', {'id': procesVerbal.id}) }}" class="btn btn-outline-primary">
+            <i class="fas fa-file-word"></i> Télécharger Word
+        </a>
+        
+        <a href="{{ path('proces_verbal_share', {'id': procesVerbal.id}) }}" class="btn btn-outline-primary">
+            <i class="fas fa-share"></i> Partager
+        </a>
+        
+        <a href="{{ path('event_show', {'id': event.id}) }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Retour à l'événement
+        </a>
+        
+        {% if not procesVerbal.finalise and (procesVerbal.redacteur == app.user or is_granted('ROLE_ADMIN')) %}
+            <form method="post" action="{{ path('proces_verbal_delete', {'id': procesVerbal.id}) }}" style="display: inline;">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ procesVerbal.id) }}">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce procès-verbal ?')">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="pv-section">
+        <h2 class="section-title">
+            <i class="fas fa-users"></i> Participants
+        </h2>
+        <div class="section-content">{{ procesVerbal.participants }}</div>
+    </div>
+
+    <div class="pv-section">
+        <h2 class="section-title">
+            <i class="fas fa-comments"></i> Points abordés
+        </h2>
+        <div class="section-content">{{ procesVerbal.pointsAbordes }}</div>
+    </div>
+
+    <div class="pv-section">
+        <h2 class="section-title">
+            <i class="fas fa-gavel"></i> Décisions prises
+        </h2>
+        <div class="section-content">{{ procesVerbal.decisionsPrises }}</div>
+    </div>
+
+    {% if procesVerbal.actions|length > 0 %}
+        <div class="pv-section">
+            <h2 class="section-title">
+                <i class="fas fa-tasks"></i> Actions à réaliser
+            </h2>
+            <ul class="actions-list">
+                {% for action in procesVerbal.actions %}
+                    <li class="action-item">
+                        <div class="action-description">{{ action.description }}</div>
+                        <div class="action-details">
+                            <div>
+                                <strong>Responsable :</strong>
+                                {% if action.responsable %}
+                                    {{ action.responsable.prenom }} {{ action.responsable.nom }}
+                                {% elseif action.responsableNom %}
+                                    {{ action.responsableNom }}
+                                {% else %}
+                                    Non assigné
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>Délai :</strong>
+                                {% if action.delai %}
+                                    {{ action.delai|date('d/m/Y') }}
+                                {% else %}
+                                    Non défini
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>Statut :</strong>
+                                <span class="action-status status-{{ action.statut }}">
+                                    {{ action.statut|replace({'_': ' '})|title }}
+                                </span>
+                            </div>
+                        </div>
+                        {% if action.notes %}
+                            <div class="mt-2">
+                                <strong>Notes :</strong> {{ action.notes }}
+                            </div>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

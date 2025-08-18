@@ -105,4 +105,55 @@ class NotificationApiController extends AbstractController
             return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
         }
     }
+
+    #[Route('/{id}/delete', name: 'api_notification_delete', methods: ['DELETE'])]
+    public function deleteNotification(int $id, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->json(['success' => false], 401);
+        }
+        
+        try {
+            $notificationRepository = $entityManager->getRepository(Notification::class);
+            $notification = $notificationRepository->find($id);
+            
+            if (!$notification || $notification->getUser() !== $user) {
+                return $this->json(['success' => false, 'error' => 'Notification not found'], 404);
+            }
+            
+            $entityManager->remove($notification);
+            $entityManager->flush();
+            
+            return $this->json(['success' => true]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
+
+    #[Route('/delete-all', name: 'api_notifications_delete_all', methods: ['DELETE'])]
+    public function deleteAllNotifications(EntityManagerInterface $entityManager): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if (!$user) {
+            return $this->json(['success' => false], 401);
+        }
+        
+        try {
+            $notificationRepository = $entityManager->getRepository(Notification::class);
+            $notifications = $notificationRepository->findBy(['user' => $user]);
+            
+            foreach ($notifications as $notification) {
+                $entityManager->remove($notification);
+            }
+            
+            $entityManager->flush();
+            
+            return $this->json(['success' => true, 'deleted_count' => count($notifications)]);
+        } catch (\Exception $e) {
+            return $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
 } 

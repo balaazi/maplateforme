@@ -509,6 +509,7 @@
                             Votre présence
                         </div>
                         
+                        {% if canMarkPresence %}
                         <div class="presence-buttons">
                             <button type="button" 
                                     class="presence-btn btn-present {% if participation.isPresent %}active{% endif %}" 
@@ -533,6 +534,18 @@
                                 Vous pouvez modifier votre choix à tout moment
                             </small>
                         </div>
+                        {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-calendar-times"></i>
+                            <h5>Présence en attente</h5>
+                            <p>Vous pourrez marquer votre présence le jour de l'événement<br>
+                               <strong>{{ event.dateHeure|date('d/m/Y') }}</strong>
+                            </p>
+                            <small class="text-muted">
+                                Statut actuel : <span class="badge badge-warning">En attente</span>
+                            </small>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

@@ -7,6 +7,7 @@ use App\Entity\CalendarEvent;
 use App\Entity\Invitation;
 use App\Entity\Participation;
 use App\Entity\User;
+use App\Entity\Document;
 use App\Form\EventFormType;
 use App\Repository\EventRepository;
 use App\Repository\InvitationRepository;
@@ -25,6 +26,10 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Salle;
+use App\Service\SalleDisponibiliteService;
+use App\Service\AutoArchiveService;
 
 class EventController extends AbstractController
 {
@@ -33,19 +38,22 @@ class EventController extends AbstractController
     private NotificationService $notificationService;
     private GlobalNotificationService $globalNotificationService;
     private ReminderService $reminderService;
+    private AutoArchiveService $autoArchiveService;
 
     public function __construct(
         EventNotificationService $eventNotificationService,
         AdminNotificationService $adminNotificationService,
         NotificationService $notificationService,
         GlobalNotificationService $globalNotificationService,
-        ReminderService $reminderService
+        ReminderService $reminderService,
+        AutoArchiveService $autoArchiveService
     ) {
         $this->eventNotificationService = $eventNotificationService;
         $this->adminNotificationService = $adminNotificationService;
         $this->notificationService = $notificationService;
         $this->globalNotificationService = $globalNotificationService;
         $this->reminderService = $reminderService;
+        $this->autoArchiveService = $autoArchiveService;
     }
 
     #[Route('/event/create', name: 'event_create')]
@@ -63,6 +71,7 @@ class EventController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $event->setOrganizer($this->getUser());
+            $event->setCreatedBy($this->getUser()); // Ajout important
 
             $calendarEvent = new CalendarEvent();
             $calendarEvent->setTitle($event->getTitle());
@@ -72,6 +81,30 @@ class EventController extends AbstractController
             $end = (clone $event->getDateHeure())->modify('+' . $event->getDuree() . ' minutes');
             $calendarEvent->setEnd($end);
 
+            // Traitement des fichiers uploadés
+            $uploadedFiles = $form->get('imageFile')->getData();
+            $documentsCreated = 0;
+            if ($uploadedFiles) {
+                // Vérifier si c'est un fichier unique ou multiple
+                if (!is_array($uploadedFiles)) {
+                    $uploadedFiles = [$uploadedFiles];
+                }
+                
+                foreach ($uploadedFiles as $uploadedFile) {
+                    if ($uploadedFile) {
+                        try {
+                            $document = new Document();
+                            $document->setFile($uploadedFile);
+                            $document->setEvent($event);
+                            $entityManager->persist($document);
+                            $documentsCreated++;
+                        } catch (\Exception $e) {
+                            error_log('Erreur lors de la création du document: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+
             $entityManager->persist($event);
             $entityManager->persist($calendarEvent);
             $entityManager->flush();
@@ -79,13 +112,18 @@ class EventController extends AbstractController
             // ✅ NOUVEAUTÉ : Créer automatiquement des rappels pour l'événement
             try {
                 $reminders = $this->reminderService->createReminderSchedule($event, [1440, 60, 15]); // 24h, 1h, 15min avant
-                $this->addFlash('success', sprintf(
-                    'Événement créé avec succès ! %d rappel(s) automatique(s) programmé(s).', 
-                    count($reminders)
-                ));
+                $successMessage = sprintf('Événement créé avec succès ! %d rappel(s) automatique(s) programmé(s).', count($reminders));
+                if ($documentsCreated > 0) {
+                    $successMessage .= sprintf(' %d document(s) uploadé(s).', $documentsCreated);
+                }
+                $this->addFlash('success', $successMessage);
             } catch (\Exception $e) {
                 error_log('Erreur création rappels automatiques: ' . $e->getMessage());
-                $this->addFlash('warning', 'Événement créé mais problème avec les rappels automatiques. Veuillez vérifier vos préférences de notification.');
+                $warningMessage = 'Événement créé mais problème avec les rappels automatiques. Veuillez vérifier vos préférences de notification.';
+                if ($documentsCreated > 0) {
+                    $warningMessage .= sprintf(' %d document(s) uploadé(s) avec succès.', $documentsCreated);
+                }
+                $this->addFlash('warning', $warningMessage);
             }
 
             // Créer une notification pour l'organisateur
@@ -153,27 +191,36 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/list', name: 'event_list')]
-    #[IsGranted('ROLE_ORGANISATEUR')]
-    public function list(EntityManagerInterface $em): Response
+    #[IsGranted('ROLE_USER')]
+    public function list(EventRepository $eventRepository, Request $request): Response
     {
-        $events = $em->getRepository(Event::class)
-            ->createQueryBuilder('e')
-            ->select('e')
-            ->where('e.organizer = :organizer')
-            ->andWhere('e.status IS NULL OR e.status != :cancelled')
-            ->setParameter('organizer', $this->getUser())
-            ->setParameter('cancelled', 'annulé')
-            ->orderBy('e.dateHeure', 'DESC')
-            ->getQuery()
-            ->getResult();
+        $user = $this->getUser();
+        $showArchives = $request->query->get('archives') === '1';
+        
+        // Archivage automatique en temps réel des événements terminés
+        if (!$showArchives) {
+            $archivedCount = $this->autoArchiveService->checkAndArchiveCompletedEvents();
+            if ($archivedCount > 0) {
+                $this->addFlash('info', sprintf('%d événement(s) terminé(s) archivé(s) automatiquement.', $archivedCount));
+            }
+        }
+        
+        // Utiliser la méthode du repository qui filtre correctement les événements annulés
+        if ($showArchives) {
+            $events = $eventRepository->findArchivedEventsForUser($user);
+        } else {
+            $events = $eventRepository->findEventsForUser($user);
+        }
 
         return $this->render('event/list.html.twig', [
             'events' => $events,
+            'showArchives' => $showArchives,
+            'archivedCount' => $eventRepository->count(['archive' => true, 'createdBy' => $user]),
         ]);
     }
 
     #[Route('/event/{id}/edit', name: 'event_edit', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ORGANISATEUR')]
+    #[IsGranted('ROLE_USER')]
     public function edit(int $id, Request $request, EntityManagerInterface $em): Response
     {
         $event = $em->getRepository(Event::class)->find($id);
@@ -181,14 +228,38 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-        if ($event->getOrganizer() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Non autorisé.');
+        if ($event->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé. Vous ne pouvez modifier que vos propres événements.');
         }
 
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Traitement des fichiers uploadés lors de la modification
+            $uploadedFiles = $form->get('imageFile')->getData();
+            $documentsCreated = 0;
+            if ($uploadedFiles) {
+                // Vérifier si c'est un fichier unique ou multiple
+                if (!is_array($uploadedFiles)) {
+                    $uploadedFiles = [$uploadedFiles];
+                }
+                
+                foreach ($uploadedFiles as $uploadedFile) {
+                    if ($uploadedFile) {
+                        try {
+                            $document = new Document();
+                            $document->setFile($uploadedFile);
+                            $document->setEvent($event);
+                            $em->persist($document);
+                            $documentsCreated++;
+                        } catch (\Exception $e) {
+                            error_log('Erreur lors de la création du document: ' . $e->getMessage());
+                        }
+                    }
+                }
+            }
+            
             $em->flush();
             
             // Notification aux participants
@@ -208,7 +279,11 @@ class EventController extends AbstractController
                 error_log('Erreur notification globale modification événement: ' . $e->getMessage());
             }
             
-            $this->addFlash('success', 'Événement modifié avec succès.');
+            $successMessage = 'Événement modifié avec succès.';
+            if ($documentsCreated > 0) {
+                $successMessage .= sprintf(' %d document(s) supplémentaire(s) uploadé(s).', $documentsCreated);
+            }
+            $this->addFlash('success', $successMessage);
             return $this->redirectToRoute('event_list');
         }
 
@@ -219,7 +294,7 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/{id}/cancel', name: 'event_cancel', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ORGANISATEUR')]
+    #[IsGranted('ROLE_USER')]
     public function cancelEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em): Response
     {
         $event = $eventRepository->find($id);
@@ -227,31 +302,57 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-        if ($event->getOrganizer() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Non autorisé.');
+        if ($event->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé. Vous ne pouvez annuler que vos propres événements.');
         }
 
-        $event->setStatus('annulé');
-        $em->flush();
+        // Vérifier si l'événement n'est pas déjà annulé
+        if ($event->getStatus() === 'annulé') {
+            $this->addFlash('warning', 'Cet événement est déjà annulé.');
+            return $this->redirectToRoute('event_list');
+        }
 
-        // Notification aux participants
-        $this->eventNotificationService->sendEventCancelNotification($event);
-        
-        // Notification administrateur pour l'annulation
         try {
-            $this->adminNotificationService->notifyEventCancelled($event);
-        } catch (\Exception $e) {
-            error_log('Erreur notification admin annulation événement: ' . $e->getMessage());
-        }
+            // Sauvegarder l'ancien statut pour les logs
+            $oldStatus = $event->getStatus();
+            
+            $event->setStatus('annulé');
+            $em->flush();
+            
+            // Log de l'annulation pour le débogage
+            error_log(sprintf(
+                'Événement annulé - ID: %d, Titre: %s, Ancien statut: %s, Nouveau statut: %s, Utilisateur: %s',
+                $event->getId(),
+                $event->getTitle(),
+                $oldStatus ?? 'NULL',
+                $event->getStatus(),
+                $this->getUser()->getUserIdentifier()
+            ));
 
-        // Notification globale pour l'annulation
-        try {
-            $this->globalNotificationService->notifyPlatformModification('annulé', 'event', $event);
+            // Notification aux participants
+            $this->eventNotificationService->sendEventCancelNotification($event);
+            
+            // Notification administrateur pour l'annulation
+            try {
+                $this->adminNotificationService->notifyEventCancelled($event);
+            } catch (\Exception $e) {
+                error_log('Erreur notification admin annulation événement: ' . $e->getMessage());
+            }
+
+            // Notification globale pour l'annulation
+            try {
+                $this->globalNotificationService->notifyPlatformModification('annulé', 'event', $event);
+            } catch (\Exception $e) {
+                error_log('Erreur notification globale annulation événement: ' . $e->getMessage());
+            }
+            
+            $this->addFlash('success', 'Événement annulé avec succès.');
+            
         } catch (\Exception $e) {
-            error_log('Erreur notification globale annulation événement: ' . $e->getMessage());
+            error_log('Erreur lors de l\'annulation de l\'événement: ' . $e->getMessage());
+            $this->addFlash('error', 'Erreur lors de l\'annulation de l\'événement. Veuillez réessayer.');
         }
         
-        $this->addFlash('success', 'Événement annulé avec succès.');
         return $this->redirectToRoute('event_list');
     }
 
@@ -274,82 +375,45 @@ class EventController extends AbstractController
         }
 
         /** @var User $user */
-        $isOrganizer = $event->getOrganizer() && $event->getOrganizer()->getId() === $user->getId();
+        $isCreator = ($event->getCreatedBy() && $event->getCreatedBy()->getId() === $user->getId()) ||
+                     ($event->getOrganizer() && $event->getOrganizer()->getId() === $user->getId());
         
-        // Vérifier s'il existe déjà une participation
-        $participation = $participationRepository->findOneBy([
-            'event' => $event,
-            'user' => $user,
-        ]);
-
-        $isParticipant = $participation !== null;
-
-        // Si l'utilisateur n'est ni organisateur ni participant, vérifier les invitations
-        if (!$isOrganizer && !$isParticipant) {
-            $invitationRepository = $entityManager->getRepository(\App\Entity\Invitation::class);
-            
-            // Vérifier avec différents statuts d'invitation
-            $invitation = $invitationRepository->findOneBy([
-                'event' => $event,
-                'email' => $user->getUserIdentifier(),
-                'status' => 'accepted'
-            ]);
-
-            // Si pas trouvé avec 'accepted', essayer avec 'accepté'
-            if (!$invitation) {
-                $invitation = $invitationRepository->findOneBy([
-                    'event' => $event,
-                    'email' => $user->getUserIdentifier(),
-                    'status' => 'accepté'
-                ]);
-            }
-
-            if ($invitation) {
-                // Créer automatiquement une participation pour l'invitation acceptée
-                $participation = new \App\Entity\Participation();
-                $participation->setUser($user);
-                $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
-                $participation->setIsPresent(false);
-                $participation->setCreatedAt(new \DateTime());
-                
-                $entityManager->persist($participation);
-                $entityManager->flush();
-                
-                $isParticipant = true;
-            }
-        }
-
-        // Si l'utilisateur est organisateur, créer une participation automatique s'il n'en a pas
-        if ($isOrganizer && !$participation) {
-            $participation = new \App\Entity\Participation();
-            $participation->setUser($user);
-            $participation->setEvent($event);
-            $participation->setInvitationStatus('accepté');
-            $participation->setIsPresent(true); // L'organisateur est présent par défaut
-            $participation->setCreatedAt(new \DateTime());
-            
-            $entityManager->persist($participation);
-            $entityManager->flush();
-            
-            $isParticipant = true;
-        }
-
         // Vérifier si l'utilisateur a le rôle ADMIN (accès total)
         $hasAdminAccess = $this->isGranted('ROLE_ADMIN');
 
-        if (!$isOrganizer && !$isParticipant && !$hasAdminAccess) {
-            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à accéder à cet événement.");
+        // Vérifier si l'utilisateur est un participant ayant accepté l'invitation
+        $hasAcceptedInvitation = false;
+        if (!$isCreator && !$hasAdminAccess) {
+            $invitationRepo = $entityManager->getRepository('App\Entity\Invitation');
+            $acceptedInvitation = $invitationRepo->findOneBy([
+                'email' => $user->getEmail(),
+                'event' => $event,
+                'status' => 'accepted'
+            ]);
+            $hasAcceptedInvitation = $acceptedInvitation !== null;
+        }
+
+        if (!$isCreator && !$hasAdminAccess && !$hasAcceptedInvitation) {
+            throw $this->createAccessDeniedException("Vous n'êtes pas autorisé à accéder à cet événement. Vous ne pouvez voir que vos propres événements ou les événements que vous avez acceptés.");
+        }
+
+        // Récupérer le procès-verbal associé à cet événement (si c'est une réunion)
+        $procesVerbal = null;
+        if ($event->getCategory() === 'Réunion') {
+            $procesVerbal = $entityManager->getRepository('App\Entity\ProcesVerbal')->findByEvent($event);
         }
 
         return $this->render('event/show.html.twig', [
             'event' => $event,
-            'isOrganizer' => $isOrganizer,
+            'isCreator' => $isCreator,
+            'hasAcceptedInvitation' => $hasAcceptedInvitation,
+            'hasAdminAccess' => $hasAdminAccess,
+            'procesVerbal' => $procesVerbal,
         ]);
     }
 
     #[Route('/event/{id}/attendance', name: 'event_attendance', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ORGANISATEUR')]
+    #[IsGranted('ROLE_USER')]
     public function attendance(int $id, EventRepository $eventRepository, ParticipationRepository $participationRepository): Response
     {
         $event = $eventRepository->find($id);
@@ -357,8 +421,8 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-        if ($event->getOrganizer() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Non autorisé.');
+        if ($event->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé. Vous ne pouvez voir l\'assistance que pour vos propres événements.');
         }
 
         $participations = $participationRepository->findBy(['event' => $event]);
@@ -384,8 +448,124 @@ class EventController extends AbstractController
         ]);
     }
 
+    #[Route('/event/{id}/training-attendance', name: 'event_training_attendance', requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function trainingAttendance(int $id, EventRepository $eventRepository, ParticipationRepository $participationRepository): Response
+    {
+        $event = $eventRepository->find($id);
+        
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+
+        $user = $this->getUser();
+        
+        // Vérifier que l'utilisateur est l'organisateur ou créateur de l'événement
+        $isOrganizer = $event->getOrganizer() === $user;
+        $isCreator = $event->getCreatedBy() === $user;
+        $hasAdminAccess = $this->isGranted('ROLE_ADMIN');
+        
+        if (!$isOrganizer && !$isCreator && !$hasAdminAccess) {
+            throw $this->createAccessDeniedException('Seul l\'organisateur peut gérer la liste de présence.');
+        }
+
+        // Vérifier que c'est bien un événement de type formation
+        if (strtolower($event->getCategory()) !== 'formation') {
+            $this->addFlash('error', 'La liste de présence n\'est disponible que pour les événements de type Formation.');
+            return $this->redirectToRoute('event_show', ['id' => $event->getId()]);
+        }
+
+        // Vérifier que c'est le jour de l'événement (temporairement désactivé pour tests)
+        /*
+        $today = new \DateTime('today');
+        $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
+        
+        if ($eventDate > $today) {
+            $this->addFlash('warning', 'La gestion de présence ne sera disponible que le jour de l\'événement (' . $event->getDateHeure()->format('d/m/Y') . ').');
+            return $this->redirectToRoute('event_show', ['id' => $event->getId()]);
+        }
+        */
+
+        // Récupérer tous les participants qui ont accepté l'invitation
+        $participations = $participationRepository->findBy([
+            'event' => $event,
+            'invitationStatus' => 'accepté'
+        ]);
+
+        return $this->render('event/training_attendance.html.twig', [
+            'event' => $event,
+            'participations' => $participations,
+            'isOrganizer' => $isOrganizer,
+            'isCreator' => $isCreator,
+            'hasAdminAccess' => $hasAdminAccess,
+        ]);
+    }
+
+    #[Route('/event/{id}/update-training-attendance', name: 'event_update_training_attendance', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_USER')]
+    public function updateTrainingAttendance(
+        int $id, 
+        Request $request,
+        EventRepository $eventRepository, 
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $event = $eventRepository->find($id);
+        
+        if (!$event) {
+            throw $this->createNotFoundException('Événement non trouvé.');
+        }
+
+        $user = $this->getUser();
+        
+        // Vérifier que l'utilisateur est l'organisateur ou créateur de l'événement
+        $isOrganizer = $event->getOrganizer() === $user;
+        $isCreator = $event->getCreatedBy() === $user;
+        $hasAdminAccess = $this->isGranted('ROLE_ADMIN');
+        
+        if (!$isOrganizer && !$isCreator && !$hasAdminAccess) {
+            return $this->json(['success' => false, 'message' => 'Non autorisé'], 403);
+        }
+
+        // Vérifier que c'est bien un événement de type formation
+        if (strtolower($event->getCategory()) !== 'formation') {
+            return $this->json(['success' => false, 'message' => 'Non disponible pour ce type d\'événement'], 400);
+        }
+
+        // Vérifier que c'est le jour de l'événement (temporairement désactivé pour tests)
+        /*
+        $today = new \DateTime('today');
+        $eventDate = new \DateTime($event->getDateHeure()->format('Y-m-d'));
+        
+        if ($eventDate > $today) {
+            return $this->json(['success' => false, 'message' => 'La gestion de présence ne sera disponible que le jour de l\'événement (' . $event->getDateHeure()->format('d/m/Y') . ')'], 403);
+        }
+        */
+
+        // Récupérer les données de présence du formulaire
+        $attendanceData = $request->request->all('attendance');
+        $updatedCount = 0;
+        
+        foreach ($attendanceData as $participationId => $isPresent) {
+            $participation = $participationRepository->find($participationId);
+            
+            if ($participation && $participation->getEvent() === $event) {
+                $participation->setIsPresent($isPresent === '1');
+                $updatedCount++;
+            }
+        }
+
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true, 
+            'message' => "$updatedCount participants mis à jour",
+            'updatedCount' => $updatedCount
+        ]);
+    }
+
     #[Route('/event/{id}/delete', name: 'event_delete', requirements: ['id' => '\d+'])]
-    #[IsGranted('ROLE_ORGANISATEUR')]
+    #[IsGranted('ROLE_USER')]
     public function deleteEvent(int $id, EventRepository $eventRepository, EntityManagerInterface $em): Response
     {
         $event = $eventRepository->find($id);
@@ -393,8 +573,8 @@ class EventController extends AbstractController
             throw $this->createNotFoundException('Événement non trouvé.');
         }
 
-        if ($event->getOrganizer() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Non autorisé.');
+        if ($event->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Non autorisé. Vous ne pouvez supprimer que vos propres événements.');
         }
 
         // Vérifier que l'événement est bien annulé avant de permettre la suppression
@@ -433,16 +613,16 @@ class EventController extends AbstractController
     }
 
     #[Route('/event/cancelled', name: 'event_cancelled_list')]
-    #[IsGranted('ROLE_ORGANISATEUR')]
+    #[IsGranted('ROLE_USER')]
     public function cancelledEventsList(EntityManagerInterface $em): Response
     {
-        // Récupérer uniquement les événements annulés
+        // Récupérer uniquement les événements annulés créés par l'utilisateur
         $cancelledEvents = $em->getRepository(Event::class)
             ->createQueryBuilder('e')
             ->select('e')
-            ->where('e.organizer = :organizer')
+            ->where('e.createdBy = :creator')
             ->andWhere('e.status = :cancelled')
-            ->setParameter('organizer', $this->getUser())
+            ->setParameter('creator', $this->getUser())
             ->setParameter('cancelled', 'annulé')
             ->orderBy('e.dateHeure', 'DESC')
             ->getQuery()
@@ -451,5 +631,142 @@ class EventController extends AbstractController
         return $this->render('event/cancelled_list.html.twig', [
             'events' => $cancelledEvents,
         ]);
+    }
+
+    #[Route('/api/salles-disponibles', name: 'api_salles_disponibles', methods: ['GET'])]
+    public function sallesDisponibles(Request $request, SalleDisponibiliteService $disponibiliteService, EntityManagerInterface $em): JsonResponse
+    {
+        $dateHeure = $request->query->get('dateHeure');
+        $duree = $request->query->get('duree', 60);
+
+        if (!$dateHeure) {
+            return new JsonResponse(['error' => 'Date manquante'], 400);
+        }
+
+        try {
+            $dateHeure = new \DateTime($dateHeure);
+            $fin = (clone $dateHeure)->modify("+{$duree} minutes");
+
+            // Récupérer toutes les salles actives
+            $salles = $em->getRepository(Salle::class)->findActiveSalles();
+            $sallesDisponibles = [];
+            $sallesIndisponibles = [];
+
+            foreach ($salles as $salle) {
+                // Vérifier que la salle n'est pas désactivée
+                if (!$salle->isDisponible()) {
+                    $sallesIndisponibles[] = [
+                        'id' => $salle->getId(),
+                        'nom' => $salle->getNom(),
+                        'raison' => 'Salle désactivée'
+                    ];
+                    continue;
+                }
+                
+                // Vérifier que la salle n'est pas actuellement occupée
+                $maintenant = new \DateTime();
+                $reservationActuelle = $em->getRepository(\App\Entity\Reservation::class)->findReservationActuelle($salle, $maintenant);
+                if ($reservationActuelle) {
+                    $sallesIndisponibles[] = [
+                        'id' => $salle->getId(),
+                        'nom' => $salle->getNom(),
+                        'raison' => 'Actuellement occupée'
+                    ];
+                    continue;
+                }
+                
+                // Vérifier qu'il n'y a pas de réservation prochaine
+                $prochaineReservation = $em->getRepository(\App\Entity\Reservation::class)->findProchaineReservation($salle, $maintenant);
+                if ($prochaineReservation) {
+                    $sallesIndisponibles[] = [
+                        'id' => $salle->getId(),
+                        'nom' => $salle->getNom(),
+                        'raison' => 'Réservée bientôt'
+                    ];
+                    continue;
+                }
+                
+                // Vérifier la disponibilité pour le créneau spécifique
+                $estDisponible = $disponibiliteService->estDisponible($salle, $dateHeure, $fin);
+                
+                if ($estDisponible) {
+                    // Vérification du délai tampon (1 seconde) avant la prochaine réservation
+                    $prochaineReservation = $em->getRepository(\App\Entity\Reservation::class)->findProchaineReservation($salle, $fin);
+                    $delaiTampon = true;
+                    
+                    if ($prochaineReservation) {
+                        $diff = $fin->diff($prochaineReservation->getDateDebut());
+                        $diffInSeconds = ($diff->days * 24 * 60 * 60) + ($diff->h * 3600) + ($diff->i * 60) + $diff->s;
+                        if ($diffInSeconds <= 1 && !$diff->invert) {
+                            $delaiTampon = false;
+                        }
+                    }
+                    
+                    if ($delaiTampon) {
+                        $sallesDisponibles[] = [
+                            'id' => $salle->getId(),
+                            'nom' => $salle->getNom(),
+                            'capacite' => $salle->getCapacite(),
+                            'type' => $salle->getType() ?? 'réunion'
+                        ];
+                    } else {
+                        $sallesIndisponibles[] = [
+                            'id' => $salle->getId(),
+                            'nom' => $salle->getNom(),
+                            'raison' => 'Réservation trop proche'
+                        ];
+                    }
+                } else {
+                    // Déterminer la raison de l'indisponibilité
+                    $raison = 'Indisponible';
+                    
+                    // Vérifier les heures d'ouverture manuellement
+                    $heureOuverture = $salle->getDebutReservation();
+                    $heureFermeture = $salle->getFinReservation();
+                    
+                    if ($heureOuverture && $heureFermeture) {
+                        $debutHeure = $dateHeure->format('H:i');
+                        $finHeure = $fin->format('H:i');
+                        $ouvertureHeure = $heureOuverture->format('H:i');
+                        $fermetureHeure = $heureFermeture->format('H:i');
+                        
+                        if ($fermetureHeure < $ouvertureHeure) {
+                            // Cas de passage minuit
+                            if (!(($debutHeure >= $ouvertureHeure || $debutHeure <= $fermetureHeure) &&
+                                  ($finHeure >= $ouvertureHeure || $finHeure <= $fermetureHeure) &&
+                                  ($debutHeure <= $finHeure || $debutHeure >= $ouvertureHeure))) {
+                                $raison = 'Hors heures d\'ouverture';
+                            }
+                        } else {
+                            // Cas normal
+                            if ($debutHeure < $ouvertureHeure || $finHeure > $fermetureHeure) {
+                                $raison = 'Hors heures d\'ouverture';
+                            }
+                        }
+                    }
+                    
+                    // Si ce n'est pas un problème d'heures, c'est probablement une réservation
+                    if ($raison === 'Indisponible') {
+                        $raison = 'Déjà réservée';
+                    }
+                    
+                    $sallesIndisponibles[] = [
+                        'id' => $salle->getId(),
+                        'nom' => $salle->getNom(),
+                        'raison' => $raison
+                    ];
+                }
+            }
+
+            return new JsonResponse([
+                'disponibles' => $sallesDisponibles,
+                'indisponibles' => $sallesIndisponibles,
+                'total_disponibles' => count($sallesDisponibles),
+                'total_indisponibles' => count($sallesIndisponibles)
+            ]);
+            
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Erreur lors du traitement de la date: ' . $e->getMessage()], 400);
+        }
     }
 }

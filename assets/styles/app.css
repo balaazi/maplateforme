@@ -145,3 +145,75 @@ body {
 }
 
 /* Add your custom styles here */
+
+.reservation-form-wrapper {
+    max-width: 500px;
+    margin: 40px auto 0 auto;
+    background: #fff;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(80, 80, 120, 0.10), 0 1.5px 6px rgba(80, 80, 120, 0.08);
+    padding: 32px 32px 24px 32px;
+}
+
+.reservation-form-wrapper h2 {
+    text-align: center;
+    margin-bottom: 28px;
+    color: #6c2eb7;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 1px;
+}
+
+.reservation-form-wrapper label {
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.reservation-form-wrapper .form-control,
+.reservation-form-wrapper .form-select {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    margin-bottom: 18px;
+    padding: 10px 12px;
+    font-size: 1rem;
+    background: #f9f9fb;
+    transition: border 0.2s;
+}
+
+.reservation-form-wrapper .form-control:focus,
+.reservation-form-wrapper .form-select:focus {
+    border-color: #6c2eb7;
+    box-shadow: 0 0 0 2px #e9d8fd;
+    background: #fff;
+}
+
+.reservation-form-wrapper .btn-primary {
+    background: #6c2eb7;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-right: 10px;
+    transition: background 0.2s;
+}
+
+.reservation-form-wrapper .btn-primary:hover {
+    background: #4b1c7a;
+}
+
+.reservation-form-wrapper .btn-secondary {
+    background: #e2e8f0;
+    color: #333;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+}
+
+.reservation-form-wrapper .btn-secondary:hover {
+    background: #cbd5e1;
+}

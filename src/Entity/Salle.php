@@ -38,6 +38,9 @@ class Salle
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $equipements = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $horairesParJour = null;
+
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $type = 'reunion'; // reunion, conference, formation, etc.
 
@@ -260,13 +263,22 @@ class Salle
     {
         return match($this->type) {
             'reunion' => 'Salle de réunion',
-            'conference' => 'Salle de conférence',
             'formation' => 'Salle de formation',
             'bureau' => 'Bureau',
             'amphitheatre' => 'Amphithéâtre',
-            'workshop' => 'Atelier',
             default => 'Salle de réunion'
         };
+    }
+
+    public function getHorairesParJour(): ?array
+    {
+        return $this->horairesParJour;
+    }
+
+    public function setHorairesParJour(?array $horairesParJour): static
+    {
+        $this->horairesParJour = $horairesParJour;
+        return $this;
     }
 
     public function __toString(): string

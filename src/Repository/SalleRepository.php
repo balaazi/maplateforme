@@ -28,6 +28,17 @@ class SalleRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Retourne les salles actives (disponibles)
+     */
+    public function findActiveSalles(): array
+    {
+        return $this->createQueryBuilder('s')
+            ->where('s.disponible = true')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Salle[] Returns an array of Salle objects
     //     */

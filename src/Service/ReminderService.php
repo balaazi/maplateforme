@@ -7,7 +7,7 @@ use App\Entity\User;
 use App\Entity\Event;
 use App\Repository\ReminderRepository;
 use App\Service\NotificationService;
-use App\Service\EmailService;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -18,7 +18,7 @@ class ReminderService
         private EntityManagerInterface $entityManager,
         private ReminderRepository $reminderRepository,
         private NotificationService $notificationService,
-        private EmailService $emailService,
+        private MailerService $mailerService,
         private EventDispatcherInterface $eventDispatcher,
         private LoggerInterface $logger
     ) {
@@ -99,7 +99,12 @@ class ReminderService
                 $event,
                 $event->getOrganizer(),
                 $dueDate,
-                ['title' => "Rappel organisateur - {$event->getTitle()}"]
+                [
+                    'title' => "Rappel - {$event->getTitle()}",
+                    'description' => "Vous organisez cet événement",
+                    'type' => 'organizer_reminder',
+                    'priority' => 'high'
+                ]
             );
         }
 
@@ -110,7 +115,12 @@ class ReminderService
                     $event,
                     $participation->getUser(),
                     $dueDate,
-                    ['title' => "Rappel participant - {$event->getTitle()}"]
+                    [
+                        'title' => "Rappel - {$event->getTitle()}",
+                        'description' => "Vous participez à cet événement",
+                        'type' => 'participant_reminder',
+                        'priority' => 'normal'
+                    ]
                 );
             }
         }
@@ -122,7 +132,12 @@ class ReminderService
                     $event,
                     $invitation->getInvite(),
                     $dueDate,
-                    ['title' => "Rappel invité - {$event->getTitle()}"]
+                    [
+                        'title' => "Rappel - {$event->getTitle()}",
+                        'description' => "Vous êtes invité à cet événement",
+                        'type' => 'invite_reminder',
+                        'priority' => 'normal'
+                    ]
                 );
             }
         }
@@ -191,7 +206,7 @@ class ReminderService
 
             // Envoyer email si nécessaire
             if ($config['sendEmail'] && $reminder->getEvent()) {
-                $this->emailService->sendReminder($reminder->getUser(), $reminder->getEvent());
+                $this->mailerService->sendReminderEmail($reminder->getUser(), $reminder->getEvent());
             }
 
             $this->logger->info('Rappel déclenché avec succès', [

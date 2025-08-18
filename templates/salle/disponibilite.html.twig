@@ -489,6 +489,9 @@
                                             {% else %}
                                                 <span class="badge bg-danger">Annulée</span>
                                             {% endif %}
+                                            <a href="{{ path('reservation_edit', {id: reservation.id}) }}" class="btn btn-sm btn-outline-primary ms-2" title="Modifier la réservation">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         </div>
                                     </div>
                                     <div class="mb-2">
@@ -512,7 +515,9 @@
                         </div>
                     {% endif %}
 
-                    {% if creneauxLibres is not empty %}
+                    {% set jour = "now"|date('l')|lower %}
+                    {% set horaires = salle.horairesParJour[jour] ?? null %}
+                    {% if horaires %}
                         <h6 class="mt-4 mb-3 fw-bold">
                             <i class="fas fa-clock-o me-2"></i>
                             Créneaux libres aujourd'hui
@@ -548,70 +553,89 @@
                     </h5>
                 </div>
                 <div class="card-body-modern">
-                    <!-- Alerte de statut dynamique -->
-                    <div id="availability-alert" class="alert" style="display: none;">
-                        <div id="availability-content"></div>
-                    </div>
-                    
-                    <div class="reservation-form">
-                        <form method="post" action="{{ path('salle_reserver', {id: salle.id}) }}" id="reservation-form">
-                            <div class="row">
-                                <div class="col-md-6 form-group-modern">
-                                    <label for="dateDebut" class="form-label-modern">
-                                        <i class="fas fa-play text-success"></i>
-                                        Date et heure de début
-                                    </label>
-                                    <input type="datetime-local" class="form-control-modern" id="dateDebut" name="dateDebut" 
-                                           value="{{ 'tomorrow'|date('Y-m-d') }}T{{ salle.debutReservation|date('H:i') }}" required>
-                                    <small class="form-text text-muted mt-1">
-                                        <i class="fas fa-clock me-1"></i>
-                                        Salle ouverte de {{ salle.debutReservation|date('H:i') }} à {{ salle.finReservation|date('H:i') }}
-                                    </small>
+                    {% set jour = "now"|date('l')|lower %}
+                    {% set horaires = salle.horairesParJour[jour] ?? null %}
+                    {% if horaires %}
+                        <!-- Alerte de statut dynamique -->
+                        <div id="availability-alert" class="alert" style="display: none;">
+                            <div id="availability-content"></div>
+                        </div>
+                        
+                        <div class="reservation-form">
+                            <form method="post" action="{{ path('salle_reserver', {id: salle.id}) }}" id="reservation-form">
+                                <div class="row">
+                                    <div class="col-md-6 form-group-modern">
+                                        <label for="dateDebut" class="form-label-modern">
+                                            <i class="fas fa-play text-success"></i>
+                                            Date et heure de début
+                                        </label>
+                                        <input type="datetime-local" class="form-control-modern" id="dateDebut" name="dateDebut" 
+                                               value="{{ 'tomorrow'|date('Y-m-d') }}T{{ salle.debutReservation|date('H:i') }}" required>
+                                        <small class="form-text text-muted mt-1">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {% set jour = "now"|date('l')|lower %}
+                                            {% set horaires = salle.horairesParJour[jour] ?? null %}
+                                            {% if horaires %}
+                                                Salle ouverte de {{ horaires.debut|replace({':':'h'}) }} à {{ horaires.fin|replace({':':'h'}) }}
+                                            {% else %}
+                                                Salle fermée aujourd'hui
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <div class="col-md-6 form-group-modern">
+                                        <label for="dateFin" class="form-label-modern">
+                                            <i class="fas fa-stop text-danger"></i>
+                                            Date et heure de fin
+                                        </label>
+                                        <input type="datetime-local" class="form-control-modern" id="dateFin" name="dateFin" 
+                                               value="{{ 'tomorrow'|date('Y-m-d') }}T{{ salle.debutReservation|date_modify('+2 hours')|date('H:i') }}" required>
+                                        <small class="form-text text-muted mt-1">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            {% if horaires %}
+                                                Maximum {{ horaires.fin|replace({':':'h'}) }}
+                                            {% else %}
+                                                Fermée aujourd'hui
+                                            {% endif %}
+                                        </small>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 form-group-modern">
-                                    <label for="dateFin" class="form-label-modern">
-                                        <i class="fas fa-stop text-danger"></i>
-                                        Date et heure de fin
+                                <div class="form-group-modern">
+                                    <label for="motif" class="form-label-modern">
+                                        <i class="fas fa-bookmark text-primary"></i>
+                                        Motif de la réservation
                                     </label>
-                                    <input type="datetime-local" class="form-control-modern" id="dateFin" name="dateFin" 
-                                           value="{{ 'tomorrow'|date('Y-m-d') }}T{{ salle.debutReservation|date_modify('+2 hours')|date('H:i') }}" required>
+                                    <input type="text" class="form-control-modern" id="motif" name="motif" 
+                                           placeholder="Ex: Réunion équipe, Formation, Conférence..." required>
                                     <small class="form-text text-muted mt-1">
                                         <i class="fas fa-info-circle me-1"></i>
-                                        Maximum {{ salle.finReservation|date('H:i') }}
+                                        Décrivez brièvement l'objet de la réservation
                                     </small>
                                 </div>
-                            </div>
-                            <div class="form-group-modern">
-                                <label for="motif" class="form-label-modern">
-                                    <i class="fas fa-bookmark text-primary"></i>
-                                    Motif de la réservation
-                                </label>
-                                <input type="text" class="form-control-modern" id="motif" name="motif" 
-                                       placeholder="Ex: Réunion équipe, Formation, Conférence..." required>
-                                <small class="form-text text-muted mt-1">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Décrivez brièvement l'objet de la réservation
-                                </small>
-                            </div>
-                            <div class="form-group-modern">
-                                <label for="reservePar" class="form-label-modern">
-                                    <i class="fas fa-user text-info"></i>
-                                    Réservé par
-                                </label>
-                                <input type="text" class="form-control-modern" id="reservePar" name="reservePar" 
-                                       value="{{ app.user ? (app.user.nom ~ ' ' ~ app.user.prenom) : '' }}" 
-                                       placeholder="Nom de la personne qui réserve" required>
-                                <small class="form-text text-muted mt-1">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    Indiquez le nom de la personne responsable de la réservation
-                                </small>
-                            </div>
-                            <button type="submit" class="btn-reserve" id="submit-btn">
-                                <i class="fas fa-calendar-plus"></i>
-                                <span>Créer la réservation</span>
-                            </button>
-                        </form>
-                    </div>
+                                <div class="form-group-modern">
+                                    <label for="reservePar" class="form-label-modern">
+                                        <i class="fas fa-user text-info"></i>
+                                        Réservé par
+                                    </label>
+                                    <input type="text" class="form-control-modern" id="reservePar" name="reservePar" 
+                                           value="{{ app.user ? (app.user.nom ~ ' ' ~ app.user.prenom) : '' }}" 
+                                           placeholder="Nom de la personne qui réserve" required>
+                                    <small class="form-text text-muted mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Indiquez le nom de la personne responsable de la réservation
+                                    </small>
+                                </div>
+                                <button type="submit" class="btn-reserve" id="submit-btn">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    <span>Créer la réservation</span>
+                                </button>
+                            </form>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mt-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            La salle est fermée aujourd'hui, aucune réservation possible.
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -785,13 +809,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const debutDate = new Date(this.value);
         const heureDebut = debutDate.getHours();
         
-        // Vérifier les heures d'ouverture
-        if (heureDebut < 8) {
-            debutDate.setHours(8, 0);
-            this.value = debutDate.toISOString().slice(0, 16);
-        } else if (heureDebut >= 18) {
-            debutDate.setHours(17, 0);
-            this.value = debutDate.toISOString().slice(0, 16);
+        // Récupérer les horaires de la salle pour le jour sélectionné
+        const selectedDate = new Date(this.value);
+        const jourSemaine = selectedDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+        const horairesJour = {{ salle.horairesParJour|json_encode|raw }};
+        
+        if (horairesJour && horairesJour[jourSemaine]) {
+            const horaires = horairesJour[jourSemaine];
+            const heureOuverture = parseInt(horaires.debut.split(':')[0]);
+            const heureFermeture = parseInt(horaires.fin.split(':')[0]);
+            
+            // Vérifier les heures d'ouverture de la salle pour ce jour
+            if (heureDebut < heureOuverture) {
+                debutDate.setHours(heureOuverture, 0);
+                this.value = debutDate.toISOString().slice(0, 16);
+            } else if (heureDebut >= heureFermeture) {
+                debutDate.setHours(heureFermeture - 1, 0);
+                this.value = debutDate.toISOString().slice(0, 16);
+            }
+        } else {
+            // Si pas d'horaires définis pour ce jour, utiliser les horaires par défaut
+            if (heureDebut < 8) {
+                debutDate.setHours(8, 0);
+                this.value = debutDate.toISOString().slice(0, 16);
+            } else if (heureDebut >= 18) {
+                debutDate.setHours(17, 0);
+                this.value = debutDate.toISOString().slice(0, 16);
+            }
         }
         
         // Mettre à jour dateFin
@@ -799,8 +843,22 @@ document.addEventListener('DOMContentLoaded', function() {
         if (dateFin.value < this.value) {
             const debut = new Date(this.value);
             debut.setHours(debut.getHours() + 1);
-            if (debut.getHours() > 18) {
-                debut.setHours(18, 0);
+            
+            // Vérifier les horaires de la salle pour la date de fin
+            const jourSemaineFin = debut.toLocaleDateString('en-US', { weekday: 'lowercase' });
+            const horairesJourFin = {{ salle.horairesParJour|json_encode|raw }};
+            
+            if (horairesJourFin && horairesJourFin[jourSemaineFin]) {
+                const horairesFin = horairesJourFin[jourSemaineFin];
+                const heureFermetureFin = parseInt(horairesFin.fin.split(':')[0]);
+                if (debut.getHours() > heureFermetureFin) {
+                    debut.setHours(heureFermetureFin, 0);
+                }
+            } else {
+                // Horaires par défaut si pas définis
+                if (debut.getHours() > 18) {
+                    debut.setHours(18, 0);
+                }
             }
             dateFin.value = debut.toISOString().slice(0, 16);
         }
@@ -881,12 +939,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const finDate = new Date(this.value);
         const heureFin = finDate.getHours();
         
-        if (heureFin < 8) {
-            finDate.setHours(8, 0);
-            this.value = finDate.toISOString().slice(0, 16);
-        } else if (heureFin > 18) {
-            finDate.setHours(18, 0);
-            this.value = finDate.toISOString().slice(0, 16);
+        // Récupérer les horaires de la salle pour le jour sélectionné
+        const selectedDate = new Date(this.value);
+        const jourSemaine = selectedDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+        const horairesJour = {{ salle.horairesParJour|json_encode|raw }};
+        
+        if (horairesJour && horairesJour[jourSemaine]) {
+            const horaires = horairesJour[jourSemaine];
+            const heureOuverture = parseInt(horaires.debut.split(':')[0]);
+            const heureFermeture = parseInt(horaires.fin.split(':')[0]);
+            
+            // Vérifier les heures d'ouverture de la salle pour ce jour
+            if (heureFin < heureOuverture) {
+                finDate.setHours(heureOuverture, 0);
+                this.value = finDate.toISOString().slice(0, 16);
+            } else if (heureFin > heureFermeture) {
+                finDate.setHours(heureFermeture, 0);
+                this.value = finDate.toISOString().slice(0, 16);
+            }
+        } else {
+            // Si pas d'horaires définis pour ce jour, utiliser les horaires par défaut
+            if (heureFin < 8) {
+                finDate.setHours(8, 0);
+                this.value = finDate.toISOString().slice(0, 16);
+            } else if (heureFin > 18) {
+                finDate.setHours(18, 0);
+                this.value = finDate.toISOString().slice(0, 16);
+            }
         }
         
         if (this.value < dateDebut.value) {

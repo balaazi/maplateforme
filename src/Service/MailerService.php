@@ -40,17 +40,17 @@ throw new \RuntimeException("Échec de l'envoi de l'email d'invitation: " . $e->
 }
 }
 
-// ✅ Envoi d’un email de rappel automatique
+// ✅ Envoi d'un email de rappel automatique
 public function sendReminderEmail(User $guest, Event $event): void
 {
 $email = (new TemplatedEmail())
 ->from('nadiabalaazi@gmail.com')
 ->to($guest->getEmail())
-->subject("Rappel : " . $event->getTitle())
-->htmlTemplate('invitation.html.twig')  // Assurez-vous que ce fichier existe
+->subject("⏰ Rappel : " . $event->getTitle())
+->htmlTemplate('emails/reminder.html.twig')  // Template corrigé pour les rappels
 ->context([
 'event' => $event,
-'guest' => $guest,
+'user' => $guest,
 ]);
 
 // Envoi de l'email

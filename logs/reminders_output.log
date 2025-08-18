@@ -1,0 +1,418 @@
+
+🔔 Envoi des rappels d'événements
+=================================
+
+ ! [NOTE] Recherche d'événements entre 20/07/2025 00:00 et 21/07/2025 00:00                             
+
+Traitement de 1 événement(s)
+----------------------------
+
+ 📅 Traitement de l'événement: Séminaire
+    ✅ Rappel envoyé à l'organisateur: balaazi neda
+    📊 1 rappel(s) envoyé(s) pour cet événement
+
+ [OK] ✅ Processus terminé: 1 rappel(s) envoyé(s) au total pour 1 événement(s)                          
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.15 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.17 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [ERROR] ❌ Erreur lors du traitement des rappels : An exception occurred in the driver: SQLSTATE[HY000] [1049] Unknown
+         database 'eventhub'                                                                                           
+
+22:53:28 ERROR     [app] Erreur dans process-reminders ["error" => "An exception occurred in the driver: SQLSTATE[HY000] [1049] Unknown database 'eventhub'","trace" => """  #0 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\dbal\src\Connection.php(1418): Doctrine\DBAL\Driver\API\MySQL\ExceptionConverter->convert(Object(Doctrine\DBAL\Driver\PDO\Exception), NULL)\n  #1 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\dbal\src\Connection.php(1366): Doctrine\DBAL\Connection->handleDriverException(Object(Doctrine\DBAL\Driver\PDO\Exception), NULL)\n  #2 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\dbal\src\Connection.php(227): Doctrine\DBAL\Connection->convertException(Object(Doctrine\DBAL\Driver\PDO\Exception))\n  #3 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\dbal\src\Connection.php(770): Doctrine\DBAL\Connection->connect()\n  #4 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\orm\src\Query\Exec\FinalizedSelectExecutor.php(27): Doctrine\DBAL\Connection->executeQuery('SELECT r0_.id A...', Array, Array, NULL)\n  #5 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\orm\src\Query.php(296): Doctrine\ORM\Query\Exec\FinalizedSelectExecutor->execute(Object(Doctrine\DBAL\Connection), Array, Array)\n  #6 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\orm\src\AbstractQuery.php(935): Doctrine\ORM\Query->_doExecute()\n  #7 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\orm\src\AbstractQuery.php(891): Doctrine\ORM\AbstractQuery->executeIgnoreQueryCache(NULL, 1)\n  #8 C:\xampp\htdocs\new\maplateforme\vendor\doctrine\orm\src\AbstractQuery.php(689): Doctrine\ORM\AbstractQuery->execute(NULL, 1)\n  #9 C:\xampp\htdocs\new\maplateforme\src\Repository\ReminderRepository.php(34): Doctrine\ORM\AbstractQuery->getResult()\n  #10 C:\xampp\htdocs\new\maplateforme\src\Service\ReminderService.php(158): App\Repository\ReminderRepository->findPendingReminders()\n  #11 C:\xampp\htdocs\new\maplateforme\src\Command\ProcessRemindersCommand.php(94): App\Service\ReminderService->processPendingReminders()\n  #12 C:\xampp\htdocs\new\maplateforme\vendor\symfony\console\Command\Command.php(279): App\Command\ProcessRemindersCommand->execute(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #13 C:\xampp\htdocs\new\maplateforme\vendor\symfony\console\Application.php(1094): Symfony\Component\Console\Command\Command->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #14 C:\xampp\htdocs\new\maplateforme\vendor\symfony\framework-bundle\Console\Application.php(123): Symfony\Component\Console\Application->doRunCommand(Object(App\Command\ProcessRemindersCommand), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #15 C:\xampp\htdocs\new\maplateforme\vendor\symfony\console\Application.php(342): Symfony\Bundle\FrameworkBundle\Console\Application->doRunCommand(Object(App\Command\ProcessRemindersCommand), Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #16 C:\xampp\htdocs\new\maplateforme\vendor\symfony\framework-bundle\Console\Application.php(77): Symfony\Component\Console\Application->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #17 C:\xampp\htdocs\new\maplateforme\vendor\symfony\console\Application.php(193): Symfony\Bundle\FrameworkBundle\Console\Application->doRun(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #18 C:\xampp\htdocs\new\maplateforme\vendor\symfony\runtime\Runner\Symfony\ConsoleApplicationRunner.php(49): Symfony\Component\Console\Application->run(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))\n  #19 C:\xampp\htdocs\new\maplateforme\vendor\autoload_runtime.php(29): Symfony\Component\Runtime\Runner\Symfony\ConsoleApplicationRunner->run()\n  #20 C:\xampp\htdocs\new\maplateforme\bin\console(15): require_once('C:\\xampp\\htdocs...')\n  #21 {main}  """]
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.19 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.12 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.12 secondes  
+  Mémoire utilisée         60 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.27 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.15 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.09 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.06 secondes  
+  Mémoire utilisée         60 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.11 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.11 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.08 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.09 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+
+
+Traitement des rappels automatiques
+===================================
+
+🔍 Recherche des rappels en attente...
+--------------------------------------
+
+ [INFO] ℹ️  Aucun rappel à traiter                                                                                      
+
+🔔 Traitement des notifications temps réel...
+---------------------------------------------
+
+ [INFO] ℹ️  Aucune notification temps réel à envoyer                                                                    
+
+📊 Statistiques 
+----------------
+
+ ------------------------ --------------- 
+  Métrique                 Valeur         
+ ------------------------ --------------- 
+  Rappels traités          0              
+  Notifications envoyées   0              
+  Éléments nettoyés        0              
+  Erreurs                  0              
+  Temps d'exécution        0.17 secondes  
+  Mémoire utilisée         26 MB          
+ ------------------------ --------------- 
+

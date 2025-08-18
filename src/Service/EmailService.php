@@ -8,16 +8,19 @@ use App\Entity\Event;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Twig\Environment;
 
 class EmailService
 {
     private $mailer;
     private $params;
+    private $twig;
 
-    public function __construct(MailerInterface $mailer, ParameterBagInterface $params)
+    public function __construct(MailerInterface $mailer, ParameterBagInterface $params, Environment $twig)
     {
         $this->mailer = $mailer;
         $this->params = $params;
+        $this->twig = $twig;
     }
 
     public function sendReminder(User $user, Event $event): void
@@ -39,15 +42,15 @@ class EmailService
         $this->mailer->send($email);  // Envoie l'email
     }
 
-    public function sendNewUserCredentials(string $email, string $temporaryPassword): void
+    public function sendNewUserCredentials(string $userEmail, string $temporaryPassword): void
     {
         $email = (new Email())
-            ->from($this->params->get('app.mail_from'))
-            ->to($email)
+            ->from('nadiabalaazi@gmail.com')
+            ->to($userEmail)
             ->subject('Vos identifiants de connexion')
             ->html(
-                $this->renderTemplate('emails/new_user_credentials.html.twig', [
-                    'email' => $email,
+                $this->twig->render('emails/new_user_credentials.html.twig', [
+                    'email' => $userEmail,
                     'password' => $temporaryPassword
                 ])
             );
@@ -55,17 +58,20 @@ class EmailService
         $this->mailer->send($email);
     }
 
-    private function renderTemplate(string $template, array $context): string
+    public function sendTestEmail(string $email, string $subject, string $message): bool
     {
-        // Template simple pour l'exemple
-        return <<<HTML
-        <h1>Bienvenue sur notre plateforme</h1>
-        <p>Voici vos identifiants de connexion :</p>
-        <ul>
-            <li>Email : {$context['email']}</li>
-            <li>Mot de passe temporaire : {$context['password']}</li>
-        </ul>
-        <p>Nous vous recommandons de changer votre mot de passe lors de votre première connexion.</p>
-        HTML;
+        try {
+            $emailObj = (new Email())
+                ->from('nadiabalaazi@gmail.com')
+                ->to($email)
+                ->subject($subject)
+                ->html($message);
+
+            $this->mailer->send($emailObj);
+            return true;
+        } catch (\Exception $e) {
+            error_log('Erreur envoi email test: ' . $e->getMessage());
+            return false;
+        }
     }
 }

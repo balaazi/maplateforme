@@ -87,6 +87,10 @@
                                             <span class="badge bg-danger">
                                                 <i class="bi bi-x-circle"></i> Refusée
                                             </span>
+                                        {% elseif invitation.status == 'expired' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-clock"></i> Expirée
+                                            </span>
                                         {% else %}
                                             <span class="badge bg-warning text-dark">
                                                 <i class="bi bi-hourglass"></i> En attente

@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accès Refusé{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Accès Refusé
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-lock fa-3x text-danger mb-3"></i>
+                        <h5 class="text-danger">Vous n'avez pas les permissions nécessaires</h5>
+                        <p class="text-muted">
+                            Désolé, vous n'êtes pas autorisé à accéder à cette page ou à cette fonctionnalité.
+                        </p>
+                    </div>
+
+                    {% if suggestions is defined and suggestions|length > 0 %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Informations utiles :</h6>
+                            <ul class="mb-0">
+                                {% for suggestion in suggestions %}
+                                    <li>{{ suggestion }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle me-2"></i>Que pouvez-vous faire ?</h6>
+                            <ul class="mb-0">
+                                <li>Contactez un administrateur pour obtenir les permissions nécessaires</li>
+                                <li>Vérifiez que vous êtes connecté avec le bon compte</li>
+                                <li>Retournez à la page d'accueil pour naviguer vers d'autres fonctionnalités</li>
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ path('app_home') }}" class="btn btn-primary me-md-2">
+                            <i class="fas fa-home me-2"></i>
+                            Retour à l'accueil
+                        </a>
+                        
+                        {% if is_granted('ROLE_USER') %}
+                            <a href="{{ path('calendar_index') }}" class="btn btn-outline-primary me-md-2">
+                                <i class="fas fa-calendar me-2"></i>
+                                Voir le calendrier
+                            </a>
+                        {% endif %}
+                        
+                        {% if not is_granted('ROLE_USER') %}
+                            <a href="{{ path('app_login') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-sign-in-alt me-2"></i>
+                                Se connecter
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if app.debug %}
+                        <div class="mt-4">
+                            <details>
+                                <summary class="text-muted">Détails techniques (mode debug)</summary>
+                                <div class="mt-2 p-3 bg-light rounded">
+                                    <small>
+                                        <strong>Route :</strong> {{ route|default('Non définie') }}<br>
+                                        <strong>URL :</strong> {{ app.request.requestUri }}<br>
+                                        <strong>Méthode :</strong> {{ app.request.method }}<br>
+                                        <strong>Utilisateur :</strong> {{ app.user ? app.user.email : 'Non connecté' }}<br>
+                                        <strong>Rôles :</strong> {{ app.user ? app.user.roles|join(', ') : 'Aucun' }}<br>
+                                        <strong>Message d'erreur :</strong> {{ message|default('Non spécifié') }}
+                                    </small>
+                                </div>
+                            </details>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

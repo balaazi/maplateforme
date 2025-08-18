@@ -1,693 +1,442 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Dashboard Organisateur - EventHub{% endblock %}
+{% block title %}Tableau de bord Organisateur - EventHub{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-primary: #2d3748;
-            --text-secondary: #718096;
-            --shadow-light: 0 10px 40px rgba(0, 0, 0, 0.1);
-            --shadow-medium: 0 20px 60px rgba(0, 0, 0, 0.15);
-            --shadow-heavy: 0 30px 80px rgba(0, 0, 0, 0.2);
+            /* Schéma de couleurs unifié pour tous les dashboards */
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #a855f7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            
+            /* Gradients unifiés (alignés sur les titres/base) */
+            --primary-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 50%, var(--primary-light) 100%);
+            --secondary-gradient: linear-gradient(135deg, #a855f7 0%, #d946ef 100%);
+            --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --warning-gradient: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --info-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            
+            /* Couleurs de base unifiées */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(226, 232, 240, 0.8);
+            --shadow: 0 10px 25px rgba(99, 102, 241, 0.1);
+            --glass-border: rgba(99, 102, 241, 0.1);
+            
+            /* Variables spécifiques organisateur */
+            --organizer-accent: var(--primary-color);
+            --organizer-gradient: var(--primary-gradient);
         }
 
-        .dashboard-container {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             min-height: 100vh;
-            margin-top: -90px;
-            padding-top: 90px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+        }
+
+        .organizer-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header organisateur harmonisé */
+        .organizer-hero {
+            background: var(--organizer-gradient);
+            border-radius: 30px;
+            padding: 40px;
+            margin-bottom: 40px;
+            color: white;
+            text-align: center;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
         }
 
-        /* Particules flottantes */
-        .dashboard-container::before {
+        .organizer-hero::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
-            animation: particleFloat 20s ease-in-out infinite;
-            pointer-events: none;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
         }
 
-        @keyframes particleFloat {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-30px) rotate(120deg); }
-            66% { transform: translateY(30px) rotate(240deg); }
+        .hero-content { position: relative; z-index: 2; }
+
+        .hero-avatar {
+            width: 120px; height: 120px; background: rgba(255,255,255,0.2);
+            border: 4px solid rgba(255,255,255,0.3); border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 3rem;
+            backdrop-filter: blur(20px); animation: float 6s ease-in-out infinite;
         }
 
-        /* En-tête moderne */
-        .dashboard-header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            border-radius: 25px;
-            padding: 2.5rem;
-            margin-bottom: 2.5rem;
-            border: 1px solid var(--glass-border);
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--shadow-light);
-        }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 
-        .dashboard-header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #ffffff, rgba(255,255,255,0.5), #ffffff);
-        }
+        .hero-title { font-size: 2.5rem; font-weight: 800; margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,.1); }
+        .hero-subtitle { font-size: 1.2rem; opacity: .9; margin: 0 0 30px 0; }
 
-        .welcome-title {
-            color: white;
-            font-weight: 800;
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            animation: slideInFromLeft 1s ease-out;
-        }
+        .hero-stats { display:flex; justify-content:center; gap:40px; flex-wrap:wrap; }
+        .hero-stat { text-align:center; background:rgba(255,255,255,.15); padding:20px 30px; border-radius:20px; backdrop-filter: blur(20px); border:1px solid rgba(255,255,255,.2); }
+        .hero-stat-number { display:block; font-size:2.5rem; font-weight:800; margin-bottom:5px; }
+        .hero-stat-label { font-size:.9rem; opacity:.8; text-transform:uppercase; letter-spacing:1px; }
 
-        .welcome-subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.2rem;
-            margin-bottom: 0;
-            animation: slideInFromLeft 1s ease-out 0.2s both;
-        }
+        /* Section statistiques avancées harmonisées */
+        .stats-overview { margin-bottom: 40px; }
+        .section-title { font-size:2rem; font-weight:700; margin-bottom:30px; color:var(--text-primary); display:flex; align-items:center; gap:15px; }
+        .section-title i { color: var(--organizer-accent); }
 
-        .welcome-date {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1.1rem;
-            font-weight: 600;
-            animation: slideInFromRight 1s ease-out 0.3s both;
-        }
+        .stats-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:25px; }
+        .stat-card { background:var(--card-bg); border:1px solid var(--glass-border); border-radius:25px; padding:30px; box-shadow:var(--shadow); transition:.4s; position:relative; overflow:hidden; }
+        .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:5px; background: var(--organizer-gradient); transform: scaleX(0); transition: transform .4s; }
+        .stat-card:hover::before { transform: scaleX(1); }
+        .stat-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px rgba(99,102,241,.2); }
 
-        /* Cartes statistiques premium */
-        .stats-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 25px;
-            padding: 2.5rem;
-            box-shadow: var(--shadow-light);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-            cursor: pointer;
-            animation: fadeInUp 0.8s ease-out both;
-        }
+        .stat-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
+        .stat-icon { width:70px; height:70px; border-radius:20px; background: var(--organizer-gradient); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:white; }
+        .stat-trend { display:flex; align-items:center; gap:8px; padding:10px 15px; border-radius:25px; font-size:.9rem; font-weight:600; }
+        .stat-trend.positive { background: rgba(16,185,129,.1); color: var(--success-color); }
+        .stat-trend.negative { background: rgba(239,68,68,.1); color: var(--danger-color); }
+        .stat-trend.neutral { background: rgba(99,102,241,.1); color: var(--organizer-accent); }
 
-        .stats-card:nth-child(1) { animation-delay: 0.1s; }
-        .stats-card:nth-child(2) { animation-delay: 0.2s; }
-        .stats-card:nth-child(3) { animation-delay: 0.3s; }
-        .stats-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-content h3 { margin:0 0 20px 0; font-size:1.4rem; font-weight:600; color:var(--text-primary); }
+        .stat-number { font-size:3rem; font-weight:800; margin-bottom:15px; background: var(--organizer-gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .stat-content p { margin:0; color:var(--text-secondary); font-size:1rem; line-height:1.6; }
 
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: var(--primary-gradient);
-            transition: height 0.3s ease;
-        }
+        .stat-progress { margin-top:25px; height:8px; background: var(--bg-secondary); border-radius:4px; overflow:hidden; }
+        .progress-bar { height:100%; background: var(--success-gradient); border-radius:4px; transition: width 1.5s ease; position:relative; }
+        .progress-bar::after { content:''; position:absolute; inset:0; background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
 
-        .stats-card::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: radial-gradient(circle, rgba(102,126,234,0.1) 0%, transparent 70%);
-            transition: all 0.6s ease;
-            transform: translate(-50%, -50%);
-            border-radius: 50%;
-        }
+        /* Section activité récente harmonisée */
+        .activity-section{ margin-bottom:40px; }
+        .activity-grid{ display:grid; grid-template-columns:2fr 1fr; gap:30px; }
+        .activity-card{ background:var(--card-bg); border:1px solid var(--glass-border); border-radius:25px; padding:30px; box-shadow:var(--shadow); }
+        .activity-list{ display:flex; flex-direction:column; gap:20px; }
+        .activity-item{ display:flex; align-items:center; gap:20px; padding:20px; background:var(--bg-secondary); border-radius:20px; transition:.3s; }
+        .activity-item:hover{ transform: translateX(10px); background: var(--organizer-accent); color:white; }
+        .activity-item:hover .activity-content h5, .activity-item:hover .activity-content p{ color:white; }
+        .activity-icon{ width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:white; flex-shrink:0; }
+        .activity-content{ flex:1; }
+        .activity-content h5{ margin:0 0 8px 0; font-size:1.1rem; font-weight:600; color:var(--text-primary); }
+        .activity-content p{ margin:0; color:var(--text-secondary); font-size:.95rem; line-height:1.5; }
+        .activity-date{ font-size:.85rem; color:var(--text-secondary); font-weight:500; text-align:right; min-width:80px; }
+        .activity-item:hover .activity-date{ color: rgba(255,255,255,.8); }
 
-        .stats-card:hover {
-            transform: translateY(-15px) scale(1.02);
-            box-shadow: var(--shadow-heavy);
-        }
+        /* Responsive */
+        @media (max-width:1200px){ .activity-grid{ grid-template-columns:1fr; } }
+        @media (max-width:768px){ .organizer-container{ padding:15px; } .organizer-hero{ padding:30px 20px; } .hero-title{ font-size:2rem; } .hero-stats{ gap:20px; } .hero-stat{ padding:15px 20px; } .stats-grid{ grid-template-columns:1fr; } }
 
-        .stats-card:hover::before {
-            height: 100%;
-            opacity: 0.1;
-        }
-
-        .stats-card:hover::after {
-            width: 300px;
-            height: 300px;
-        }
-
-        .stats-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-            margin-bottom: 1.5rem;
-            position: relative;
-            z-index: 2;
-            transition: all 0.3s ease;
-        }
-
-        .stats-card:hover .stats-icon {
-            transform: scale(1.1) rotate(5deg);
-        }
-
-        .stats-number {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            position: relative;
-            z-index: 2;
-            font-family: 'Segoe UI', sans-serif;
-            animation: countUp 2s ease-out 0.5s both;
-        }
-
-        .stats-label {
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Section des actions rapides */
-        .quick-actions {
-            margin-bottom: 2.5rem;
-        }
-
-        .section-title {
-            color: white;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 1s ease-out 0.5s both;
-        }
-
-        .action-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--shadow-light);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            height: 100%;
-            text-decoration: none;
-            color: inherit;
-            display: block;
-            position: relative;
-            overflow: hidden;
-            animation: fadeInUp 0.8s ease-out both;
-        }
-
-        .action-card:nth-child(1) { animation-delay: 0.6s; }
-        .action-card:nth-child(2) { animation-delay: 0.7s; }
-        .action-card:nth-child(3) { animation-delay: 0.8s; }
-        .action-card:nth-child(4) { animation-delay: 0.9s; }
-
-        .action-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .action-card:hover::before {
-            left: 100%;
-        }
-
-        .action-card:hover {
-            transform: translateY(-10px) scale(1.02);
-            box-shadow: var(--shadow-medium);
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .action-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: white;
-            margin-bottom: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .action-card:hover .action-icon {
-            transform: scale(1.1) rotate(-5deg);
-        }
-
-        .action-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.75rem;
-        }
-
-        .action-description {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        /* Section activité récente améliorée */
-        .recent-activity {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 25px;
-            padding: 2.5rem;
-            box-shadow: var(--shadow-light);
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            animation: fadeInUp 0.8s ease-out 1s both;
-        }
-
-        .activity-item {
-            padding: 1.5rem 0;
-            border-bottom: 1px solid #f7fafc;
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            transition: all 0.3s ease;
-            border-radius: 12px;
-            margin: 0 -1rem;
-            padding-left: 1rem;
-            padding-right: 1rem;
-        }
-
-        .activity-item:hover {
-            background: rgba(102, 126, 234, 0.05);
-            transform: translateX(10px);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-        }
-
-        .activity-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: white;
-            transition: all 0.3s ease;
-        }
-
-        .activity-item:hover .activity-icon {
-            transform: scale(1.1);
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 600;
-            color: var(--text-primary);
-            font-size: 1rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .activity-time {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        /* Gradients colorés */
-        .bg-primary-gradient { background: var(--primary-gradient); }
-        .bg-success-gradient { background: var(--success-gradient); }
-        .bg-warning-gradient { background: var(--warning-gradient); }
-        .bg-info-gradient { background: var(--info-gradient); }
-        .bg-danger-gradient { background: var(--danger-gradient); }
+        /* Notifications toast harmonisées */
+        .notification-toast{ position:fixed; top:20px; right:20px; background:white; border:1px solid var(--glass-border); border-radius:15px; padding:15px 20px; box-shadow:var(--shadow); z-index:1000; transform:translateX(400px); transition:transform .3s; max-width:350px; }
+        .notification-toast.show{ transform:translateX(0); }
+        .notification-toast.success{ border-left:4px solid var(--success-color); }
+        .notification-toast.warning{ border-left:4px solid var(--warning-color); }
+        .notification-toast.info{ border-left:4px solid var(--info-color); }
+        .notification-content{ display:flex; align-items:center; gap:12px; }
+        .notification-content i{ font-size:1.2rem; }
+        .notification-content i.fa-check-circle{ color:var(--success-color); }
+        .notification-content i.fa-exclamation-triangle{ color:var(--warning-color); }
+        .notification-content i.fa-info-circle{ color:var(--info-color); }
+        .notification-content span{ color:var(--text-primary); font-size:.95rem; font-weight:500; }
 
         /* Animations */
-        @keyframes slideInFromLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+        .fade-in-up{ animation: fadeInUp .8s ease-out; }
+        @keyframes fadeInUp{ from{opacity:0; transform:translateY(30px)} to{opacity:1; transform:translateY(0)} }
+        .stagger-1{animation-delay:.1s} .stagger-2{animation-delay:.2s} .stagger-3{animation-delay:.3s} .stagger-4{animation-delay:.4s}
+        .organizer-hero{ background-size:200% 200%; animation: gradientShift 8s ease infinite; }
+        @keyframes gradientShift{ 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 
-        @keyframes slideInFromRight {
-            from {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        @keyframes countUp {
-            from {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        /* Responsive design */
-        @media (max-width: 768px) {
-            .welcome-title {
-                font-size: 2rem;
-            }
-            
-            .stats-card {
-                margin-bottom: 1rem;
-            }
-            
-            .dashboard-header {
-                padding: 1.5rem;
-            }
-        }
-
-        /* Effet de brillance sur les cartes */
-        .shine-effect {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .shine-effect::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent 30%,
-                rgba(255, 255, 255, 0.3) 50%,
-                transparent 70%
-            );
-            transform: rotate(45deg);
-            animation: shine 3s infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
-            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
-        }
+        .stat-card,.activity-card{ backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
+        .performance-indicator{ display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:20px; font-size:.85rem; font-weight:600; }
+        .performance-indicator.excellent{ background:rgba(16,185,129,.1); color:var(--success-color); }
+        .performance-indicator.good{ background:rgba(34,197,94,.1); color:#22c55e; }
+        .performance-indicator.average{ background:rgba(245,158,11,.1); color:var(--warning-color); }
+        .performance-indicator.needs-improvement{ background:rgba(239,68,68,.1); color:var(--danger-color); }
     </style>
 {% endblock %}
 
 {% block body %}
-<div class="dashboard-container">
-    <div class="container py-4">
-        <!-- En-tête de bienvenue moderne -->
-        <div class="dashboard-header shine-effect">
-            <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="welcome-title">
-                        <i class="fas fa-rocket me-3"></i>
-                        Tableau de bord
-                    </h1>
-                    <p class="welcome-subtitle">
-                        Bonjour {{ app.user.fullName }} ! 🎉 Gérez vos événements et suivez votre activité en temps réel.
-                    </p>
+<div class="organizer-container">
+    <!-- Header organisateur harmonisé -->
+    <div class="organizer-hero fade-in-up">
+        <div class="hero-content">
+            <div class="hero-avatar">
+                <i class="fas fa-crown"></i>
+            </div>
+            <h1 class="hero-title">Tableau de bord Organisateur</h1>
+            <p class="hero-subtitle">Gérez vos événements et maximisez l'engagement des participants</p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ stats.total_events }}</span>
+                    <span class="hero-stat-label">Événements</span>
                 </div>
-                <div class="col-md-4 text-end">
-                    <div class="welcome-date">
-                        <i class="fas fa-calendar-day me-2"></i>
-                        {{ "now"|date("l d M Y") }}
-                    </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ stats.total_participants }}</span>
+                    <span class="hero-stat-label">Participants</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ stats.upcoming_events }}</span>
+                    <span class="hero-stat-label">À venir</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">{{ stats.participation_rate }}%</span>
+                    <span class="hero-stat-label">Participation</span>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Statistiques premium -->
-        <div class="row g-4 mb-5">
-            <div class="col-lg-3 col-md-6">
-                <div class="stats-card shine-effect">
-                    <div class="stats-icon bg-primary-gradient">
-                        <i class="fas fa-calendar-plus"></i>
-                    </div>
-                    <div class="stats-number" data-count="{{ events_count ?? 12 }}">0</div>
-                    <div class="stats-label">Événements créés</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="stats-card shine-effect">
-                    <div class="stats-icon bg-success-gradient">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stats-number" data-count="{{ participants_count ?? 87 }}">0</div>
-                    <div class="stats-label">Participants</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="stats-card shine-effect">
-                    <div class="stats-icon bg-warning-gradient">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stats-number" data-count="{{ upcoming_events ?? 5 }}">0</div>
-                    <div class="stats-label">Événements à venir</div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="stats-card shine-effect">
-                    <div class="stats-icon bg-info-gradient">
+    <!-- Section statistiques avancées harmonisées -->
+    <div class="stats-overview">
+        <h2 class="section-title fade-in-up">
+            <i class="fas fa-chart-line"></i>
+            Vue d'ensemble des performances
+        </h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card fade-in-up stagger-1">
+                <div class="stat-header">
+                    <div class="stat-icon">
                         <i class="fas fa-chart-line"></i>
                     </div>
-                    <div class="stats-number" data-count="{{ participation_rate ?? 92 }}">0</div>
-                    <div class="stats-label">Taux de participation %</div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +12%
+                    </div>
+                </div>
+                <div class="stat-content">
+                    <h3>Taux de participation</h3>
+                    <div class="stat-number">{{ stats.participation_rate }}%</div>
+                    <p>Augmentation par rapport au mois dernier</p>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: {{ stats.participation_rate }}%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-                 <!-- Actions rapides -->
-        <div class="quick-actions mb-5">
-            <h2 class="section-title">
-                <i class="fas fa-bolt me-2"></i>
-                Actions rapides
-            </h2>
-            <div class="row g-4">
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ path('event_create') }}" class="action-card">
-                        <div class="action-icon bg-primary-gradient">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <div class="action-title">Créer un événement</div>
-                        <div class="action-description">Organisez un nouvel événement en quelques clics</div>
-                    </a>
+            <div class="stat-card fade-in-up stagger-2">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-trend positive">
+                        <i class="fas fa-arrow-up"></i> +8%
+                    </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ path('event_list') }}" class="action-card">
-                        <div class="action-icon bg-success-gradient">
-                            <i class="fas fa-list"></i>
-                        </div>
-                        <div class="action-title">Mes événements</div>
-                        <div class="action-description">Consultez et gérez tous vos événements</div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ path('calendar_index') }}" class="action-card">
-                        <div class="action-icon bg-warning-gradient">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <div class="action-title">Calendrier</div>
-                        <div class="action-description">Vue calendrier de tous vos événements</div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ path('organisateur_statistics') }}" class="action-card">
-                        <div class="action-icon bg-info-gradient">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <div class="action-title">Statistiques</div>
-                        <div class="action-description">Analysez vos performances détaillées</div>
-                    </a>
+                <div class="stat-content">
+                    <h3>Nouveaux participants</h3>
+                    <div class="stat-number">{{ stats.total_participants }}</div>
+                    <p>Croissance de votre communauté</p>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 75%"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Activité récente et informations -->
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="recent-activity">
-                    <h4 class="mb-4">
-                        <i class="fas fa-clock text-primary me-2"></i>
-                        Activité récente
-                    </h4>
-                    <div class="activity-item">
-                        <div class="activity-icon bg-success-gradient">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">3 nouvelles inscriptions</div>
-                            <div class="activity-time">Il y a 2 heures</div>
-                        </div>
+            <div class="stat-card fade-in-up stagger-3">
+                <div class="stat-header">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-check"></i>
                     </div>
-                    <div class="activity-item">
-                        <div class="activity-icon bg-primary-gradient">
-                            <i class="fas fa-calendar-plus"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Événement "Formation Angular" créé</div>
-                            <div class="activity-time">Il y a 5 heures</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon bg-warning-gradient">
-                            <i class="fas fa-edit"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Notification de rappel envoyée</div>
-                            <div class="activity-time">Hier à 18:00</div>
-                        </div>
-                    </div>
-                    <div class="activity-item">
-                        <div class="activity-icon bg-info-gradient">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Rapport mensuel généré</div>
-                            <div class="activity-time">Il y a 2 jours</div>
-                        </div>
+                    <div class="stat-trend neutral">
+                        <i class="fas fa-minus"></i> Stable
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4">
-                <div class="recent-activity">
-                    <h4 class="mb-4">
-                        <i class="fas fa-info-circle text-info me-2"></i>
-                        Informations utiles
-                    </h4>
-                    <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
-                        <h6><i class="fas fa-lightbulb me-2"></i>Conseil du jour</h6>
-                        <p class="mb-0 small">Envoyez des rappels automatiques la veille de vos événements pour améliorer le taux de participation !</p>
-                    </div>
-                    <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);">
-                        <h6><i class="fas fa-rocket me-2"></i>Nouveauté</h6>
-                        <p class="mb-0 small">Le système de rappels automatiques est maintenant disponible. Configurez-le dans vos préférences !</p>
+                <div class="stat-content">
+                    <h3>Événements planifiés</h3>
+                    <div class="stat-number">{{ stats.upcoming_events }}</div>
+                    <p>Prochains événements dans votre agenda</p>
+                    <div class="stat-progress">
+                        <div class="progress-bar" style="width: 60%"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animation des compteurs
-            function animateCounter(element) {
-                const target = parseInt(element.dataset.count);
-                const duration = 2000;
-                const step = target / (duration / 16);
-                let current = 0;
+
+
+    <!-- Section activité récente et widgets -->
+    <div class="activity-section">
+        <h2 class="section-title fade-in-up">
+            <i class="fas fa-activity"></i>
+            Activité récente
+        </h2>
+        
+        <div class="activity-grid">
+            <!-- Activité récente -->
+            <div class="activity-card fade-in-up stagger-1" style="grid-column: 1 / -1;">
+                <h3 style="margin-bottom: 25px; color: var(--text-primary); font-size: 1.3rem;">
+                    <i class="fas fa-clock" style="color: var(--organizer-accent);"></i>
+                    Dernières activités
+                </h3>
                 
-                const timer = setInterval(() => {
-                    current += step;
-                    if (current >= target) {
-                        current = target;
-                        clearInterval(timer);
-                    }
-                    element.textContent = Math.floor(current);
-                }, 16);
+                <div class="activity-list">
+                    {% for activity in recent_activity %}
+                    <div class="activity-item" data-category="{{ activity.category }}">
+                        <div class="activity-icon" style="background: {{ activity.color }};">
+                            <i class="fas fa-{{ activity.icon }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h5>{{ activity.title }}</h5>
+                            <p>{{ activity.description }}</p>
+                        </div>
+                        <div class="activity-date">
+                            {% if activity.date %}
+                                {% set now = "now"|date('U') %}
+                                {% set eventTime = activity.date|date('U') %}
+                                {% set diff = now - eventTime %}
+                                {% if diff < 3600 %}
+                                    Il y a {{ (diff / 60)|round }} min
+                                {% elseif diff < 86400 %}
+                                    Il y a {{ (diff / 3600)|round }}h
+                                {% else %}
+                                    Il y a {{ (diff / 86400)|round }} jours
+                                {% endif %}
+                            {% else %}
+                                Récemment
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+
+
+</div>
+
+<script>
+// Animation d'entrée pour les éléments
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Observer tous les éléments avec animation
+document.querySelectorAll('.fade-in-up').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(30px)';
+    el.style.transition = 'all 0.8s ease-out';
+    observer.observe(el);
+});
+
+// Animation des barres de progression
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBars = document.querySelectorAll('.progress-bar');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+
+
+});
+
+
+
+// Hover effects pour les cartes
+document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-10px) scale(1.02)';
+    });
+    
+    card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+    });
+});
+
+// Animation des statistiques du héro
+function animateHeroStats() {
+    const statNumbers = document.querySelectorAll('.hero-stat-number');
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        const duration = 2000;
+        const increment = finalValue / (duration / 16);
+        let currentValue = 0;
+        
+        const timer = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                currentValue = finalValue;
+                clearInterval(timer);
             }
-            
-            // Observer pour déclencher les animations
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const counters = entry.target.querySelectorAll('.stats-number[data-count]');
-                        counters.forEach(counter => {
-                            if (!counter.classList.contains('animated')) {
-                                counter.classList.add('animated');
-                                animateCounter(counter);
-                            }
-                        });
-                    }
-                });
-            }, { threshold: 0.5 });
-            
-            // Observer les cartes statistiques
-            document.querySelectorAll('.stats-card').forEach(card => {
-                observer.observe(card);
-            });
-            
-            // Effet de particules sur les cartes
-            document.querySelectorAll('.stats-card').forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.boxShadow = '0 30px 80px rgba(102, 126, 234, 0.4)';
-                });
-                
-                card.addEventListener('mouseleave', function() {
-                    this.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.1)';
-                });
-            });
-            
-            // Effet de typing pour le titre
-            const title = document.querySelector('.welcome-title');
-            if (title) {
-                title.style.opacity = '0';
-                setTimeout(() => {
-                    title.style.opacity = '1';
-                    title.style.animation = 'slideInFromLeft 1s ease-out';
-                }, 300);
-            }
-        });
-    </script>
+            stat.textContent = Math.floor(currentValue);
+        }, 16);
+    });
+}
+
+// Lancer l'animation des stats au chargement
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(animateHeroStats, 500);
+});
+
+// Système de notifications en temps réel (simulé)
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification-toast ${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animation d'entrée
+    setTimeout(() => {
+        notification.classList.add('show');
+    }, 100);
+    
+    // Suppression automatique
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 5000);
+}
+
+// Exemple d'utilisation des notifications
+setTimeout(() => {
+    showNotification('Nouveau participant inscrit à votre événement !', 'success');
+}, 3000);
+
+setTimeout(() => {
+    showNotification('Rappel : Votre événement commence dans 1 heure', 'warning');
+}, 8000);
+</script>
 {% endblock %}

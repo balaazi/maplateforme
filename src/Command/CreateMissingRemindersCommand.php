@@ -70,7 +70,9 @@ class CreateMissingRemindersCommand extends Command
         }
 
         $qb->andWhere('e.status IS NULL OR e.status != :cancelled')
+           ->andWhere('e.archive = :archived')
            ->setParameter('cancelled', 'annulé')
+           ->setParameter('archived', false)
            ->orderBy('e.dateHeure', 'ASC');
 
         $events = $qb->getQuery()->getResult();

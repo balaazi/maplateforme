@@ -6,35 +6,243 @@
 
 {% block body %}
     <div class="container mt-5">
-        <div class="card">
-            <div class="card-body text-center">
-                {% if response == 'accepted' %}
-                    <h2 class="text-success">
-                        <i class="fas fa-check-circle"></i>
-                        Invitation acceptée
-                    </h2>
-                    <p>Vous avez accepté l'invitation à l'événement : <strong>{{ invitation.event.title }}</strong></p>
-                {% else %}
-                    <h2 class="text-danger">
-                        <i class="fas fa-times-circle"></i>
-                        Invitation refusée
-                    </h2>
-                    <p>Vous avez refusé l'invitation à l'événement : <strong>{{ invitation.event.title }}</strong></p>
-                {% endif %}
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card shadow-lg border-0">
+                    <div class="card-body text-center p-5">
+                        {% if response == 'accepted' %}
+                            <div class="mb-4">
+                                <div class="success-icon mb-3">
+                                    <i class="fas fa-check-circle fa-5x text-success"></i>
+                                </div>
+                                <h1 class="text-success mb-3">
+                                    <strong>Invitation acceptée !</strong>
+                                </h1>
+                                <div class="alert alert-success border-0" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);">
+                                    <h4 class="alert-heading mb-3">
+                                        <i class="fas fa-calendar-check"></i> Parfait !
+                                    </h4>
+                                    <p class="mb-0">
+                                        Vous avez confirmé votre participation à l'événement :<br>
+                                        <strong style="font-size: 1.2em;">{{ invitation.event.title }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="mb-4">
+                                <div class="decline-icon mb-3">
+                                    <i class="fas fa-times-circle fa-5x text-danger"></i>
+                                </div>
+                                <h1 class="text-danger mb-3">
+                                    <strong>Invitation déclinée</strong>
+                                </h1>
+                                <div class="alert alert-warning border-0" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                                    <h4 class="alert-heading mb-3">
+                                        <i class="fas fa-calendar-times"></i> Bien noté
+                                    </h4>
+                                    <p class="mb-0">
+                                        Vous avez décliné l'invitation à l'événement :<br>
+                                        <strong style="font-size: 1.2em;">{{ invitation.event.title }}</strong>
+                                    </p>
+                                </div>
+                            </div>
+                        {% endif %}
 
-                {% if isNewUser is defined and isNewUser %}
-                    <div class="alert alert-info mt-4">
-                        <h4><i class="fas fa-user-plus"></i> Bienvenue !</h4>
-                        <p>Un compte a été créé pour vous. Veuillez vérifier votre email pour obtenir vos identifiants de connexion.</p>
-            </div>
-                {% endif %}
+                        {% if isNewUser is defined and isNewUser %}
+                            <div class="alert alert-info border-0 mb-4" style="background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);">
+                                <h4 class="alert-heading">
+                                    <i class="fas fa-user-plus"></i> Bienvenue sur EventHub !
+                                </h4>
+                                <p class="mb-3">
+                                    Un compte a été automatiquement créé pour vous.<br>
+                                    Vous allez recevoir un email avec vos identifiants de connexion.
+                                </p>
+                                <hr>
+                                <p class="mb-0">
+                                    <i class="fas fa-envelope"></i> 
+                                    Vérifiez votre boîte mail : <strong>{{ invitation.email }}</strong>
+                                </p>
+                            </div>
+                        {% endif %}
 
-                <div class="mt-4">
-                    <a href="{{ path('event_list') }}" class="btn btn-primary">
-                        <i class="fas fa-calendar"></i> Voir mes événements
-                    </a>
+                        <!-- Informations sur l'événement -->
+                        <div class="card mb-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-info-circle"></i> Détails de l'événement
+                                </h5>
+                                <div class="row text-left">
+                                    <div class="col-md-6">
+                                        <p><strong>📅 Date :</strong> {{ invitation.event.dateHeure|date('d/m/Y') }}</p>
+                                        <p><strong>🕐 Heure :</strong> {{ invitation.event.dateHeure|date('H:i') }}</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if invitation.event.lieu %}
+                                            <p><strong>📍 Lieu :</strong> {{ invitation.event.lieu }}</p>
+                                        {% endif %}
+                                        {% if invitation.event.salle %}
+                                            <p><strong>🏢 Salle :</strong> {{ invitation.event.salle.nom }}</p>
+                                        {% endif %}
+                                        {% if invitation.event.organizer %}
+                                            <p><strong>👤 Organisateur :</strong> {{ invitation.event.organizer.prenom }} {{ invitation.event.organizer.nom }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statut de présence -->
+                        {% if response == 'accepted' %}
+                            <div class="alert alert-success border-0 mb-4" style="background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);">
+                                <h5 class="alert-heading mb-3">
+                                    <i class="fas fa-user-check"></i> Votre statut de présence
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="text-center p-3" style="background: rgba(255,255,255,0.8); border-radius: 10px;">
+                                            <h4 class="text-success mb-2">
+                                                <i class="fas fa-check-circle"></i>
+                                                <strong>INVITATION ACCEPTÉE</strong>
+                                            </h4>
+                                            <p class="mb-0 text-muted">
+                                                Votre participation est confirmée. Présence à valider séparément.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-left">
+                                            <p class="mb-2">
+                                                <i class="fas fa-database text-success"></i>
+                                                <strong>Statut :</strong> {{ participation.invitationStatus|title }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <i class="fas fa-calendar-check text-success"></i>
+                                                <strong>Présence :</strong> À valider le jour J
+                                            </p>
+                                            <p class="mb-0">
+                                                <i class="fas fa-clock text-info"></i>
+                                                <strong>Enregistré le :</strong> {{ participation.createdAt|date('d/m/Y à H:i') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning border-0 mb-4" style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);">
+                                <h5 class="alert-heading mb-3">
+                                    <i class="fas fa-user-times"></i> Votre statut de présence
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="text-center p-3" style="background: rgba(255,255,255,0.8); border-radius: 10px;">
+                                            <h4 class="text-danger mb-2">
+                                                <i class="fas fa-times-circle"></i>
+                                                <strong>JE SERAI ABSENT</strong>
+                                            </h4>
+                                            <p class="mb-0 text-muted">
+                                                Votre absence est enregistrée
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-left">
+                                            <p class="mb-2">
+                                                <i class="fas fa-database text-warning"></i>
+                                                <strong>Statut :</strong> {{ participation.invitationStatus|title }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <i class="fas fa-calendar-times text-danger"></i>
+                                                <strong>Présence :</strong> Déclinée
+                                            </p>
+                                            <p class="mb-0">
+                                                <i class="fas fa-clock text-info"></i>
+                                                <strong>Enregistré le :</strong> {{ participation.createdAt|date('d/m/Y à H:i') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Message de confirmation -->
+                        <div class="alert alert-light border-0 mb-4">
+                            <h5>
+                                <i class="fas fa-bell"></i> Que se passe-t-il maintenant ?
+                            </h5>
+                            {% if response == 'accepted' %}
+                                <p class="mb-0">
+                                    ✅ Votre participation est enregistrée automatiquement<br>
+                                    📧 Vous recevrez des rappels avant l'événement<br>
+                                    📋 L'organisateur peut voir que vous serez présent<br>
+                                    🔗 Connectez-vous pour accéder à plus de fonctionnalités
+                                </p>
+                            {% else %}
+                                <p class="mb-0">
+                                    ❌ Votre déclin est enregistré automatiquement<br>
+                                    📧 L'organisateur en sera informé<br>
+                                    📋 Vous n'apparaîtrez pas dans la liste des présents<br>
+                                    🔄 Vous pouvez toujours changer d'avis en contactant l'organisateur
+                                </p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Boutons d'action -->
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            {% if isNewUser is defined and isNewUser %}
+                                <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg shadow">
+                                    <i class="fas fa-sign-in-alt"></i> Se connecter avec mes identifiants
+                                </a>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="btn btn-primary btn-lg shadow">
+                                    <i class="fas fa-sign-in-alt"></i> Me connecter
+                                </a>
+                            {% endif %}
+                            <a href="{{ path('app_home') }}" class="btn btn-outline-secondary btn-lg shadow">
+                                <i class="fas fa-home"></i> Accueil
+                            </a>
+                        </div>
+
+                        <!-- Message de fermeture -->
+                        <div class="mt-5 text-muted">
+                            <p>
+                                <i class="fas fa-heart text-danger"></i> 
+                                Merci d'utiliser EventHub
+                            </p>
+                            <small>
+                                Cette action a été effectuée automatiquement. 
+                                Vous pouvez fermer cette page en toute sécurité.
+                            </small>
+                        </div>
+                    </div>
+                </div>
             </div>
-            </div>
-            </div>
+        </div>
     </div>
+
+    <style>
+        .success-icon, .decline-icon {
+            animation: bounce 1s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-10px);
+            }
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+        
+        .card {
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .gap-3 {
+            gap: 1rem !important;
+        }
+    </style>
 {% endblock %}
