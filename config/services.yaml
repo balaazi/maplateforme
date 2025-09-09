@@ -73,3 +73,13 @@ services:
     App\EventListener\AccessDeniedListener:
         tags:
             - { name: kernel.event_subscriber }
+
+    # Event listener pour l'expiration automatique des invitations
+    App\EventListener\InvitationExpirationListener:
+        tags:
+            - { name: kernel.event_subscriber }
+
+    # Event listener simple pour l'expiration automatique
+    App\EventListener\AutoExpirationListener:
+        tags:
+            - { name: kernel.event_subscriber }

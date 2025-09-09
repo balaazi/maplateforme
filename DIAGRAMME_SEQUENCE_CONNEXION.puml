@@ -1,0 +1,117 @@
+@startuml Diagramme_Sequence_Connexion_Utilisateur
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+skinparam participantPadding 20
+skinparam boxPadding 10
+
+title Diagramme de Séquence - Connexion Utilisateur EventHub
+
+actor "👤 Utilisateur" as U #lightblue
+participant "🌐 Navigateur" as B #lightgreen
+participant "🔒 SecurityController" as SC #orange
+participant "⚙️ Symfony Framework" as S #purple
+participant "🔐 AppAuthenticator" as A #red
+participant "📊 UserRepository" as R #blue
+database "🗄️ Base de Données" as DB #gray
+
+== PHASE 1: Affichage du Formulaire ==
+
+U -> B : Accès à /login
+activate B
+B -> SC : GET /login
+activate SC
+
+alt Utilisateur déjà connecté
+    SC -> SC : Vérification getUser()
+    SC -> B : RedirectResponse(app_home)
+    deactivate SC
+    B --> U : Redirection vers accueil
+    deactivate B
+else Utilisateur non connecté
+    SC -> SC : Récupération erreurs précédentes
+    SC -> B : render(login.html.twig)
+    deactivate SC
+    B --> U : Affichage formulaire de connexion
+    deactivate B
+end
+
+== PHASE 2: Soumission des Credentials ==
+
+U -> B : Saisit email + mot de passe
+activate B
+B -> S : POST /login avec credentials
+activate S
+
+S -> A : authenticate(Request)
+activate A
+
+note right of A : Validation des données
+A -> A : Vérification email/password non vides
+A -> A : Validation CSRF token
+
+A -> R : findOneBy(['email' => email])
+activate R
+R -> DB : SELECT * FROM users WHERE email = ?
+activate DB
+DB --> R : User entity ou null
+deactivate DB
+R --> A : User object
+deactivate R
+
+note right of A : Création du Passport
+A -> A : new Passport(UserBadge, PasswordCredentials, CsrfTokenBadge)
+A --> S : Passport object
+deactivate A
+
+note right of S : Vérification automatique du mot de passe
+S -> S : Vérification hash password
+S -> S : Validation CSRF token
+
+alt Authentification réussie
+    S -> A : onAuthenticationSuccess()
+    activate A
+    
+    A -> R : findOneByEmail() pour rôles réels
+    activate R
+    R -> DB : SELECT * FROM users WHERE email = ?
+    activate DB
+    DB --> R : User avec rôles complets
+    deactivate DB
+    R --> A : User object
+    deactivate R
+    
+    note right of A : Logique de redirection par rôle
+    A -> A : Analyse des rôles utilisateur
+    
+    alt ROLE_ADMIN + ROLE_ORGANISATEUR
+        A -> S : RedirectResponse(common_dashboard)
+    else ROLE_ADMIN uniquement
+        A -> S : RedirectResponse(admin_dashboard)
+    else ROLE_ORGANISATEUR uniquement
+        A -> S : RedirectResponse(organisateur_dashboard)
+    else ROLE_PARTICIPANT uniquement
+        A -> S : RedirectResponse(participant_dashboard)
+    else Rôle par défaut
+        A -> S : RedirectResponse(calendar_index)
+    end
+    
+    deactivate A
+    
+    S --> B : Response avec redirection
+    deactivate S
+    
+    B --> U : Redirection vers dashboard approprié
+    deactivate B
+    
+else Authentification échouée
+    S -> S : BadCredentialsException
+    S --> B : Response avec erreur
+    deactivate S
+    
+    B --> U : Affichage message d'erreur
+    deactivate B
+end
+
+@enduml

@@ -306,7 +306,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderOrganizerUpdateTemplate(Event $event, $organizer): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -341,7 +341,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderOrganizerCancelTemplate(Event $event, $organizer): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -376,7 +376,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderUpdateTemplate(Event $event, $user): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -407,7 +407,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderUpdateTemplateForInvitation(Event $event, string $participantName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -438,7 +438,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderCancelTemplate(Event $event, $user): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -468,7 +468,7 @@ public function sendEventCancelNotification(Event $event): void
      */
     private function renderCancelTemplateForInvitation(Event $event, string $participantName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         
         return '<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">

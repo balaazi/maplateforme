@@ -88,7 +88,7 @@ class AdminNotificationService
 
     private function renderEventCreatedTemplate(Event $event, string $organizerName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         $title = htmlspecialchars($event->getTitle());
         $description = htmlspecialchars($event->getDescription() ?? 'Aucune description');
@@ -128,7 +128,7 @@ class AdminNotificationService
 
     private function renderEventUpdatedTemplate(Event $event, string $organizerName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         $title = htmlspecialchars($event->getTitle());
         $description = htmlspecialchars($event->getDescription() ?? 'Aucune description');
@@ -168,7 +168,7 @@ class AdminNotificationService
 
     private function renderEventCancelledTemplate(Event $event, string $organizerName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         $title = htmlspecialchars($event->getTitle());
         $description = htmlspecialchars($event->getDescription() ?? 'Aucune description');
@@ -209,7 +209,7 @@ class AdminNotificationService
 
     private function renderEventDeletedTemplate(Event $event, string $organizerName): string
     {
-        $salleName = $event->getSalle() ? $event->getSalle()->getNom() : 'Non définie';
+        $salleName = $event->getLieu() ?? 'Non définie';
         $dateTime = $event->getDateHeure()->format('d/m/Y à H:i');
         $title = htmlspecialchars($event->getTitle());
         $description = htmlspecialchars($event->getDescription() ?? 'Aucune description');

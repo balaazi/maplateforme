@@ -17,6 +17,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Service\AutoExpirationService;
 
 #[Route('/common-dashboard')]
 #[IsGranted('ROLE_ORGANISATEUR')]
@@ -26,12 +27,19 @@ class CommonDashboardController extends AbstractController
     public function index(
         UserRepository $userRepository, 
         EventRepository $eventRepository,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        AutoExpirationService $autoExpirationService
     ): Response
     {
         $user = $this->getUser();
         $isAdmin = in_array('ROLE_ADMIN', $user->getRoles());
         $isOrganisateur = in_array('ROLE_ORGANISATEUR', $user->getRoles());
+        
+        // Vérifier et expirer automatiquement les invitations expirées
+        $expiredCount = $autoExpirationService->checkAndExecuteExpiration();
+        if ($expiredCount > 0) {
+            $this->addFlash('info', "{$expiredCount} invitation(s) automatiquement marquée(s) comme expirée(s).");
+        }
         
         // Statistiques globales pour tous les utilisateurs
         $now = new \DateTime();

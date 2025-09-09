@@ -2,6 +2,7 @@
 namespace App\Controller;
 use App\Entity\Event;
 use App\Entity\Participation;
+use App\Entity\CalendarEvent;
 use App\Repository\ParticipationRepository;
 use App\Repository\InvitationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -10,6 +11,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Enum\InvitationStatus;
+use App\Service\GoogleCalendarService;
 
 #[IsGranted('ROLE_PARTICIPANT')]
 class ParticipationController extends AbstractController
@@ -36,7 +39,7 @@ class ParticipationController extends AbstractController
                 $participation = new Participation();
                 $participation->setUser($user);
                 $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
+                $participation->setInvitationStatus(InvitationStatus::ACCEPTED->value);
                 $participation->setIsPresent(true); // L'organisateur est présent par défaut
                 $participation->setCreatedAt(new \DateTime());
                 
@@ -76,7 +79,7 @@ class ParticipationController extends AbstractController
                 $participation = new Participation();
                 $participation->setUser($user);
                 $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
+                $participation->setInvitationStatus(InvitationStatus::ACCEPTED->value);
                 $participation->setIsPresent(false);
                 $participation->setCreatedAt(new \DateTime());
                 
@@ -107,7 +110,8 @@ class ParticipationController extends AbstractController
         Event $event,
         EntityManagerInterface $entityManager,
         ParticipationRepository $participationRepository,
-        InvitationRepository $invitationRepository
+        InvitationRepository $invitationRepository,
+        GoogleCalendarService $googleCalendarService
     ): Response {
         $user = $this->getUser();
         
@@ -127,7 +131,7 @@ class ParticipationController extends AbstractController
                 $participation = new Participation();
                 $participation->setUser($user);
                 $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
+                $participation->setInvitationStatus(InvitationStatus::ACCEPTED->value);
                 $participation->setCreatedAt(new \DateTime());
                 $entityManager->persist($participation);
             }
@@ -139,12 +143,39 @@ class ParticipationController extends AbstractController
             $participation->setIsPresent($isPresent);
             
             $entityManager->flush();
+            
+            // Si l'utilisateur a confirmé sa présence, ajouter l'événement à son agenda Google
+            $agendaAjoute = false;
+            error_log("DEBUG: isPresent = " . ($isPresent ? 'true' : 'false'));
+            error_log("DEBUG: isAuthenticated = " . ($googleCalendarService->isAuthenticated() ? 'true' : 'false'));
+            if ($isPresent && $googleCalendarService->isAuthenticated()) {
+                try {
+                    // Créer un événement de calendrier
+                    $calendarEvent = new CalendarEvent();
+                    $calendarEvent->setTitle($event->getTitle());
+                    $calendarEvent->setDescription($event->getDescription());
+                    $calendarEvent->setStart($event->getDateHeure());
+                    
+                    // Calculer l'heure de fin en fonction de la durée
+                    $end = (clone $event->getDateHeure())->modify('+' . $event->getDuree() . ' minutes');
+                    $calendarEvent->setEnd($end);
+                    
+                    // Exporter vers Google Calendar
+                    $googleCalendarService->exportToGoogleCalendar($calendarEvent);
+                    $agendaAjoute = true;
+                } catch (\Exception $e) {
+                    // Log l'erreur pour le débogage
+                    error_log("Erreur ajout agenda Google: " . $e->getMessage());
+                    error_log("Trace: " . $e->getTraceAsString());
+                }
+            }
 
             // Retourner une réponse JSON
             return $this->json([
                 'success' => true,
-                'message' => $isPresent ? 'Présence confirmée' : 'Absence confirmée',
-                'isPresent' => $isPresent
+                'message' => $isPresent ? 'Présence confirmée' . ($agendaAjoute ? ' et événement ajouté à votre agenda' : '') : 'Absence confirmée',
+                'isPresent' => $isPresent,
+                'agendaAjoute' => $agendaAjoute
             ]);
         }
         
@@ -175,7 +206,7 @@ class ParticipationController extends AbstractController
                 $participation = new Participation();
                 $participation->setUser($user);
                 $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
+                $participation->setInvitationStatus(InvitationStatus::ACCEPTED->value);
                 $participation->setIsPresent(false);
                 $participation->setCreatedAt(new \DateTime());
                 
@@ -195,12 +226,39 @@ class ParticipationController extends AbstractController
         $participation->setIsPresent($isPresent);
         
         $entityManager->flush();
+        
+        // Si l'utilisateur a confirmé sa présence, ajouter l'événement à son agenda Google
+        $agendaAjoute = false;
+        error_log("DEBUG: isPresent = " . ($isPresent ? 'true' : 'false'));
+        error_log("DEBUG: isAuthenticated = " . ($googleCalendarService->isAuthenticated() ? 'true' : 'false'));
+        if ($isPresent && $googleCalendarService->isAuthenticated()) {
+            try {
+                // Créer un événement de calendrier
+                $calendarEvent = new CalendarEvent();
+                $calendarEvent->setTitle($event->getTitle());
+                $calendarEvent->setDescription($event->getDescription());
+                $calendarEvent->setStart($event->getDateHeure());
+                
+                // Calculer l'heure de fin en fonction de la durée
+                $end = (clone $event->getDateHeure())->modify('+' . $event->getDuree() . ' minutes');
+                $calendarEvent->setEnd($end);
+                
+                // Exporter vers Google Calendar
+                $googleCalendarService->exportToGoogleCalendar($calendarEvent);
+                $agendaAjoute = true;
+            } catch (\Exception $e) {
+                // Log l'erreur pour le débogage
+                error_log("Erreur ajout agenda Google: " . $e->getMessage());
+                error_log("Trace: " . $e->getTraceAsString());
+            }
+        }
 
         // Retourner une réponse JSON
         return $this->json([
             'success' => true,
-            'message' => $isPresent ? 'Présence confirmée' : 'Absence confirmée',
-            'isPresent' => $isPresent
+            'message' => $isPresent ? 'Présence confirmée' . ($agendaAjoute ? ' et événement ajouté à votre agenda' : '') : 'Absence confirmée',
+            'isPresent' => $isPresent,
+            'agendaAjoute' => $agendaAjoute
         ]);
     }
 
@@ -252,14 +310,63 @@ class ParticipationController extends AbstractController
             ], 403);
         }
 
-        // Mettre à jour la présence
+        // Pas de validation de changement de statut pour permettre de re-marquer avec le même statut
+        // Cela permet de corriger l'interface si elle est désynchronisée
+
+        // Mettre à jour la présence et marquer comme validée
         $participation->setIsPresent($isPresent);
+        $participation->setPresenceValidated(true);
         $entityManager->flush();
 
         return $this->json([
             'success' => true,
             'message' => $isPresent ? 'Participant marqué présent' : 'Participant marqué absent',
             'isPresent' => $isPresent
+        ]);
+    }
+    #[Route('/participation/reset-presence', name: 'reset_participation_presence', methods: ['POST'])]
+    #[IsGranted('ROLE_ORGANISATEUR')]
+    public function resetParticipationPresence(
+        Request $request,
+        ParticipationRepository $participationRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $participationId = $request->request->get('participation_id');
+
+        if (!$participationId) {
+            return $this->json([
+                'success' => false,
+                'message' => 'ID de participation manquant'
+            ], 400);
+        }
+
+        $participation = $participationRepository->find($participationId);
+        
+        if (!$participation) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Participation non trouvée'
+            ], 404);
+        }
+
+        $event = $participation->getEvent();
+        $user = $this->getUser();
+
+        // Vérifier que l'utilisateur est l'organisateur de l'événement
+        if ($event->getOrganizer() !== $user && !$this->isGranted('ROLE_ADMIN')) {
+            return $this->json([
+                'success' => false,
+                'message' => 'Seul l\'organisateur peut modifier la présence'
+            ], 403);
+        }
+
+        // Réinitialiser la présence
+        $participation->setPresenceValidated(false);
+        $entityManager->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Statut de présence réinitialisé'
         ]);
     }
 } 

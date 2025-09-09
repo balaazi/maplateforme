@@ -35,7 +35,7 @@ class EmailService
             ->html("
 <p>Bonjour {$fullName},</p>
 <p>Vous avez un événement demain : <strong>{$event->getTitle()}</strong></p>
-<p>Lieu : " . ($event->getSalle() ? $event->getSalle()->getNom() : 'Non défini') . "</p>
+<p>Lieu : " . ($event->getLieu() ?? 'Non défini') . "</p>
 <p>Date & Heure : {$event->getDateHeure()->format('d/m/Y H:i')}</p>
 ");
 

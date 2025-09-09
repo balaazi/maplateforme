@@ -236,7 +236,7 @@ class GoogleCalendarService
                 $event->setDescription($calendarEvent->getDescription());
                 $event->setDateHeure($calendarEvent->getStart());
                 $event->setDuree($calendarEvent->getStart()->diff($calendarEvent->getEnd())->i);
-                $event->setLieu($googleEvent->getLocation() ?? 'Lieu non défini');
+
                             $event->setCategory('Synchronisé'); // Catégorie par défaut pour les événements importés de Google
                             $event->setOrganizer($managedUser);
                 $event->setStatus('programmé');

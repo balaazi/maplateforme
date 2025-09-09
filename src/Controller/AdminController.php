@@ -467,45 +467,24 @@ class AdminController extends AbstractController
                     default => 'Utilisateur'
                 };
 
-                                // Premier email : Identifiants pour l'utilisateur invité
+                // Envoie UN SEUL email avec les identifiants de connexion
                 $userMessage = (new Email())
                     ->from('nadiabalaazi@gmail.com')
                     ->to($email)
-                    ->subject('Vos identifiants de connexion - EventHub')
+                    ->subject('Bienvenue sur EventHub - Vos identifiants de connexion')
                     ->html($this->renderView('emails/invitation.html.twig', [
                         'email' => $email,
                         'temporaryPassword' => $temporaryPassword,
                         'roleName' => $roleName
                     ]));
 
-                // Deuxième email : Email de confirmation (envoyé au même utilisateur)
-                $confirmationMessage = (new Email())
-                    ->from('nadiabalaazi@gmail.com')
-                    ->to($email) // Même email que l'utilisateur invité
-                    ->subject('🎉 Invitation EventHub')
-                    ->html($this->renderView('emails/admin_notification.html.twig', [
-                        'email' => $email,
-                        'roleName' => $roleName,
-                        'role' => $role
-                    ]));
-
-                                // Envoie les deux emails
+                // Envoie l'email avec les identifiants
                 try {
                     $mailer->send($userMessage);
-                    $this->addFlash('info', "📧 Email avec identifiants envoyé à $email");
+                    $this->addFlash('success', "✅ Invitation envoyée avec succès à $email avec le rôle $roleName ! Compte créé automatiquement.");
                 } catch (\Exception $e) {
-                    $this->addFlash('error', "❌ Erreur envoi email utilisateur : " . $e->getMessage());
+                    $this->addFlash('error', "❌ Erreur envoi email : " . $e->getMessage());
                 }
-                
-                try {
-                    $mailer->send($confirmationMessage);
-                    $this->addFlash('info', "📧 Email de confirmation envoyé à $email");
-                } catch (\Exception $e) {
-                    $this->addFlash('error', "❌ Erreur envoi email confirmation : " . $e->getMessage());
-                }
-
-            // Ajoute un message flash de succès
-                $this->addFlash('success', "✅ Invitation envoyée avec succès à $email avec le rôle $roleName ! Compte créé automatiquement.");
                 
                 // Redirection pour éviter la double soumission
             return $this->redirectToRoute('admin_invite');

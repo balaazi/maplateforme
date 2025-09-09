@@ -1117,7 +1117,8 @@
                     conference: 'linear-gradient(135deg, #ffc107, #e0a800)',
                     atelier: 'linear-gradient(135deg, #dc3545, #c82333)',
                     seminaire: 'linear-gradient(135deg, #6f42c1, #563d7c)',
-                    accepted: 'linear-gradient(135deg, #28a745, #34ce57)' // Vert pour les événements acceptés
+                    accepted: 'linear-gradient(135deg, #28a745, #34ce57)', // Vert pour les événements acceptés
+                    adminview: 'linear-gradient(135deg, #9c27b0, #673ab7)' // Violet pour les événements vus par l'admin
                 };
                 return colors[type] || colors.formation;
             }
@@ -1142,11 +1143,19 @@
                             // Enrichir les événements avec des types et couleurs
                             allEvents = events.map(event => {
                                 const isAccepted = event.extendedProps?.isAccepted || false;
+                                const isAdminView = event.extendedProps?.isAdminView || false;
                                 const originalType = event.extendedProps?.type || 'formation';
+                                
+                                let colorType = originalType;
+                                if (isAccepted) {
+                                    colorType = 'accepted';
+                                } else if (isAdminView) {
+                                    colorType = 'adminview';
+                                }
                                 
                                 return {
                                     ...event,
-                                    backgroundColor: isAccepted ? getEventColor('accepted') : getEventColor(originalType),
+                                    backgroundColor: getEventColor(colorType),
                                     borderColor: 'transparent',
                                     textColor: 'white'
                                 };

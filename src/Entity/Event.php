@@ -23,8 +23,7 @@ class Event
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\Column(type: 'string', length: 255, nullable: true)]
-    private ?string $lieu = null;
+
 
     #[ORM\ManyToOne(targetEntity: Salle::class)]
     #[ORM\JoinColumn(nullable: true)]
@@ -53,7 +52,7 @@ class Event
     #[ORM\OneToMany(mappedBy: 'event', targetEntity: Invitation::class, cascade: ['persist', 'remove'])]
     private Collection $invitations;
 
-    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Document::class)]
+    #[ORM\OneToMany(mappedBy: 'event', targetEntity: Document::class, cascade: ['persist', 'remove'])]
     private Collection $documents;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
@@ -89,7 +88,7 @@ class Event
     private bool $archive = false;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(name: 'created_by_id', referencedColumnName: 'id', nullable: false)]
     private ?User $createdBy = null;
 
     public function getCreatedBy(): ?User
@@ -141,11 +140,39 @@ class Event
     public function setTitle(string $title): self { $this->title = $title; return $this; }
     public function getDescription(): ?string { return $this->description; }
     public function setDescription(?string $description): self { $this->description = $description; return $this; }
-    public function getLieu(): ?string { return $this->lieu; }
-    public function setLieu(?string $lieu): self { $this->lieu = $lieu; return $this; }
+
     
     public function getSalle(): ?Salle { return $this->salle; }
     public function setSalle(?Salle $salle): self { $this->salle = $salle; return $this; }
+    
+    /**
+     * Get the location name for backward compatibility
+     * Returns the salle name if available, otherwise null
+     */
+    public function getLieu(): ?string
+    {
+        return $this->salle ? $this->salle->getNom() : null;
+    }
+    
+    /**
+     * Set the location by name for backward compatibility
+     * Note: This method creates a new Salle entity if none exists
+     * It's recommended to use setSalle() directly for better control
+     */
+    public function setLieu(?string $lieu): self
+    {
+        if ($lieu === null) {
+            $this->salle = null;
+        } else {
+            // If no salle exists, create a new one
+            if (!$this->salle) {
+                $this->salle = new Salle();
+            }
+            $this->salle->setNom($lieu);
+        }
+        return $this;
+    }
+    
     public function getDateHeure(): ?\DateTime 
     { 
         if ($this->dateHeure === null) {

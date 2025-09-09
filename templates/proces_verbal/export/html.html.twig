@@ -259,8 +259,6 @@
                             <strong>Responsable</strong>
                             {% if action.responsable %}
                                 {{ action.responsable.prenom }} {{ action.responsable.nom }}
-                            {% elseif action.responsableNom %}
-                                {{ action.responsableNom }}
                             {% else %}
                                 Non assigné
                             {% endif %}

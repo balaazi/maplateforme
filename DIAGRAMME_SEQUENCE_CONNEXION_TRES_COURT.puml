@@ -1,0 +1,29 @@
+@startuml Connexion_Tres_Court
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Connexion - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "🔐 Auth" as A
+participant "📊 Repo" as R
+database "🗄️ DB" as DB
+
+U -> B : /login
+B -> A : POST credentials
+A -> R : findUser(email)
+R -> DB : SELECT
+DB --> R : User
+R --> A : User
+
+alt Succès
+    A -> A : getRoles()
+    A -> B : Redirect(dashboard)
+    B --> U : Dashboard
+else Échec
+    B --> U : Erreur
+end
+
+@enduml
+

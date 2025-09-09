@@ -19,8 +19,10 @@ use Symfony\Component\Mime\Email;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Participation;
 use App\Entity\User;
+use App\Enum\InvitationStatus;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Service\GlobalNotificationService;
+use App\Service\InvitationExpirationService;
 
 #[Route('/organizer')]
 #[IsGranted('ROLE_ORGANISATEUR')]
@@ -60,8 +62,35 @@ class InvitationController extends AbstractController
             $targetingData = $request->request->get('targeting_data');
 
             if ($targetingType) {
-                // Log pour débogage
-                error_log("InvitationController: Traitement invitation - Type: $targetingType, Data: " . print_r($targetingData, true));
+                            // Log pour débogage - Afficher les données du formulaire
+            error_log("InvitationController: Traitement invitation - Type: $targetingType, Data: " . print_r($targetingData, true));
+            error_log("InvitationController: Données brutes du formulaire: " . print_r($request->request->all(), true));
+                
+                // Ajouter des logs pour le debug des invitations par département
+                if ($targetingType === 'department') {
+                    error_log("Envoi d'invitation par département: ID=$targetingData");
+                    
+                    // Vérifier si le département existe
+                    $departement = $entityManager->getRepository('App\\Entity\\Departement')->find($targetingData);
+                    if (!$departement) {
+                        error_log("ERREUR: Département ID=$targetingData non trouvé");
+                        $this->addFlash('error', 'Département non trouvé');
+                        return $this->redirectToRoute('invitation_new', ['eventId' => $eventId]);
+                    }
+                    
+                    // Vérifier les utilisateurs associés à ce département
+                    $usersInDept = $userRepository->findBy(['departement' => $departement]);
+                    error_log("Utilisateurs trouvés dans le département " . $departement->getNom() . ": " . count($usersInDept));
+                    
+                    if (empty($usersInDept)) {
+                        error_log("ERREUR: Aucun utilisateur trouvé dans le département " . $departement->getNom());
+                        $this->addFlash('warning', 'Aucun utilisateur trouvé dans le département ' . $departement->getNom());
+                    }
+                    
+                    foreach ($usersInDept as $user) {
+                        error_log("  - " . $user->getEmail() . " (" . $user->getFullName() . ")");
+                    }
+                }
                 
                 $this->processTargetedInvitations(
                     $targetingType,
@@ -118,8 +147,21 @@ class InvitationController extends AbstractController
             case 'department':
                 // Par département
                 if ($targetingData) {
+                    // Récupérer le département pour plus d'informations
+                    $departement = $entityManager->getRepository('App\\Entity\\Departement')->find($targetingData);
+                    $deptName = $departement ? $departement->getNom() : 'Inconnu';
+                    
                     $recipients = $userRepository->findBy(['departement' => $targetingData]);
-                    error_log("processTargetedInvitations: Mode 'department' - " . count($recipients) . " utilisateurs trouvés pour département ID=$targetingData");
+                    error_log("processTargetedInvitations: Mode 'department' - " . count($recipients) . " utilisateurs trouvés pour département ID=$targetingData ($deptName)");
+                    
+                    // Vérifier si les destinataires sont bien trouvés
+                    if (empty($recipients)) {
+                        error_log("ATTENTION: Aucun utilisateur trouvé pour le département ID=$targetingData ($deptName)");
+                    } else {
+                        foreach ($recipients as $user) {
+                            error_log("  - Destinataire trouvé: " . $user->getEmail() . " (" . $user->getFullName() . ")");
+                        }
+                    }
                 }
                 break;
 
@@ -175,7 +217,8 @@ class InvitationController extends AbstractController
         Request $request,
         EventRepository $eventRepository,
         InvitationRepository $invitationRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        InvitationExpirationService $expirationService
     ): Response {
         $user = $this->getUser();
         $event = $eventRepository->find($eventId);
@@ -191,6 +234,27 @@ class InvitationController extends AbstractController
         }
 
         $invitations = $invitationRepository->findBy(['event' => $event]);
+        
+        // Vérifier et expirer automatiquement les invitations expirées
+        $expiredCount = 0;
+        foreach ($invitations as $invitation) {
+            // Forcer l'expiration avec un délai d'un jour
+            if ($invitation->checkAndMarkAsExpired(1)) {
+                $expiredCount++;
+                error_log(sprintf(
+                    "Invitation expirée - ID: %d, Email: %s, Type d'événement: %s",
+                    $invitation->getId(),
+                    $invitation->getEmail(),
+                    $event->getCategory()
+                ));
+            }
+        }
+        
+        // Sauvegarder les changements si nécessaire
+        if ($expiredCount > 0) {
+            $entityManager->flush();
+            $this->addFlash('info', "{$expiredCount} invitation(s) automatiquement marquée(s) comme expirée(s).");
+        }
         
         // Récupérer les participations pour chaque invitation
         $participations = [];
@@ -218,6 +282,39 @@ class InvitationController extends AbstractController
             'invitations' => $invitations,
             'participations' => $participations
         ]);
+    }
+
+    #[Route('/invitations/force-expiration', name: 'invitation_force_expiration', methods: ['GET'])]
+    public function forceExpiration(
+        InvitationRepository $invitationRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        // Récupérer toutes les invitations en attente
+        $invitations = $invitationRepository->findBy(['status' => 'pending']);
+        
+        $expiredCount = 0;
+        foreach ($invitations as $invitation) {
+            $event = $invitation->getEvent();
+            // Forcer l'expiration avec un délai d'un jour
+            if ($invitation->checkAndMarkAsExpired(1)) {
+                $expiredCount++;
+                error_log(sprintf(
+                    "Invitation expirée - ID: %d, Email: %s, Type d'événement: %s",
+                    $invitation->getId(),
+                    $invitation->getEmail(),
+                    $event ? $event->getCategory() : 'inconnu'
+                ));
+            }
+        }
+        
+        if ($expiredCount > 0) {
+            $entityManager->flush();
+            $this->addFlash('success', "{$expiredCount} invitation(s) marquée(s) comme expirée(s).");
+        } else {
+            $this->addFlash('info', "Aucune invitation n'a été expirée.");
+        }
+        
+        return $this->redirectToRoute('event_list');
     }
 
     #[Route('/invitations/{id}/cancel', name: 'invitation_cancel', methods: ['GET'])]
@@ -261,14 +358,25 @@ class InvitationController extends AbstractController
 
     private function sendInvitationEmail(Invitation $invitation, MailerInterface $mailer): void
     {
-        $email = (new Email())
-            ->from('nadiabalaazi@gmail.com')
-            ->to($invitation->getEmail())
-            ->subject('Invitation à l\'événement: ' . $invitation->getEvent()->getTitle())
-            ->html($this->renderView('emails/event_invitation.html.twig', [
-                'invitation' => $invitation,
-            ]));
+        try {
+            $email = (new Email())
+                ->from('nadiabalaazi@gmail.com')
+                ->to($invitation->getEmail())
+                ->subject('Invitation à l\'événement: ' . $invitation->getEvent()->getTitle())
+                ->html($this->renderView('emails/event_invitation.html.twig', [
+                    'invitation' => $invitation,
+                ]));
 
-        $mailer->send($email);
+            // Ajouter des logs détaillés pour le débogage
+            error_log("Tentative d'envoi d'email à {$invitation->getEmail()} pour l'événement {$invitation->getEvent()->getTitle()}");
+            error_log("Paramètres email: From: nadiabalaazi@gmail.com, To: {$invitation->getEmail()}");
+            
+            $mailer->send($email);
+            error_log("Email envoyé avec succès à {$invitation->getEmail()}");
+        } catch (\Exception $e) {
+            error_log("ERREUR d'envoi d'email à {$invitation->getEmail()}: " . $e->getMessage());
+            error_log("Trace: " . $e->getTraceAsString());
+            throw $e; // Relancer l'exception pour la gestion d'erreur au niveau supérieur
+        }
     }
 }

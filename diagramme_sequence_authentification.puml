@@ -1,0 +1,165 @@
+@startuml Diagramme_Sequence_Authentification_EventHub
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+
+title Diagramme de Séquence d'Authentification - EventHub
+
+actor "Utilisateur" as U
+participant "Navigateur" as B
+participant "Symfony\nFramework" as S
+participant "AppAuthenticator" as A
+participant "UserRepository" as R
+database "Base de\nDonnées" as DB
+participant "AccessDenied\nHandler" as H
+
+== PHASE 1: Tentative de Connexion ==
+
+U -> B : Saisit email + mot de passe
+activate B
+
+B -> S : POST /login avec credentials
+activate S
+
+S -> A : authenticate(Request)
+activate A
+
+note right of A : Validation des données
+A -> A : Vérification email/password non vides
+A -> A : Validation CSRF token
+
+A -> R : findOneBy(['email' => email])
+activate R
+
+R -> DB : SELECT * FROM users WHERE email = ?
+activate DB
+DB --> R : User entity ou null
+deactivate DB
+
+R --> A : User object
+deactivate R
+
+note right of A : Création du Passport
+A -> A : new Passport(UserBadge, PasswordCredentials, CsrfTokenBadge)
+A --> S : Passport object
+deactivate A
+
+note right of S : Vérification automatique du mot de passe
+S -> S : Vérification hash password
+S -> S : Validation CSRF token
+
+alt Authentification réussie
+    S -> A : onAuthenticationSuccess()
+    activate A
+    
+    A -> R : findOneByEmail() pour rôles réels
+    activate R
+    
+    R -> DB : SELECT * FROM users WHERE email = ?
+    activate DB
+    DB --> R : User avec rôles complets
+    deactivate DB
+    
+    R --> A : User object
+    deactivate R
+    
+    note right of A : Logique de redirection par rôle
+    A -> A : Analyse des rôles utilisateur
+    
+    alt ROLE_ADMIN + ROLE_ORGANISATEUR
+        A -> S : RedirectResponse(common_dashboard)
+    else ROLE_ADMIN uniquement
+        A -> S : RedirectResponse(admin_dashboard)
+    else ROLE_ORGANISATEUR uniquement
+        A -> S : RedirectResponse(organisateur_dashboard)
+    else ROLE_PARTICIPANT uniquement
+        A -> S : RedirectResponse(participant_dashboard)
+    else Rôle par défaut
+        A -> S : RedirectResponse(calendar_index)
+    end
+    
+    deactivate A
+    
+    S --> B : Response avec redirection
+    deactivate S
+    
+    B --> U : Redirection vers dashboard approprié
+    deactivate B
+    
+else Authentification échouée
+    S -> S : BadCredentialsException
+    S --> B : Response avec erreur
+    deactivate S
+    
+    B --> U : Affichage message d'erreur
+    deactivate B
+end
+
+== PHASE 2: Gestion des Accès Refusés ==
+
+U -> B : Accès à route protégée
+activate B
+
+B -> S : GET /admin/dashboard (exemple)
+activate S
+
+note right of S : Vérification des permissions
+S -> S : AccessDeniedException
+
+S -> H : handle(Request, AccessDeniedException)
+activate H
+
+note right of H : Analyse du type d'erreur
+H -> H : Analyse message d'erreur et route
+
+alt Erreur ROLE_ORGANISATEUR
+    H -> H : generate('calendar_index')
+    note right : URL /calendar
+else Erreur ROLE_ADMIN
+    H -> H : generate('app_home')
+    note right : URL /
+else Erreur ROLE_PARTICIPANT
+    H -> H : generate('app_home')
+    note right : URL /
+else Erreur liée aux événements
+    H -> H : generate('event_list')
+    note right : URL /event
+else Erreur liée à l'administration
+    H -> H : generate('app_home')
+    note right : URL /
+else Erreur liée aux salles
+    H -> H : generate('calendar_index')
+    note right : URL /calendar
+end
+
+H -> S : RedirectResponse(URL)
+deactivate H
+
+S --> B : Response avec redirection
+deactivate S
+
+B --> U : Redirection vers page autorisée
+deactivate B
+
+== PHASE 3: Flux de Déconnexion ==
+
+U -> B : Clic sur "Déconnexion"
+activate B
+
+B -> S : POST /logout avec CSRF token
+activate S
+
+note right of S : Validation CSRF token
+S -> S : Invalidation de la session
+S -> S : Suppression du token d'authentification
+S -> S : Suppression des cookies de session
+
+S --> B : RedirectResponse(app_home)
+deactivate S
+
+B --> U : Redirection vers page d'accueil
+deactivate B
+
+@enduml
+

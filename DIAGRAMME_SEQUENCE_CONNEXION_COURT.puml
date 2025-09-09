@@ -1,0 +1,47 @@
+@startuml Connexion_Utilisateur_Court
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+
+title Connexion Utilisateur - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "🔒 Security" as SC
+participant "🔐 Auth" as A
+participant "📊 Repo" as R
+database "🗄️ DB" as DB
+
+U -> B : Accès /login
+B -> SC : GET /login
+SC -> B : render(login.html.twig)
+B --> U : Formulaire connexion
+
+U -> B : Saisit credentials
+B -> A : POST /login
+A -> R : findOneBy(email)
+R -> DB : SELECT user
+DB --> R : User
+R --> A : User object
+
+alt Succès
+    A -> A : onAuthenticationSuccess()
+    A -> R : getRoles()
+    R -> DB : SELECT avec rôles
+    DB --> R : User + rôles
+    R --> A : User complet
+    
+    alt ROLE_ADMIN
+        A -> B : Redirect(admin_dashboard)
+    else ROLE_ORGANISATEUR
+        A -> B : Redirect(organisateur_dashboard)
+    else ROLE_PARTICIPANT
+        A -> B : Redirect(participant_dashboard)
+    end
+    
+    B --> U : Redirection dashboard
+else Échec
+    B --> U : Message erreur
+end
+
+@enduml

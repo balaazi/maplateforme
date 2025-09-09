@@ -243,6 +243,40 @@
     </div>
     {% endif %}
 
+    {% if documents|length > 0 %}
+    <div class="event-description">
+        <h3>Documents</h3>
+        <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+            {% for document in documents %}
+                <div class="document-card" style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div class="document-header" style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                        <div class="document-type-icon" style="font-size: 1.5rem; margin-right: 0.5rem;">
+                            {% set fileExtension = document.fileName|split('.')|last|lower %}
+                            {% if fileExtension in ['pdf'] %}
+                                <i class="fas fa-file-pdf" style="color: #e53e3e;"></i>
+                            {% elseif fileExtension in ['doc', 'docx'] %}
+                                <i class="fas fa-file-word" style="color: #2b6cb0;"></i>
+                            {% elseif fileExtension in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                <i class="fas fa-file-image" style="color: #38a169;"></i>
+                            {% else %}
+                                <i class="fas fa-file" style="color: #718096;"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1rem;">{{ document.fileName|split('.')|first|title }}</h4>
+                        </div>
+                    </div>
+                    <div class="document-actions" style="margin-top: 0.5rem;">
+                        <a href="{{ path('document_download', {'id': document.id}) }}" class="btn btn-sm btn-primary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">
+                            <i class="fas fa-download"></i> Télécharger
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="tools-section">
         {% if event.googleDriveUrl %}
         <a href="{{ event.googleDriveUrl }}" target="_blank" class="tool-card">
@@ -252,11 +286,13 @@
         </a>
         {% endif %}
 
-        <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" class="tool-card">
-            <div class="tool-icon">📋</div>
-            <h4>Notes Collaboratives</h4>
-            <p>Gérer les notes de l'événement</p>
-        </a>
+        {% if event.category|lower not in ['réunion', 'reunion'] %}
+            <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" class="tool-card">
+                <div class="tool-icon">📋</div>
+                <h4>Notes Collaboratives</h4>
+                <p>Gérer les notes de l'événement</p>
+            </a>
+        {% endif %}
 
         {% if event.etherpadUrl %}
         <a href="{{ event.etherpadUrl }}" target="_blank" class="tool-card">
@@ -272,7 +308,7 @@
             <p>Voir les présences</p>
         </a>
 
-        {% if event.category == 'Réunion' and (isCreator or hasAdminAccess) %}
+        {% if event.category|lower == 'réunion' or event.category|lower == 'reunion' %}
             {% if procesVerbal %}
                 <a href="{{ path('proces_verbal_show', {'id': procesVerbal.id}) }}" class="tool-card" style="border: 2px solid #8b5cf6;">
                     <div class="tool-icon" style="color: #8b5cf6;">📝</div>
@@ -286,10 +322,10 @@
                     </p>
                 </a>
             {% else %}
-                <a href="{{ path('proces_verbal_create', {'eventId': event.id}) }}" class="tool-card" style="border: 2px dashed #8b5cf6;">
-                    <div class="tool-icon" style="color: #8b5cf6;">📝</div>
-                    <h4 style="color: #8b5cf6;">Procès-verbal</h4>
-                    <p>Créer le PV de réunion</p>
+                <a href="{{ path('proces_verbal_create', {'eventId': event.id}) }}" class="tool-card" style="border: 2px solid #e74c3c; background: linear-gradient(135deg, #fff5f5 0%, #feebc8 100%);">
+                    <div class="tool-icon" style="color: #e74c3c; font-size: 2.5rem;">📄</div>
+                    <h4 style="color: #e74c3c; font-weight: 700;">PV Reunion</h4>
+                    <p style="color: #e74c3c;">Créer le procès-verbal</p>
                 </a>
             {% endif %}
         {% endif %}

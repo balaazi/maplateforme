@@ -1,0 +1,21 @@
+@startuml Logout_Court
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Logout - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "🔒 Security" as S
+participant "🔐 Auth" as A
+
+U -> B : Clic logout
+B -> S : POST /logout + CSRF
+S -> S : Invalide session
+S -> S : Supprime cookies
+S -> A : logout()
+A --> S : OK
+S -> B : Redirect(home)
+B --> U : Accueil
+
+@enduml

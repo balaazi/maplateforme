@@ -1,0 +1,37 @@
+@startuml Inscription_Court
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Inscription - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "📝 Register" as RC
+participant "🔐 Hash" as H
+participant "📊 Repo" as R
+database "🗄️ DB" as DB
+
+U -> B : /register
+B -> RC : GET
+RC -> B : render form
+B --> U : Formulaire
+
+U -> B : Soumet
+B -> RC : POST data
+RC -> R : checkEmail
+R -> DB : SELECT
+DB --> R : Existe?
+
+alt Email libre
+    RC -> H : hashPassword()
+    H --> RC : Hash
+    RC -> R : createUser()
+    R -> DB : INSERT
+    DB --> R : OK
+    RC -> B : Redirect(login)
+    B --> U : Connexion
+else Email utilisé
+    B --> U : Erreur
+end
+
+@enduml

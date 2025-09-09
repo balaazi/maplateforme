@@ -1,0 +1,18 @@
+@startuml Connexion_Ultra_Court
+!theme plain
+
+title Connexion - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "🔐 Auth" as A
+database "🗄️ DB" as DB
+
+U -> B : /login
+B -> A : POST
+A -> DB : SELECT
+DB --> A : User
+A -> B : OK
+B --> U : Dashboard
+
+@enduml

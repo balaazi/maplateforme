@@ -1,0 +1,34 @@
+@startuml Access_Denied_Court
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Access Denied - EventHub
+
+actor "👤 U" as U
+participant "🌐 Nav" as B
+participant "🔒 Security" as S
+participant "🚫 Handler" as H
+participant "🛣️ Router" as R
+
+U -> B : Accès route protégée
+B -> S : GET /admin
+S -> S : AccessDeniedException
+S -> H : handle()
+H -> H : Analyse erreur
+
+alt ROLE_ORGANISATEUR
+    H -> R : generate(calendar)
+else ROLE_ADMIN
+    H -> R : generate(home)
+else Événements
+    H -> R : generate(event_list)
+else Salles
+    H -> R : generate(calendar)
+end
+
+R --> H : URL
+H -> S : RedirectResponse(URL)
+S --> B : Redirect
+B --> U : Page autorisée
+
+@enduml

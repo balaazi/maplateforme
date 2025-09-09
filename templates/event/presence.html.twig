@@ -608,6 +608,13 @@
                     // Afficher un message de confirmation moderne
                     showStatusMessage(data.message, 'success');
                     
+                    // Si l'événement a été ajouté à l'agenda, afficher une notification supplémentaire
+                    if (data.isPresent && data.agendaAjoute) {
+                        setTimeout(() => {
+                            showStatusMessage('Événement ajouté à votre agenda Google', 'success');
+                        }, 3500); // Délai pour afficher après le premier message
+                    }
+                    
                     // Petit effet de vibration
                     activeBtn.style.animation = 'pulse 0.6s ease-out';
                     setTimeout(() => {

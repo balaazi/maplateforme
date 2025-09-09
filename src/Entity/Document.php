@@ -29,9 +29,17 @@ class Document
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+
+
+
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $updatedAt = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -43,10 +51,13 @@ class Document
     {
         $this->file = $file;
 
-        if ($file !== null) {
-            $this->createdAt = new \DateTimeImmutable();
+        if (null !== $file) {
+            // It is required that at least one field changes if you are using doctrine
+            // otherwise the event listeners won't be called and the file is lost
+            $this->updatedAt = new \DateTimeImmutable();
         }
     }
+
     public function getFile(): ?File
     {
         return $this->file;
@@ -61,15 +72,21 @@ class Document
     {
         return $this->fileName;
     }
+
     public function getEvent(): ?Event
     {
-    return $this->event;
+        return $this->event;
     }
 
     public function setEvent(?Event $event): self
     {
-    $this->event = $event;
-    return $this;
+        $this->event = $event;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
     }
 
     public function setCreatedAt(\DateTimeImmutable $createdAt): void
@@ -77,8 +94,22 @@ class Document
         $this->createdAt = $createdAt;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getUpdatedAt(): ?\DateTimeImmutable
     {
-        return $this->createdAt;
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
+    }
+
+    
+    /**
+     * Méthode requise pour le débogage et l'affichage des erreurs de persistance en cascade
+     */
+    public function __toString(): string
+    {
+        return $this->fileName ?? 'Document #' . ($this->id ?? 'nouveau');
     }
 }

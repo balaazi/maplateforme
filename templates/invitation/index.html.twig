@@ -531,6 +531,87 @@
             letter-spacing: 1px;
             font-size: 0.85rem;
         }
+
+        .presence-container {
+            transition: all 0.3s ease;
+        }
+        
+        .presence-message {
+            background: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            color: #495057;
+        }
+        
+        .presence-message i {
+            color: #0d6efd;
+            margin-right: 6px;
+        }
+        
+        .presence-status {
+            transition: all 0.3s ease;
+        }
+        
+        .presence-status .badge {
+            font-size: 0.875rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .presence-buttons {
+            transition: all 0.3s ease;
+        }
+        
+        .presence-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .presence-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .presence-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Animation de transition pour le masquage des éléments */
+        .presence-message.fade-out,
+        .presence-buttons.fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .presence-status.fade-in {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideIn 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 {% endblock %}
 
@@ -602,45 +683,81 @@
                                                 <i class="fas fa-times"></i> REFUSÉE
                                             {% elseif invitation.status == 'expired' %}
                                                 <i class="fas fa-clock"></i> EXPIRÉE
+                                            {% elseif invitation.status == 'conflict' %}
+                                                <i class="fas fa-exclamation-triangle"></i> CONFLIT HORAIRE
                                             {% else %}
                                                 <i class="fas fa-clock"></i> EN ATTENTE
                                             {% endif %}
                                         </span>
                                     </td>
                                     <td>
-                                        {% if participation and invitation.status == 'accepted' %}
-                                            {% set today = date() %}
-                                            {% set eventDate = event.dateHeure|date('Y-m-d') %}
-                                            {% set isEventDay = today|date('Y-m-d') >= eventDate %}
-                                            
-                                            {% if isEventDay %}
-                                                <div class="btn-group" role="group" data-participation-id="{{ participation.id }}">
-                                                    <button type="button" 
-                                                            class="btn btn-sm {% if participation.isPresent %}btn-success{% else %}btn-outline-success{% endif %} presence-btn"
-                                                            data-present="true"
-                                                            onclick="updateParticipationPresence({{ participation.id }}, true)">
-                                                        <i class="fas fa-check"></i> Présent
-                                                    </button>
-                                                    <button type="button" 
-                                                            class="btn btn-sm {% if not participation.isPresent %}btn-danger{% else %}btn-outline-danger{% endif %} presence-btn"
-                                                            data-present="false"
-                                                            onclick="updateParticipationPresence({{ participation.id }}, false)">
-                                                        <i class="fas fa-times"></i> Absent
-                                                    </button>
+                                        {% if invitation.status == 'accepted' and invitation.status != 'expired' %}
+                                            {% if participation %}
+                                                <div class="presence-container" data-participation-id="{{ participation.id }}">
+                                                    <!-- Affichage conditionnel : boutons ou statut unique -->
+                                                    {% if not participation.presenceValidated %}
+                                                        <!-- Boutons de présence si la présence n'a pas encore été validée -->
+                                                        <div class="btn-group" role="group" id="presence-buttons-{{ participation.id }}">
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-outline-success presence-btn"
+                                                                    data-present="true"
+                                                                    onclick="updateParticipationPresence({{ participation.id }}, true)">
+                                                                <i class="fas fa-check"></i> Présent
+                                                            </button>
+                                                            <button type="button" 
+                                                                    class="btn btn-sm btn-outline-danger presence-btn"
+                                                                    data-present="false"
+                                                                    onclick="updateParticipationPresence({{ participation.id }}, false)">
+                                                                <i class="fas fa-times"></i> Absent
+                                                            </button>
+                                                        </div>
+                                                    {% else %}
+                                                        <!-- Statut unique affiché -->
+                                                        <div id="presence-status-{{ participation.id }}">
+                                                            {% if participation.isPresent %}
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check-circle"></i> Présent
+                                                                </span>
+                                                            {% else %}
+                                                                <span class="badge bg-danger">
+                                                                    <i class="fas fa-times-circle"></i> Absent
+                                                                </span>
+                                                            {% endif %}
+                                                            {% if invitation.status != 'expired' %}
+                                                                <button type="button" 
+                                                                        class="btn btn-sm btn-outline-secondary ms-2"
+                                                                        onclick="resetPresenceStatus({{ participation.id }})"
+                                                                        title="Modifier le statut">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
                                                 </div>
                                             {% else %}
-                                                <span class="badge bg-warning">
-                                                    <i class="fas fa-clock"></i> En attente
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-clock"></i> À valider
                                                 </span>
-                                                <br><small class="text-muted">Le {{ event.dateHeure|date('d/m/Y') }}</small>
                                             {% endif %}
-                                        {% elseif participation %}
-                                            <span class="badge {% if participation.isPresent %}bg-success{% else %}bg-danger{% endif %}">
-                                                {% if participation.isPresent %}
-                                                    <i class="fas fa-check-circle"></i> Présent(e)
-                                                {% else %}
-                                                    <i class="fas fa-times-circle"></i> Absent(e)
-                                                {% endif %}
+                                        {% elseif invitation.status == 'declined' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times-circle"></i> Refusée
+                                            </span>
+                                        {% elseif invitation.status == 'expired' %}
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-clock"></i> Expirée
+                                            </span>
+                                            <div class="text-muted small mt-1">
+                                                <i class="fas fa-info-circle"></i> Cette invitation ne peut plus être modifiée
+                                            </div>
+
+                                        {% elseif invitation.status == 'pending' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-hourglass-half"></i> En attente de réponse
+                                            </span>
+                                        {% elseif invitation.status == 'conflict' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> Conflit horaire
                                             </span>
                                         {% else %}
                                             <span class="badge bg-secondary">
@@ -655,6 +772,10 @@
                                                onclick="return confirm('Êtes-vous sûr de vouloir annuler cette invitation ?')">
                                                 <i class="fas fa-ban"></i> Annuler
                                             </a>
+                                        {% elseif invitation.status == 'conflict' %}
+                                            <span class="text-muted" style="font-style: italic;">
+                                                <i class="fas fa-exclamation-triangle"></i> Conflit d'horaires
+                                            </span>
                                         {% else %}
                                             <span class="text-muted" style="font-style: italic;">
                                                 <i class="fas fa-check-circle"></i> Répondue
@@ -785,9 +906,17 @@
         
         // Fonction pour mettre à jour la présence d'un participant
         window.updateParticipationPresence = function(participationId, isPresent) {
+            console.log('Mise à jour de la présence:', participationId, isPresent);
+            // Validation côté client
+            const presenceContainer = document.querySelector(`[data-participation-id="${participationId}"]`);
+            if (!presenceContainer) {
+                showNotification('Erreur : Conteneur de présence non trouvé', 'error');
+                console.error('Conteneur de présence non trouvé:', participationId);
+                return;
+            }
+
             // Désactiver temporairement les boutons
-            const btnGroup = document.querySelector(`[data-participation-id="${participationId}"]`);
-            const buttons = btnGroup.querySelectorAll('.presence-btn');
+            const buttons = presenceContainer.querySelectorAll('.presence-btn');
             buttons.forEach(btn => btn.disabled = true);
             
             // Créer les données à envoyer
@@ -803,23 +932,50 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Réponse reçue:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Données reçues:', data);
                 if (data.success) {
-                    // Mettre à jour l'apparence des boutons
-                    const presentBtn = btnGroup.querySelector('[data-present="true"]');
-                    const absentBtn = btnGroup.querySelector('[data-present="false"]');
+                    // Remplacer les boutons par le statut unique
+                    const presenceContainer = document.querySelector(`[data-participation-id="${participationId}"]`);
+                    const btnGroup = presenceContainer.querySelector('.btn-group');
                     
-                    if (isPresent) {
-                        presentBtn.classList.remove('btn-outline-success');
-                        presentBtn.classList.add('btn-success');
-                        absentBtn.classList.remove('btn-danger');
-                        absentBtn.classList.add('btn-outline-danger');
-                    } else {
-                        absentBtn.classList.remove('btn-outline-danger');
-                        absentBtn.classList.add('btn-danger');
-                        presentBtn.classList.remove('btn-success');
-                        presentBtn.classList.add('btn-outline-success');
+                    if (btnGroup) {
+                        // Créer le nouveau statut
+                        const statusDiv = document.createElement('div');
+                        statusDiv.id = `presence-status-${participationId}`;
+                        
+                        if (isPresent) {
+                            statusDiv.innerHTML = `
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> Présent
+                                </span>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary ms-2"
+                                        onclick="resetPresenceStatus(${participationId})"
+                                        title="Modifier le statut">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            `;
+                        } else {
+                            statusDiv.innerHTML = `
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle"></i> Absent
+                                </span>
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary ms-2"
+                                        onclick="resetPresenceStatus(${participationId})"
+                                        title="Modifier le statut">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            `;
+                        }
+                        
+                        // Remplacer les boutons par le statut
+                        btnGroup.replaceWith(statusDiv);
                     }
                     
                     // Afficher un message de succès
@@ -827,15 +983,118 @@
                 } else {
                     // Afficher le message d'erreur
                     showNotification(data.message || 'Erreur lors de la mise à jour', 'error');
+                    console.error('Erreur de mise à jour:', data.message);
+                    
+                    // Si le participant est déjà marqué avec ce statut, forcer la mise à jour de l'interface
+                    if (data.message && data.message.includes('déjà marqué comme')) {
+                        // Créer le nouveau statut même si le serveur indique qu'il est déjà défini
+                        const btnGroup = presenceContainer.querySelector('.btn-group');
+                        if (btnGroup) {
+                            const statusDiv = document.createElement('div');
+                            statusDiv.id = `presence-status-${participationId}`;
+                            
+                            if (isPresent) {
+                                statusDiv.innerHTML = `
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle"></i> Présent
+                                    </span>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary ms-2"
+                                            onclick="resetPresenceStatus(${participationId})"
+                                            title="Modifier le statut">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                `;
+                            } else {
+                                statusDiv.innerHTML = `
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle"></i> Absent
+                                    </span>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-secondary ms-2"
+                                            onclick="resetPresenceStatus(${participationId})"
+                                            title="Modifier le statut">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                `;
+                            }
+                            
+                            // Remplacer les boutons par le statut
+                            btnGroup.replaceWith(statusDiv);
+                        }
+                    }
                 }
             })
             .catch(error => {
                 console.error('Erreur:', error);
-                showNotification('Erreur de connexion', 'error');
+                showNotification('Erreur de connexion lors de la mise à jour de la présence', 'error');
             })
             .finally(() => {
                 // Réactiver les boutons
                 buttons.forEach(btn => btn.disabled = false);
+            });
+        };
+        
+        // Fonction pour réinitialiser le statut de présence et afficher les boutons
+        window.resetPresenceStatus = function(participationId) {
+            console.log('Réinitialisation du statut:', participationId);
+            // Appel AJAX pour réinitialiser le statut en base
+            const formData = new FormData();
+            formData.append('participation_id', participationId);
+            formData.append('reset_presence', 'true');
+            
+            fetch('{{ path("reset_participation_presence") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Réponse réinitialisation:', response.status);
+                return response.json();
+            })
+            .then(data => {
+                console.log('Données réinitialisation:', data);
+                if (data.success) {
+                    const presenceContainer = document.querySelector(`[data-participation-id="${participationId}"]`);
+                    const statusDiv = presenceContainer.querySelector(`#presence-status-${participationId}`);
+                    
+                    if (statusDiv) {
+                        // Recréer les boutons de présence
+                        const btnGroup = document.createElement('div');
+                        btnGroup.className = 'btn-group';
+                        btnGroup.role = 'group';
+                        btnGroup.id = `presence-buttons-${participationId}`;
+                        
+                        btnGroup.innerHTML = `
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-success presence-btn"
+                                    data-present="true"
+                                    onclick="updateParticipationPresence(${participationId}, true)">
+                                <i class="fas fa-check"></i> Présent
+                                </button>
+                            <button type="button" 
+                                    class="btn btn-sm btn-outline-danger presence-btn"
+                                    data-present="false"
+                                    onclick="updateParticipationPresence(${participationId}, false)">
+                                <i class="fas fa-times"></i> Absent
+                            </button>
+                        `;
+                        
+                        // Remplacer le statut par les boutons
+                        statusDiv.replaceWith(btnGroup);
+                        
+                        // Afficher une notification
+                        showNotification('Statut réinitialisé. Sélectionnez un nouveau statut.', 'info');
+                    }
+                } else {
+                    showNotification(data.message || 'Erreur lors de la réinitialisation', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                showNotification('Erreur de connexion lors de la réinitialisation', 'error');
             });
         };
         

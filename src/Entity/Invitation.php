@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\InvitationRepository;
+use App\Enum\InvitationStatus;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -10,11 +11,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: InvitationRepository::class)]
 class Invitation
 {
-    public const STATUS_PENDING = 'pending';
-    public const STATUS_ACCEPTED = 'accepted';
-    public const STATUS_DECLINED = 'declined';
-    public const STATUS_EXPIRED = 'expired';
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -30,7 +26,8 @@ class Invitation
     private ?string $name = null;
 
     #[ORM\Column(length: 20)]
-    private ?string $status = self::STATUS_PENDING;
+    #[Assert\Choice(choices: ['pending', 'accepted', 'declined', 'expired', 'conflict'], message: 'Statut invalide')]
+    private ?string $status = InvitationStatus::PENDING->value;
 
     #[ORM\Column(length: 64, unique: true)]
     private ?string $token = null;
@@ -52,6 +49,7 @@ class Invitation
     public function __construct()
     {
         $this->createdAt = new \DateTime();
+        $this->status = InvitationStatus::PENDING->value;
     }
 
     // Getters & Setters
@@ -78,8 +76,20 @@ class Invitation
 
     public function setStatus(string $status): static
     {
-        if (!in_array($status, [self::STATUS_PENDING, self::STATUS_ACCEPTED, self::STATUS_DECLINED, self::STATUS_EXPIRED])) {
-            throw new \InvalidArgumentException("Invalid status");
+        // Vérifier si le statut est valide
+        if (!in_array($status, [
+            InvitationStatus::PENDING->value,
+            InvitationStatus::ACCEPTED->value,
+            InvitationStatus::DECLINED->value,
+            InvitationStatus::EXPIRED->value,
+            InvitationStatus::CONFLICT->value
+        ])) {
+            throw new \InvalidArgumentException("Statut invalide: {$status}");
+        }
+
+        // Empêcher la réinitialisation du statut expiré vers en attente
+        if ($this->status === InvitationStatus::EXPIRED->value && $status === InvitationStatus::PENDING->value) {
+            throw new \InvalidArgumentException("Impossible de réinitialiser une invitation expirée en statut 'en attente'");
         }
 
         $this->status = $status;
@@ -128,8 +138,47 @@ class Invitation
     }
 
     // Utility methods
-    public function isPending(): bool { return $this->status === self::STATUS_PENDING; }
-    public function isAccepted(): bool { return $this->status === self::STATUS_ACCEPTED; }
-    public function isDeclined(): bool { return $this->status === self::STATUS_DECLINED; }
-    public function isExpired(): bool { return $this->status === self::STATUS_EXPIRED; }
+    public function isPending(): bool { return $this->status === InvitationStatus::PENDING->value; }
+    public function isAccepted(): bool { return $this->status === InvitationStatus::ACCEPTED->value; }
+    public function isDeclined(): bool { return $this->status === InvitationStatus::DECLINED->value; }
+    public function isExpired(): bool { return $this->status === InvitationStatus::EXPIRED->value; }
+    public function isConflict(): bool { return $this->status === InvitationStatus::CONFLICT->value; }
+
+    /**
+     * Vérifie si l'invitation devrait être expirée (30 jours après création)
+     */
+    public function shouldBeExpired(int $daysExpiration = 30): bool
+    {
+        if ($this->status !== InvitationStatus::PENDING->value || !$this->createdAt) {
+            return false;
+        }
+
+        $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        // Réduire le délai d'expiration pour le test
+        $expirationDate = (clone $this->createdAt)->modify("+{$daysExpiration} days");
+        
+        // Pour le débogage
+        error_log(sprintf(
+            "Vérification expiration - ID: %d, Email: %s, Créé le: %s, Date expiration: %s, Maintenant: %s",
+            $this->id ?? 0,
+            $this->email ?? 'unknown',
+            $this->createdAt->format('Y-m-d H:i:s'),
+            $expirationDate->format('Y-m-d H:i:s'),
+            $now->format('Y-m-d H:i:s')
+        ));
+
+        return $now > $expirationDate;
+    }
+
+    /**
+     * Marque l'invitation comme expirée si elle devrait l'être
+     */
+    public function checkAndMarkAsExpired(int $daysExpiration = 30): bool
+    {
+        if ($this->shouldBeExpired($daysExpiration)) {
+            $this->setStatus(InvitationStatus::EXPIRED->value);
+            return true; // L'invitation a été expirée
+        }
+        return false; // L'invitation n'était pas expirée
+    }
 }

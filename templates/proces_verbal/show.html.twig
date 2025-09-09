@@ -237,9 +237,6 @@
             <i class="fas fa-file-word"></i> Télécharger Word
         </a>
         
-        <a href="{{ path('proces_verbal_share', {'id': procesVerbal.id}) }}" class="btn btn-outline-primary">
-            <i class="fas fa-share"></i> Partager
-        </a>
         
         <a href="{{ path('event_show', {'id': event.id}) }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Retour à l'événement
@@ -290,8 +287,6 @@
                                 <strong>Responsable :</strong>
                                 {% if action.responsable %}
                                     {{ action.responsable.prenom }} {{ action.responsable.nom }}
-                                {% elseif action.responsableNom %}
-                                    {{ action.responsableNom }}
                                 {% else %}
                                     Non assigné
                                 {% endif %}

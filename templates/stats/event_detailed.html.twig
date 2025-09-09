@@ -80,6 +80,7 @@
         .stat-card.warning { border-left-color: #f59e0b; }
         .stat-card.info { border-left-color: #06b6d4; }
         .stat-card.purple { border-left-color: #8b5cf6; }
+        .stat-card.secondary { border-left-color: #6b7280; }
         
         .stat-header {
             display: flex;
@@ -105,6 +106,7 @@
         .stat-card.warning .stat-icon { background: #f59e0b; }
         .stat-card.info .stat-icon { background: #06b6d4; }
         .stat-card.purple .stat-icon { background: #8b5cf6; }
+        .stat-card.secondary .stat-icon { background: #6b7280; }
         
         .stat-number {
             font-size: 2.5rem;
@@ -123,6 +125,19 @@
             font-size: 0.8rem;
             color: #9ca3af;
             margin-top: 0.5rem;
+        }
+        
+        .stat-percentage {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #10b981;
+            margin-top: 0.5rem;
+        }
+        
+        .progress-text {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-left: 0.5rem;
         }
         
         .chart-container {
@@ -295,9 +310,74 @@
             100% { transform: rotate(360deg); }
         }
         
+        /* Styles pour les nouveaux éléments */
+        .filter-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .filter-container select {
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .filter-container label {
+            font-weight: 500;
+            color: #374151;
+            margin-right: 0.5rem;
+        }
+
+        .notification-banner {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .metric-highlight {
+            border: 2px solid #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            transform: scale(1.02);
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Améliorations responsives */
+        @media (max-width: 1200px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            }
+            
+            .comparison-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+        }
+
         @media (max-width: 768px) {
+            .stats-header h1 {
+                font-size: 2rem;
+            }
+            
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 1rem;
             }
             
             .chart-grid {
@@ -313,7 +393,105 @@
                 flex-direction: column;
                 align-items: center;
             }
+            
+            .comparison-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 0.5rem;
+            }
+            
+            .stat-card {
+                padding: 1rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .chart-container {
+                padding: 1rem;
+            }
+            
+            .filter-container > div {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .filter-container select {
+                width: 100%;
+            }
         }
+         @media (max-width: 480px) {
+             .stats-main {
+                 padding: 1rem;
+             }
+             
+             .stats-header {
+                 padding: 1rem 0;
+             }
+             
+             .stats-header h1 {
+                 font-size: 1.5rem;
+             }
+             
+             .event-info-item {
+                 padding: 0.3rem 0.8rem;
+                 font-size: 0.8rem;
+             }
+             
+             .stat-number {
+                 font-size: 1.8rem;
+             }
+             
+             .export-btn {
+                 padding: 0.5rem 1rem;
+                 font-size: 0.9rem;
+             }
+         }
+
+         /* Styles pour l'impression */
+         @media print {
+             .stats-container {
+                 background: white !important;
+                 min-height: auto;
+             }
+             
+             .stats-header {
+                 background: #667eea !important;
+                 -webkit-print-color-adjust: exact;
+                 print-color-adjust: exact;
+                 page-break-inside: avoid;
+             }
+             
+             .export-actions {
+                 display: none !important;
+             }
+             
+             .stat-card {
+                 page-break-inside: avoid;
+                 box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+             }
+             
+             .stats-grid {
+                 page-break-inside: avoid;
+             }
+             
+             .notification-banner {
+                 -webkit-print-color-adjust: exact;
+                 print-color-adjust: exact;
+             }
+             
+             body {
+                 font-size: 12pt;
+             }
+             
+             .stat-number {
+                 font-size: 24pt;
+             }
+             
+             .stats-header h1 {
+                 font-size: 20pt;
+             }
+         }
     </style>
 {% endblock %}
 
@@ -351,7 +529,16 @@
         <!-- Statistiques principales -->
         <div class="stats-main">
             <div class="container">
-                <!-- Statistiques de base -->
+
+                <!-- Vue d'ensemble simple -->
+                <div class="notification-banner">
+                    <h3 style="margin: 0; font-size: 1.3rem;">
+                        <i class="fas fa-info-circle"></i> 
+                        {{ baseStats.total_invitations }} invités • {{ baseStats.present }} présents
+                    </h3>
+                </div>
+
+                <!-- Statistiques principales -->
                 <div class="stats-grid fade-in">
                     <div class="stat-card success">
                         <div class="stat-header">
@@ -361,7 +548,9 @@
                         </div>
                         <div class="stat-number">{{ baseStats.accepted }}</div>
                         <div class="stat-label">Acceptés</div>
-                        <div class="stat-description">Invitations acceptées</div>
+                        {% if conversionRates.acceptance_rate is defined %}
+                            <div class="stat-percentage">{{ conversionRates.acceptance_rate }}%</div>
+                        {% endif %}
                     </div>
 
                     <div class="stat-card danger">
@@ -372,7 +561,9 @@
                         </div>
                         <div class="stat-number">{{ baseStats.declined }}</div>
                         <div class="stat-label">Déclinés</div>
-                        <div class="stat-description">Invitations déclinées</div>
+                        {% if conversionRates.decline_rate is defined %}
+                            <div class="stat-percentage">{{ conversionRates.decline_rate }}%</div>
+                        {% endif %}
                     </div>
 
                     <div class="stat-card info">
@@ -383,7 +574,9 @@
                         </div>
                         <div class="stat-number">{{ baseStats.present }}</div>
                         <div class="stat-label">Présents</div>
-                        <div class="stat-description">Participants présents</div>
+                        {% if conversionRates.presence_rate is defined %}
+                            <div class="stat-percentage">{{ conversionRates.presence_rate }}%</div>
+                        {% endif %}
                     </div>
 
                     <div class="stat-card purple">
@@ -394,13 +587,48 @@
                         </div>
                         <div class="stat-number">{{ baseStats.absent }}</div>
                         <div class="stat-label">Absents</div>
-                        <div class="stat-description">Participants absents</div>
+                    </div>
+
+                    <div class="stat-card {{ baseStats.expired > 0 ? 'secondary' : 'secondary' }}">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-hourglass-end"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ baseStats.expired ?? 0 }}</div>
+                        <div class="stat-label">Expirés</div>
+                        {% if conversionRates.expired_rate is defined %}
+                            <div class="stat-percentage">{{ conversionRates.expired_rate }}%</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="stat-card {{ (conflictStats.total_conflicts ?? 0) > 0 ? 'warning' : 'warning' }}">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ conflictStats.total_conflicts ?? 0 }}</div>
+                        <div class="stat-label">Conflits d'horaire</div>
+                        {% if conflictStats.conflict_rate is defined %}
+                            <div class="stat-percentage">{{ conflictStats.conflict_rate }}%</div>
+                        {% endif %}
                     </div>
                 </div>
 
+
+
+
+
+
+
+
+
                 <!-- Statistiques temporelles -->
                 {# Bloc supprimé : Évolution des réponses dans le temps #}
-                <!-- Actions d'export -->
+
+
+                <!-- Actions essentielles -->
                 <div class="export-actions">
                     <button class="export-btn" onclick="window.print()">
                         <i class="fas fa-print"></i>
@@ -416,13 +644,6 @@
     </div>
 
     <script>
-        // Configuration des graphiques
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.font.size = 12;
-        Chart.defaults.color = '#6b7280';
-
-        // Graphique temporel
-        {# Bloc supprimé : Évolution des réponses dans le temps #}
 
         // Animation des compteurs
         document.addEventListener('DOMContentLoaded', function() {
@@ -441,6 +662,36 @@
                     counter.textContent = Math.floor(current) + (counter.textContent.includes('%') ? '%' : '');
                 }, 20);
             });
+
+            // Animation des barres de progression
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
         });
+
+
+
+        // Interface ultra-minimaliste - Seules les animations de base
+
+
+
+        // Styles pour les animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 {% endblock %} 

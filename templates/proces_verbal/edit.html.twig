@@ -103,6 +103,48 @@
         border: none;
     }
 
+    /* Styles pour la liste des participants */
+    .participants-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
+
+    .participants-list .form-check {
+        margin-bottom: 0.5rem;
+        padding: 0.5rem;
+        background: white;
+        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+    }
+
+    .participants-list .form-check:hover {
+        background: #f0f9ff;
+        border-color: #3b82f6;
+    }
+
+    .participant-info {
+        display: flex;
+        flex-direction: column;
+        margin-left: 1.5rem;
+    }
+
+    .participant-name {
+        font-weight: 500;
+        color: #374151;
+    }
+
+    .participant-email {
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+
     .btn-success {
         background: #10b981;
         color: white;
@@ -113,6 +155,42 @@
         background: #ef4444;
         color: white;
         border: none;
+    }
+
+
+    /* Bouton Tout sélectionner */
+    .select-all-btn {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        margin-bottom: 1rem;
+        transition: background-color 0.2s;
+    }
+
+    .select-all-btn:hover {
+        background: #2563eb;
+    }
+
+    /* Compteur de participants */
+    .participants-count {
+        background: #f0f9ff;
+        border: 1px solid #bbdefb;
+        border-radius: 6px;
+        padding: 0.5rem 1rem;
+        margin-bottom: 1rem;
+        color: #0d47a1;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .participants-count span {
+        font-weight: 600;
+        color: #1976d2;
     }
 </style>
 {% endblock %}
@@ -151,6 +229,51 @@ document.addEventListener('DOMContentLoaded', function() {
     window.removeAction = function(button) {
         button.closest('.action-item').remove();
     };
+
+    // Gestion du bouton "Tout sélectionner" pour les participants
+    const selectAllBtn = document.getElementById('select-all-btn');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            const checkboxes = document.querySelectorAll('.participants-list input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            
+            checkboxes.forEach(cb => {
+                cb.checked = !allChecked;
+            });
+            
+            updateSelectAllButton();
+        });
+    }
+
+    function updateSelectAllButton() {
+        const checkboxes = document.querySelectorAll('.participants-list input[type="checkbox"]');
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const totalCount = checkboxes.length;
+        
+        // Mettre à jour le bouton
+        if (checkedCount === 0) {
+            selectAllBtn.textContent = 'Tout sélectionner';
+        } else if (checkedCount === totalCount) {
+            selectAllBtn.textContent = 'Tout désélectionner';
+        } else {
+            selectAllBtn.textContent = `Sélectionné: ${checkedCount}/${totalCount}`;
+        }
+        
+        // Mettre à jour le compteur
+        const countElement = document.getElementById('participants-count');
+        if (countElement) {
+            countElement.textContent = checkedCount;
+        }
+    }
+
+    // Mettre à jour le bouton au chargement
+    updateSelectAllButton();
+    
+    // Ajouter des écouteurs d'événements pour les cases à cocher
+    const participantCheckboxes = document.querySelectorAll('.participants-list input[type="checkbox"]');
+    participantCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectAllButton);
+    });
 });
 </script>
 {% endblock %}
@@ -196,7 +319,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div class="form-group">
         {{ form_label(form.participants) }}
-        {{ form_widget(form.participants) }}
+        <button type="button" id="select-all-btn" class="select-all-btn">Tout sélectionner</button>
+        <div class="participants-count">
+            <span id="participants-count">0</span> utilisateur(s) sélectionné(s) sur {{ form.participants|length }} disponible(s)
+        </div>
+        <div class="participants-list">
+            {% for choice in form.participants %}
+                <div class="form-check">
+                    {{ form_widget(choice) }}
+                    <div class="participant-info">
+                        <span class="participant-name">{{ choice.vars.label|split(' (')[0] }}</span>
+                        <span class="participant-email">{{ choice.vars.label|split(' (')[1]|trim(')') }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
         {{ form_help(form.participants) }}
         {{ form_errors(form.participants) }}
     </div>

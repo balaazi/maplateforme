@@ -1,0 +1,174 @@
+@startuml Diagrammes_Sequence_Courts_Recap
+!theme plain
+skinparam backgroundColor #FFFFFF
+
+title Diagrammes de Séquence Courts - Système d'Authentification EventHub
+
+' ========================================
+' DIAGRAMME 1: CONNEXION
+' ========================================
+page 2x2 {
+    title Connexion Utilisateur
+
+    actor "👤 U" as U
+    participant "🌐 Nav" as B
+    participant "🔐 Auth" as A
+    participant "📊 Repo" as R
+    database "🗄️ DB" as DB
+
+    U -> B : /login
+    B -> A : POST credentials
+    A -> R : findUser(email)
+    R -> DB : SELECT
+    DB --> R : User
+    R --> A : User
+
+    alt Succès
+        A -> A : getRoles()
+        A -> B : Redirect(dashboard)
+        B --> U : Dashboard
+    else Échec
+        B --> U : Erreur
+    end
+}
+
+' ========================================
+' DIAGRAMME 2: INSCRIPTION
+' ========================================
+page 2x2 {
+    title Inscription Utilisateur
+
+    actor "👤 U" as U
+    participant "🌐 Nav" as B
+    participant "📝 Register" as RC
+    participant "🔐 Hash" as H
+    participant "📊 Repo" as R
+    database "🗄️ DB" as DB
+
+    U -> B : /register
+    B -> RC : GET
+    RC -> B : render form
+    B --> U : Formulaire
+
+    U -> B : Soumet
+    B -> RC : POST data
+    RC -> R : checkEmail
+    R -> DB : SELECT
+    DB --> R : Existe?
+
+    alt Email libre
+        RC -> H : hashPassword()
+        H --> RC : Hash
+        RC -> R : createUser()
+        R -> DB : INSERT
+        DB --> R : OK
+        RC -> B : Redirect(login)
+        B --> U : Connexion
+    else Email utilisé
+        B --> U : Erreur
+    end
+}
+
+' ========================================
+' DIAGRAMME 3: RESET PASSWORD
+' ========================================
+page 2x2 {
+    title Reset Password
+
+    actor "👤 U" as U
+    participant "🌐 Nav" as B
+    participant "🔑 Reset" as RC
+    participant "📧 Mailer" as M
+    participant "📊 Repo" as R
+    database "🗄️ DB" as DB
+
+    U -> B : /reset-password
+    B -> RC : GET
+    RC -> B : render form
+    B --> U : Formulaire
+
+    U -> B : Email
+    B -> RC : POST email
+    RC -> R : findUser(email)
+    R -> DB : SELECT
+    DB --> R : User
+
+    alt User trouvé
+        RC -> RC : generateToken()
+        RC -> M : sendEmail(token)
+        M --> RC : OK
+        RC -> B : Redirect(confirm)
+        B --> U : Confirmation
+    end
+
+    U -> B : Clic lien email
+    B -> RC : GET /reset/{token}
+    RC -> RC : validateToken()
+    RC -> B : render reset form
+    B --> U : Nouveau mot de passe
+
+    U -> B : Nouveau pwd
+    B -> RC : POST
+    RC -> R : updatePassword()
+    R -> DB : UPDATE
+    DB --> R : OK
+    RC -> B : Redirect(home)
+    B --> U : Accueil
+}
+
+' ========================================
+' DIAGRAMME 4: LOGOUT
+' ========================================
+page 2x2 {
+    title Logout
+
+    actor "👤 U" as U
+    participant "🌐 Nav" as B
+    participant "🔒 Security" as S
+    participant "🔐 Auth" as A
+
+    U -> B : Clic logout
+    B -> S : POST /logout + CSRF
+    S -> S : Invalide session
+    S -> S : Supprime cookies
+    S -> A : logout()
+    A --> S : OK
+    S -> B : Redirect(home)
+    B --> U : Accueil
+}
+
+' ========================================
+' DIAGRAMME 5: ACCESS DENIED
+' ========================================
+page 2x2 {
+    title Access Denied
+
+    actor "👤 U" as U
+    participant "🌐 Nav" as B
+    participant "🔒 Security" as S
+    participant "🚫 Handler" as H
+    participant "🛣️ Router" as R
+
+    U -> B : Accès route protégée
+    B -> S : GET /admin
+    S -> S : AccessDeniedException
+    S -> H : handle()
+    H -> H : Analyse erreur
+
+    alt ROLE_ORGANISATEUR
+        H -> R : generate(calendar)
+    else ROLE_ADMIN
+        H -> R : generate(home)
+    else Événements
+        H -> R : generate(event_list)
+    else Salles
+        H -> R : generate(calendar)
+    end
+
+    R --> H : URL
+    H -> S : RedirectResponse(URL)
+    S --> B : Redirect
+    B --> U : Page autorisée
+}
+
+@enduml

@@ -858,6 +858,11 @@
                         <!-- Champs cachés pour le ciblage -->
                         <input type="hidden" id="targeting-type" name="targeting_type" value="">
                         <input type="hidden" id="targeting-data-hidden" name="targeting_data" value="">
+                        <!-- Champ de debug pour vérifier les valeurs avant envoi -->
+                        <div id="debug-values" style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 0.9em; text-align: left;">
+                            <div><strong>Type:</strong> <span id="debug-type"></span></div>
+                            <div><strong>Données:</strong> <span id="debug-data"></span></div>
+                        </div>
                         
                         <div class="text-center">
                             <p class="mb-4 text-muted">
@@ -870,10 +875,7 @@
                                 Envoyer l'invitation maintenant
                             </button>
                             
-                            <button type="button" class="btn btn-outline-info btn-sm mt-3" onclick="debugFormData()">
-                                <i class="fas fa-bug me-2"></i>
-                                Debug - Voir les données
-                            </button>
+                            <!-- Bouton de debug supprimé -->
                         </div>
                     </form>
                 </div>
@@ -949,35 +951,7 @@
             showToast('Sélection supprimée', 'success', 'fas fa-times-circle');
         }
         
-        // Fonction de debug
-        function debugFormData() {
-            const targetingType = document.getElementById('targeting-type').value;
-            const targetingData = document.getElementById('targeting-data-hidden').value;
-            const deptValue = document.getElementById('department-select')?.value || 'N/A';
-            const empSelected = document.getElementById('employee-select')?.selectedOptions.length || 0;
-            
-            const debugInfo = `
-=== DEBUG DONNÉES FORMULAIRE ===
-Targeting Type: "${targetingType}"
-Targeting Data: "${targetingData}"
-Département sélectionné: "${deptValue}"
-Employés sélectionnés: ${empSelected}
-Selected Targeting Variable: "${selectedTargeting}"
-
-=== DONNÉES QUI SERONT ENVOYÉES ===
-targeting_type = "${targetingType}"
-targeting_data = "${targetingData}"
-            `;
-            
-            alert(debugInfo);
-            console.log('Debug Form Data:', {
-                targetingType,
-                targetingData,
-                deptValue,
-                empSelected,
-                selectedTargeting
-            });
-        }
+        // Fonction de debug supprimée
         
         // Système de notifications toast
         function showToast(message, type = 'success', icon = 'fas fa-check-circle') {
@@ -1087,16 +1061,32 @@ targeting_data = "${targetingData}"
                 const deptSelect = document.getElementById('department-select');
                 if (deptSelect && deptSelect.value) {
                     targetingData = deptSelect.value;
+                    console.log('Département sélectionné:', deptSelect.value, deptSelect.options[deptSelect.selectedIndex].text);
+                } else {
+                    console.warn('Aucun département sélectionné ou élément non trouvé');
                 }
             } else if (selectedTargeting === 'specific') {
                 const employeeSelect = document.getElementById('employee-select');
                 if (employeeSelect) {
                     const selectedIds = Array.from(employeeSelect.selectedOptions).map(option => option.value);
                     targetingData = selectedIds.join(',');
+                    console.log('Employés sélectionnés:', selectedIds);
+                } else {
+                    console.warn('Sélecteur d\'employés non trouvé');
                 }
             }
             
             document.getElementById('targeting-data-hidden').value = targetingData;
+            console.log('Champs cachés mis à jour:', {
+                type: document.getElementById('targeting-type').value,
+                data: document.getElementById('targeting-data-hidden').value
+            });
+            
+            // Mettre à jour les valeurs de debug
+            if (document.getElementById('debug-type')) {
+                document.getElementById('debug-type').textContent = document.getElementById('targeting-type').value;
+                document.getElementById('debug-data').textContent = document.getElementById('targeting-data-hidden').value;
+            }
         }
         
         function updateRecipientsPreview() {
@@ -1367,6 +1357,10 @@ targeting_data = "${targetingData}"
 
                     // Mettre à jour les champs cachés avant soumission
                     updateHiddenFields();
+                    
+                    // Afficher les valeurs pour debug
+                    document.getElementById('debug-type').textContent = document.getElementById('targeting-type').value;
+                    document.getElementById('debug-data').textContent = document.getElementById('targeting-data-hidden').value;
 
                     // Validation selon le type de ciblage
                     if (selectedTargeting === 'department') {

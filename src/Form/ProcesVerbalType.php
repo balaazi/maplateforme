@@ -7,6 +7,7 @@ use App\Entity\ActionPV;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -17,6 +18,13 @@ class ProcesVerbalType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+        $participants = $options['participants'] ?? [];
+        
+        $participantChoices = [];
+        foreach ($participants as $participant) {
+            $participantChoices[$participant['name'] . ' (' . $participant['email'] . ')'] = $participant['email'];
+        }
+        
         $builder
             ->add('dateHeure', DateTimeType::class, [
                 'label' => 'Date et heure de la réunion',
@@ -28,14 +36,16 @@ class ProcesVerbalType extends AbstractType
                 ],
                 'help' => 'Date et heure de la réunion pour laquelle ce PV est rédigé'
             ])
-            ->add('participants', TextareaType::class, [
+            ->add('participants', ChoiceType::class, [
                 'label' => 'Liste des participants',
+                'choices' => $participantChoices,
+                'multiple' => true,
+                'expanded' => true,
+                'mapped' => false,
                 'attr' => [
-                    'class' => 'form-control',
-                    'rows' => 4,
-                    'placeholder' => 'Listez les participants présents à la réunion...'
+                    'class' => 'participants-list'
                 ],
-                'help' => 'Indiquez les noms et fonctions des participants présents'
+                'help' => 'Sélectionnez les participants en cochant les cases correspondantes. Vous pouvez sélectionner tous les utilisateurs de la plateforme. Utilisez le bouton "Tout sélectionner" pour une sélection en masse.'
             ])
             ->add('pointsAbordes', TextareaType::class, [
                 'label' => 'Points abordés',
@@ -87,6 +97,7 @@ class ProcesVerbalType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => ProcesVerbal::class,
+            'participants' => [],
         ]);
     }
 }

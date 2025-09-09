@@ -1,0 +1,499 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Statistiques avancées{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .advanced-stats-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+        }
+        
+        .stats-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            color: white;
+            text-align: center;
+        }
+        
+        .stats-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .stats-main {
+            padding: 2rem;
+            background: #f8fafc;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 4px solid;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card.primary { border-left-color: #3b82f6; }
+        .stat-card.success { border-left-color: #10b981; }
+        .stat-card.danger { border-left-color: #ef4444; }
+        .stat-card.warning { border-left-color: #f59e0b; }
+        .stat-card.info { border-left-color: #06b6d4; }
+        .stat-card.purple { border-left-color: #8b5cf6; }
+        
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .stat-card.primary .stat-icon { background: #3b82f6; }
+        .stat-card.success .stat-icon { background: #10b981; }
+        .stat-card.danger .stat-icon { background: #ef4444; }
+        .stat-card.warning .stat-icon { background: #f59e0b; }
+        .stat-card.info .stat-icon { background: #06b6d4; }
+        .stat-card.purple .stat-icon { background: #8b5cf6; }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .stat-description {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-top: 0.5rem;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .chart-container h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+        
+        .performance-comparison {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .performance-comparison h3 {
+            color: #1f2937;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .comparison-item {
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .comparison-item.best {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #10b981;
+        }
+        
+        .comparison-item.worst {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #ef4444;
+        }
+        
+        .comparison-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .comparison-item.best .comparison-title {
+            color: #065f46;
+        }
+        
+        .comparison-item.worst .comparison-title {
+            color: #991b1b;
+        }
+        
+        .comparison-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .comparison-item.best .comparison-value {
+            color: #047857;
+        }
+        
+        .comparison-item.worst .comparison-value {
+            color: #dc2626;
+        }
+        
+        .comparison-details {
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+        
+        .export-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        
+        .export-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .export-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="advanced-stats-container">
+        <!-- Header -->
+        <div class="stats-header">
+            <div class="container">
+                <h1><i class="fas fa-chart-line"></i> Statistiques avancées</h1>
+                <p>Analyse complète de vos événements et performances</p>
+            </div>
+        </div>
+
+        <!-- Statistiques principales -->
+        <div class="stats-main">
+            <div class="container">
+                <!-- Statistiques globales -->
+                <div class="stats-grid fade-in">
+                    <div class="stat-card primary">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ advancedStats.total_events }}</div>
+                        <div class="stat-label">Événements totaux</div>
+                        <div class="stat-description">Événements organisés</div>
+                    </div>
+
+                    <div class="stat-card success">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ advancedStats.total_invitations }}</div>
+                        <div class="stat-label">Invitations envoyées</div>
+                        <div class="stat-description">Total des invitations</div>
+                    </div>
+
+                    <div class="stat-card info">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ advancedStats.total_participations }}</div>
+                        <div class="stat-label">Participations</div>
+                        <div class="stat-description">Total des participations</div>
+                    </div>
+
+                    <div class="stat-card warning">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-percentage"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ advancedStats.avg_acceptance_rate }}%</div>
+                        <div class="stat-label">Taux d'acceptation moyen</div>
+                        <div class="stat-description">Acceptation moyenne</div>
+                    </div>
+
+                    <div class="stat-card purple">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-bar"></i>
+                            </div>
+                        </div>
+                        <div class="stat-number">{{ advancedStats.avg_presence_rate }}%</div>
+                        <div class="stat-label">Taux de présence moyen</div>
+                        <div class="stat-description">Présence moyenne</div>
+                    </div>
+                </div>
+
+                <!-- Comparaison des performances -->
+                {% if advancedStats.best_performing_event or advancedStats.worst_performing_event %}
+                <div class="performance-comparison">
+                    <h3><i class="fas fa-trophy"></i> Comparaison des performances</h3>
+                    <div class="comparison-grid">
+                        {% if advancedStats.best_performing_event %}
+                        <div class="comparison-item best">
+                            <div class="comparison-title">🏆 Meilleur événement</div>
+                            <div class="comparison-value">{{ advancedStats.best_performing_event.title }}</div>
+                            <div class="comparison-details">
+                                Date: {{ advancedStats.best_performing_event.dateHeure|date('d/m/Y') }}<br>
+                                Taux d'acceptation: {{ advancedStats.avg_acceptance_rate }}%
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if advancedStats.worst_performing_event %}
+                        <div class="comparison-item worst">
+                            <div class="comparison-title">📉 Événement à améliorer</div>
+                            <div class="comparison-value">{{ advancedStats.worst_performing_event.title }}</div>
+                            <div class="comparison-details">
+                                Date: {{ advancedStats.worst_performing_event.dateHeure|date('d/m/Y') }}<br>
+                                Taux d'acceptation: {{ advancedStats.avg_acceptance_rate }}%
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Graphiques -->
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-line"></i> Tendances mensuelles</h3>
+                        <canvas id="monthlyTrendsChart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <h3><i class="fas fa-chart-pie"></i> Répartition des événements</h3>
+                        <canvas id="eventsDistributionChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Actions d'export -->
+                <div class="export-actions">
+                    <button class="export-btn" onclick="window.print()">
+                        <i class="fas fa-print"></i>
+                        Imprimer les statistiques
+                    </button>
+                    <a href="{{ path('organisateur_statistics') }}" class="export-btn">
+                        <i class="fas fa-chart-bar"></i>
+                        Statistiques générales
+                    </a>
+                    <a href="{{ path('department_statistics') }}" class="export-btn">
+                        <i class="fas fa-building"></i>
+                        Statistiques par département
+                    </a>
+                    <a href="{{ path('common_dashboard') }}" class="export-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Retour au tableau de bord
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration des graphiques
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#6b7280';
+
+        // Données des tendances mensuelles
+        const monthlyData = {{ advancedStats.monthly_trends|json_encode|raw }};
+        
+        // Graphique des tendances mensuelles
+        const monthlyCtx = document.getElementById('monthlyTrendsChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: Object.keys(monthlyData),
+                datasets: [
+                    {
+                        label: 'Événements',
+                        data: Object.values(monthlyData).map(data => data.events),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Invitations',
+                        data: Object.values(monthlyData).map(data => data.invitations),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Acceptations',
+                        data: Object.values(monthlyData).map(data => data.acceptances),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Graphique de répartition des événements
+        const eventsCtx = document.getElementById('eventsDistributionChart').getContext('2d');
+        new Chart(eventsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Acceptés', 'Déclinés', 'En attente'],
+                datasets: [{
+                    data: [
+                        {{ advancedStats.total_invitations > 0 ? (advancedStats.total_invitations * advancedStats.avg_acceptance_rate / 100)|round : 0 }},
+                        {{ advancedStats.total_invitations > 0 ? (advancedStats.total_invitations * (100 - advancedStats.avg_acceptance_rate) / 100)|round : 0 }},
+                        {{ advancedStats.total_invitations > 0 ? (advancedStats.total_invitations * 0.1)|round : 0 }}
+                    ],
+                    backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        // Animation des compteurs
+        document.addEventListener('DOMContentLoaded', function() {
+            const counters = document.querySelectorAll('.stat-number');
+            counters.forEach(counter => {
+                const target = parseInt(counter.textContent.replace(/[^0-9]/g, ''));
+                const increment = target / 100;
+                let current = 0;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(timer);
+                    }
+                    counter.textContent = Math.floor(current) + (counter.textContent.includes('%') ? '%' : '');
+                }, 20);
+            });
+        });
+    </script>
+{% endblock %}

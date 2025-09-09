@@ -21,14 +21,60 @@ class InvitationRepository extends ServiceEntityRepository
      */
     public function findExpiredInvitations(\DateTime $expirationDate): array
     {
-        return $this->createQueryBuilder('i')
+        $qb = $this->createQueryBuilder('i')
+            ->select('i', 'e')  // Sélectionner aussi l'événement
+            ->leftJoin('i.event', 'e')  // Joindre la table des événements
             ->andWhere('i.status = :status')
             ->andWhere('i.createdAt < :expirationDate')
             ->setParameter('status', 'pending')
             ->setParameter('expirationDate', $expirationDate)
-            ->orderBy('i.createdAt', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->orderBy('i.createdAt', 'ASC');
+
+        $result = $qb->getQuery()->getResult();
+
+        // Logger les résultats pour le débogage
+        foreach ($result as $invitation) {
+            $event = $invitation->getEvent();
+            error_log(sprintf(
+                "Invitation trouvée - ID: %d, Email: %s, Type d'événement: %s, Créée le: %s",
+                $invitation->getId(),
+                $invitation->getEmail(),
+                $event ? $event->getType() : 'inconnu',
+                $invitation->getCreatedAt()->format('Y-m-d H:i:s')
+            ));
+        }
+
+        return $result;
+    }
+
+    /**
+     * Trouve la participation associée à une invitation
+     */
+    public function findParticipationForInvitation(Invitation $invitation): ?object
+    {
+        $event = $invitation->getEvent();
+        $email = $invitation->getEmail();
+        
+        if (!$event) {
+            return null;
+        }
+
+        // Chercher l'utilisateur par email
+        $user = $this->getEntityManager()
+            ->getRepository('App\Entity\User')
+            ->findOneBy(['email' => $email]);
+        
+        if (!$user) {
+            return null;
+        }
+
+        // Chercher la participation de cet utilisateur pour cet événement
+        return $this->getEntityManager()
+            ->getRepository('App\Entity\Participation')
+            ->findOneBy([
+                'user' => $user,
+                'event' => $event
+            ]);
     }
 
     //    /**

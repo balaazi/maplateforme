@@ -38,14 +38,6 @@ class ActionPVType extends AbstractType
                     'class' => 'form-select'
                 ]
             ])
-            ->add('responsableNom', TextType::class, [
-                'label' => 'Nom du responsable (si non dans la liste)',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Nom du responsable externe...'
-                ]
-            ])
             ->add('delai', DateType::class, [
                 'label' => 'Délai',
                 'widget' => 'single_text',

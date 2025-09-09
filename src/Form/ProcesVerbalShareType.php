@@ -29,7 +29,7 @@ class ProcesVerbalShareType extends AbstractType
                 'attr' => [
                     'class' => 'participants-list'
                 ],
-                'help' => 'Sélectionnez les participants qui recevront le procès-verbal par email'
+                'help' => 'Sélectionnez les participants en cochant les cases correspondantes ci-dessous.'
             ])
             ->add('additionalEmails', TextareaType::class, [
                 'label' => 'Emails supplémentaires',

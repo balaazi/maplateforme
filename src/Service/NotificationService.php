@@ -59,6 +59,28 @@ class NotificationService
     }
 
     /**
+     * Crée une notification de rappel avancé d'événement (24h ou 1h avant)
+     */
+    public function createAdvancedEventReminderNotification(User $user, Event $event, string $reminderType): Notification
+    {
+        $hoursBefore = $reminderType === '24h' ? 24 : 1;
+        $title = $reminderType === '24h' ? "⏰ Rappel 24h - Événement à venir" : "🚨 Rappel 1h - Événement imminent";
+        
+        $message = sprintf(
+            $reminderType === '24h' 
+                ? "N'oubliez pas l'événement '%s' qui aura lieu demain le %s à %s. Vous recevrez un autre rappel 1 heure avant."
+                : "URGENT : L'événement '%s' commence dans 1 heure le %s à %s !",
+            $event->getTitle(),
+            $event->getDateHeure()->format('d/m/Y'),
+            $event->getDateHeure()->format('H:i')
+        );
+
+        $type = $reminderType === '24h' ? 'event_reminder_24h' : 'event_reminder_1h';
+        
+        return $this->createNotification($user, $title, $message, $type, $event);
+    }
+
+    /**
      * Crée une notification de modification d'événement
      */
     public function createEventUpdateNotification(User $user, Event $event): Notification

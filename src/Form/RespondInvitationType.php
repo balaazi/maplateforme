@@ -13,17 +13,20 @@ class RespondInvitationType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
-        $builder
-            ->add('status', ChoiceType::class, [
-                'choices' => [
-                    'Accepter' => InvitationStatus::ACCEPTED,
-                    'Refuser' => InvitationStatus::DECLINED,
-                    'Marquer comme expiré' => InvitationStatus::EXPIRED,
-                ],
-                'expanded' => true, // boutons radios
-                'multiple' => false,
-                'label' => 'Votre réponse',
-            ]);
+        $builder->add('response', ChoiceType::class, [
+            'choices' => [
+                'Accepter' => 'accepted',
+                'Refuser' => 'declined',
+                'Marquer comme expiré' => 'expired',
+            ],
+            'expanded' => true,
+            'multiple' => false,
+            'required' => true,
+            'label' => 'Votre réponse',
+            'attr' => [
+                'class' => 'response-choices'
+            ]
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

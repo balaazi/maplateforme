@@ -9,6 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Mailer\MailerInterface;
@@ -29,15 +30,53 @@ class SendEventRemindersCommand extends Command
     ) {
         parent::__construct();
     }
+    
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                'force-date',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Force l\'envoi des rappels pour une date spécifique (format: Y-m-d)'
+            )
+            ->addOption(
+                'test-mode',
+                null,
+                InputOption::VALUE_NONE,
+                'Mode test - n\'envoie pas réellement les emails'
+            );
+    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
         $io->title('🔔 Envoi des rappels d\'événements');
-
-        // Récupère les événements de demain
-        $tomorrow = (new \DateTime())->modify('+1 day')->setTime(0, 0, 0);
-        $afterTomorrow = (new \DateTime())->modify('+2 day')->setTime(0, 0, 0);
+        
+        $testMode = $input->getOption('test-mode');
+        if ($testMode) {
+            $io->warning('⚠️ Mode test activé - Les emails ne seront pas réellement envoyés');
+        }
+        
+        // Vérifier si une date spécifique est demandée
+        $forceDate = $input->getOption('force-date');
+        
+        if ($forceDate) {
+            try {
+                $tomorrow = new \DateTime($forceDate);
+                $tomorrow->setTime(0, 0, 0);
+                $afterTomorrow = clone $tomorrow;
+                $afterTomorrow->modify('+1 day');
+                $io->note(sprintf('Mode forcé pour la date: %s', $forceDate));
+            } catch (\Exception $e) {
+                $io->error(sprintf('Format de date invalide: %s. Utilisez le format Y-m-d (ex: 2025-09-07)', $forceDate));
+                return Command::FAILURE;
+            }
+        } else {
+            // Récupère les événements de demain (comportement par défaut)
+            $tomorrow = (new \DateTime())->modify('+1 day')->setTime(0, 0, 0);
+            $afterTomorrow = (new \DateTime())->modify('+2 day')->setTime(0, 0, 0);
+        }
 
         $io->note(sprintf('Recherche d\'événements entre %s et %s', 
             $tomorrow->format('d/m/Y H:i'), 
@@ -73,11 +112,16 @@ class SendEventRemindersCommand extends Command
                 
                 if (!in_array($uniqueKey, $usersNotified)) {
                     try {
-                        $this->mailerService->sendReminderEmail($organizer, $event);
-                        $this->notificationService->createEventReminderNotification($organizer, $event);
+                        if (!$testMode) {
+                            $this->mailerService->sendReminderEmail($organizer, $event);
+                            $this->notificationService->createEventReminderNotification($organizer, $event);
+                        }
                         $usersNotified[] = $uniqueKey;
                         $eventReminders++;
-                        $io->text(sprintf('   ✅ Rappel envoyé à l\'organisateur: %s', $organizer->getFullName()));
+                        $io->text(sprintf('   ✅ Rappel %senvoyé à l\'organisateur: %s', 
+                            $testMode ? '(simulation) ' : '',
+                            $organizer->getFullName()
+                        ));
                     } catch (\Exception $e) {
                         $io->error(sprintf('   ❌ Erreur envoi rappel organisateur %s: %s', $organizer->getFullName(), $e->getMessage()));
                     }
@@ -93,11 +137,16 @@ class SendEventRemindersCommand extends Command
                     
                     if (!in_array($uniqueKey, $usersNotified)) {
                         try {
-                            $this->mailerService->sendReminderEmail($user, $event);
-                            $this->notificationService->createEventReminderNotification($user, $event);
+                            if (!$testMode) {
+                                $this->mailerService->sendReminderEmail($user, $event);
+                                $this->notificationService->createEventReminderNotification($user, $event);
+                            }
                             $usersNotified[] = $uniqueKey;
                             $eventReminders++;
-                            $io->text(sprintf('   ✅ Rappel envoyé au participant: %s', $user->getFullName()));
+                            $io->text(sprintf('   ✅ Rappel %senvoyé au participant: %s', 
+                                $testMode ? '(simulation) ' : '', 
+                                $user->getFullName()
+                            ));
                         } catch (\Exception $e) {
                             $io->error(sprintf('   ❌ Erreur envoi rappel participant %s: %s', $user->getFullName(), $e->getMessage()));
                         }
@@ -123,11 +172,16 @@ class SendEventRemindersCommand extends Command
                             $tempUser->fullName = $invitation->getName();
                             
                             // Envoyer l'email directement sans utiliser EmailService
-                            $this->sendReminderEmail($tempUser, $event);
+                            if (!$testMode) {
+                                $this->sendReminderEmail($tempUser, $event);
+                            }
                             
                             $usersNotified[] = $uniqueKey;
                             $eventReminders++;
-                            $io->text(sprintf('   ✅ Rappel envoyé à l\'invité: %s', $invitation->getName()));
+                            $io->text(sprintf('   ✅ Rappel %senvoyé à l\'invité: %s', 
+                                $testMode ? '(simulation) ' : '',
+                                $invitation->getName()
+                            ));
                         } catch (\Exception $e) {
                             $io->error(sprintf('   ❌ Erreur envoi rappel invité %s: %s', $invitation->getName(), $e->getMessage()));
                         }

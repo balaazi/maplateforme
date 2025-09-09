@@ -122,15 +122,7 @@ class EventFormType extends AbstractType
                 ],
                 'help' => $dateHeure ? 'Sélectionnez une salle disponible pour votre événement' : 'Sélectionnez d\'abord une date et heure pour voir les salles disponibles'
             ])
-            ->add('lieu', TextType::class, [
-                'label' => 'Lieu personnalisé',
-                'required' => false,
-                'attr' => [
-                    'class' => 'form-control',
-                    'placeholder' => 'Ou saisissez un lieu personnalisé'
-                ],
-                'help' => 'Laissez vide si vous sélectionnez une salle'
-            ])
+
             ->add('dateHeure', DateTimeType::class, [
                 'label' => 'Date et heure',
                 'widget' => 'single_text',

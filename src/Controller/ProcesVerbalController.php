@@ -37,7 +37,7 @@ class ProcesVerbalController extends AbstractController
         }
 
         // Vérifier que c'est bien un événement de type réunion
-        if ($event->getCategory() !== 'Réunion') {
+        if (strtolower($event->getCategory()) !== 'réunion' && strtolower($event->getCategory()) !== 'reunion') {
             $this->addFlash('error', 'Les procès-verbaux ne sont disponibles que pour les événements de type réunion');
             return $this->redirectToRoute('event_show', ['id' => $eventId]);
         }
@@ -60,24 +60,30 @@ class ProcesVerbalController extends AbstractController
         $procesVerbal->setRedacteur($this->getUser());
         $procesVerbal->setDateHeure($event->getDateHeure());
 
-        // Préremplir la liste des participants avec les invités
+        // Préparer la liste de tous les utilisateurs pour le formulaire
+        $allUsers = $em->getRepository(User::class)->findAll();
         $participants = [];
-        foreach ($event->getInvitations() as $invitation) {
-            // Récupérer l'utilisateur via l'email de l'invitation
-            $user = $em->getRepository(User::class)->findOneBy(['email' => $invitation->getEmail()]);
-            if ($user) {
-                $participants[] = $user->getPrenom() . ' ' . $user->getNom();
-            } else {
-                // Si pas d'utilisateur trouvé, utiliser le nom de l'invitation
-                $participants[] = $invitation->getName();
-            }
+        
+        foreach ($allUsers as $user) {
+            $participants[] = [
+                'name' => $user->getPrenom() . ' ' . $user->getNom(),
+                'email' => $user->getEmail()
+            ];
         }
-        $procesVerbal->setParticipants(implode("\n", $participants));
 
-        $form = $this->createForm(ProcesVerbalType::class, $procesVerbal);
+        $form = $this->createForm(ProcesVerbalType::class, $procesVerbal, [
+            'participants' => $participants
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer et convertir les participants sélectionnés en texte
+            $selectedParticipants = $form->get('participants')->getData();
+            if (is_array($selectedParticipants)) {
+                $participantText = implode("\n", $selectedParticipants);
+                $procesVerbal->setParticipants($participantText);
+            }
+            
             $procesVerbal->setDateModification(new \DateTime());
             
             $em->persist($procesVerbal);
@@ -129,10 +135,41 @@ class ProcesVerbalController extends AbstractController
             return $this->redirectToRoute('proces_verbal_show', ['id' => $procesVerbal->getId()]);
         }
 
-        $form = $this->createForm(ProcesVerbalType::class, $procesVerbal);
+        // Préparer la liste de tous les utilisateurs pour le formulaire
+        $allUsers = $em->getRepository(User::class)->findAll();
+        $participants = [];
+        
+        foreach ($allUsers as $user) {
+            $participants[] = [
+                'name' => $user->getPrenom() . ' ' . $user->getNom(),
+                'email' => $user->getEmail()
+            ];
+        }
+        // Pré-remplir les participants déjà sélectionnés
+        $currentParticipants = $procesVerbal->getParticipants();
+        $selectedEmails = [];
+        if ($currentParticipants) {
+            $selectedEmails = explode("\n", $currentParticipants);
+        }
+
+        $form = $this->createForm(ProcesVerbalType::class, $procesVerbal, [
+            'participants' => $participants
+        ]);
+        
+        // Pré-remplir le formulaire avec les participants sélectionnés
+        if (!empty($selectedEmails)) {
+            $form->get('participants')->setData($selectedEmails);
+        }
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Récupérer et convertir les participants sélectionnés en texte
+            $selectedParticipants = $form->get('participants')->getData();
+            if (is_array($selectedParticipants)) {
+                $participantText = implode("\n", $selectedParticipants);
+                $procesVerbal->setParticipants($participantText);
+            }
+            
             $procesVerbal->setDateModification(new \DateTime());
             
             $em->flush();

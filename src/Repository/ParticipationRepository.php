@@ -51,6 +51,21 @@ class ParticipationRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Trouve les participations en attente qui ont dépassé la date d'expiration
+     */
+    public function findExpiredParticipations(\DateTime $expirationDate): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.invitationStatus = :status')
+            ->andWhere('p.createdAt < :expirationDate')
+            ->setParameter('status', 'pending')
+            ->setParameter('expirationDate', $expirationDate)
+            ->orderBy('p.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return Participation[] Returns an array of Participation objects
     //     */

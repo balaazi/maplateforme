@@ -2,60 +2,77 @@
 
 namespace App\Command;
 
-use App\Service\InvitationExpirationService;
-use Symfony\Component\Console\Attribute\AsCommand;
+use App\Repository\InvitationRepository;
+use App\Service\InvitationExpirationNotifier;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-#[AsCommand(
-    name: 'app:expire-invitations',
-    description: 'Marque les anciennes invitations en attente comme expirées',
-)]
 class ExpireInvitationsCommand extends Command
 {
+    protected static $defaultName = 'app:expire-invitations';
+    protected static $defaultDescription = 'Force l\'expiration des invitations en attente';
+
     public function __construct(
-        private InvitationExpirationService $expirationService
+        private InvitationRepository $invitationRepository,
+        private EntityManagerInterface $entityManager,
+        private InvitationExpirationNotifier $expirationNotifier
     ) {
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this
-            ->addOption(
-                'days',
-                'd',
-                InputOption::VALUE_OPTIONAL,
-                'Nombre de jours avant expiration (défaut: 30)',
-                30
-            )
-            ->setHelp('Cette commande marque automatiquement les invitations en attente comme expirées après un délai spécifié.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        
-        $days = (int) $input->getOption('days');
-        
-        $io->title('Expiration des invitations');
-        $io->text("Marquage des invitations en attente comme expirées après {$days} jours...");
-        
+
         try {
-            $count = $this->expirationService->expireOldInvitations($days);
+            // Récupérer toutes les invitations en attente
+            $pendingInvitations = $this->invitationRepository->findBy(['status' => 'pending']);
             
-            if ($count > 0) {
-                $io->success("{$count} invitations ont été marquées comme expirées.");
+            $expiredCount = 0;
+            $now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+            
+            foreach ($pendingInvitations as $invitation) {
+                // Forcer la vérification avec un délai de 1 jour
+                if ($invitation->shouldBeExpired(1)) {
+                    try {
+                        $this->expirationNotifier->notifyExpiration($invitation);
+                        $expiredCount++;
+                        $io->text(sprintf(
+                            "Invitation expirée - ID: %d, Email: %s",
+                            $invitation->getId(),
+                            $invitation->getEmail()
+                        ));
+                    } catch (\Exception $e) {
+                        $io->error(sprintf(
+                            "Erreur lors de l'expiration - ID: %d, Email: %s, Erreur: %s",
+                            $invitation->getId(),
+                            $invitation->getEmail(),
+                            $e->getMessage()
+                        ));
+                    }
+                } else {
+                    $io->text(sprintf(
+                        "Invitation non expirée - ID: %d, Email: %s, Créée le: %s",
+                        $invitation->getId(),
+                        $invitation->getEmail(),
+                        $invitation->getCreatedAt()->format('Y-m-d H:i:s')
+                    ));
+                }
+            }
+            
+            if ($expiredCount > 0) {
+                $this->entityManager->flush();
+                $io->success(sprintf('%d invitation(s) expirée(s)', $expiredCount));
             } else {
-                $io->info('Aucune invitation à expirer trouvée.');
+                $io->info('Aucune invitation n\'a été expirée.');
             }
             
             return Command::SUCCESS;
         } catch (\Exception $e) {
-            $io->error('Erreur lors de l\'expiration des invitations: ' . $e->getMessage());
+            $io->error($e->getMessage());
             return Command::FAILURE;
         }
     }

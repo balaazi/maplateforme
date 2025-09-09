@@ -65,21 +65,10 @@
                             </div>
                         </div>
                         
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    {{ form_label(form.salle, 'Salle') }}
-                                    {{ form_widget(form.salle, {'attr': {'class': 'form-control'}}) }}
-                                    {{ form_errors(form.salle) }}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    {{ form_label(form.lieu, 'Lieu personnalisé') }}
-                                    {{ form_widget(form.lieu, {'attr': {'class': 'form-control'}}) }}
-                                    {{ form_errors(form.lieu) }}
-                                </div>
-                            </div>
+                        <div class="form-group">
+                            {{ form_label(form.salle, 'Salle') }}
+                            {{ form_widget(form.salle, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.salle) }}
                         </div>
                         
 

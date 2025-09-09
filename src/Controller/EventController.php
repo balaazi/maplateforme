@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Salle;
 use App\Service\SalleDisponibiliteService;
 use App\Service\AutoArchiveService;
+use App\Enum\InvitationStatus;
 
 class EventController extends AbstractController
 {
@@ -70,6 +71,9 @@ class EventController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // DEBUG : Log de début de traitement
+            error_log("DEBUG: Création d'événement - Formulaire soumis et valide");
+            
             $event->setOrganizer($this->getUser());
             $event->setCreatedBy($this->getUser()); // Ajout important
 
@@ -83,28 +87,50 @@ class EventController extends AbstractController
 
             // Traitement des fichiers uploadés
             $uploadedFiles = $form->get('imageFile')->getData();
+            error_log("DEBUG: Création - Fichiers uploadés récupérés : " . ($uploadedFiles ? (is_array($uploadedFiles) ? count($uploadedFiles) : '1 fichier unique') : 'Aucun fichier'));
+            
             $documentsCreated = 0;
             if ($uploadedFiles) {
                 // Vérifier si c'est un fichier unique ou multiple
                 if (!is_array($uploadedFiles)) {
                     $uploadedFiles = [$uploadedFiles];
+                    error_log("DEBUG: Création - Fichier unique converti en tableau");
                 }
                 
-                foreach ($uploadedFiles as $uploadedFile) {
+                error_log("DEBUG: Création - Traitement de " . count($uploadedFiles) . " fichier(s)");
+                
+                foreach ($uploadedFiles as $index => $uploadedFile) {
+                    error_log("DEBUG: Création - Traitement du fichier " . ($index + 1) . " : " . $uploadedFile->getClientOriginalName());
+                    
                     if ($uploadedFile) {
                         try {
                             $document = new Document();
-                            $document->setFile($uploadedFile);
+                            error_log("DEBUG: Création - Nouvelle entité Document créée");
+                            
+                            $document->setFile($uploadedFile); // VichUploader gère automatiquement le fileName
+                            error_log("DEBUG: Création - Fichier assigné au document");
+                            
                             $document->setEvent($event);
+                            $event->addDocument($document); // Maintenir la relation bidirectionnelle
+                            error_log("DEBUG: Création - Événement assigné au document et document ajouté à l'événement");
+                            
                             $entityManager->persist($document);
+                            error_log("DEBUG: Création - Document persisté en EntityManager");
+                            
                             $documentsCreated++;
+                            error_log("DEBUG: Création - Document " . $documentsCreated . " créé avec succès");
                         } catch (\Exception $e) {
-                            error_log('Erreur lors de la création du document: ' . $e->getMessage());
+                            error_log('ERROR: Création - Erreur lors de la création du document: ' . $e->getMessage());
+                            error_log('ERROR: Création - Trace: ' . $e->getTraceAsString());
                         }
                     }
                 }
+            } else {
+                error_log("DEBUG: Création - Aucun fichier uploadé détecté");
             }
-
+            
+            error_log("DEBUG: Création - Total documents créés : " . $documentsCreated);
+            
             $entityManager->persist($event);
             $entityManager->persist($calendarEvent);
             $entityManager->flush();
@@ -236,31 +262,57 @@ class EventController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // DEBUG : Log de début de traitement
+            error_log("DEBUG: Formulaire soumis et valide pour l'événement ID " . $event->getId());
+            
             // Traitement des fichiers uploadés lors de la modification
             $uploadedFiles = $form->get('imageFile')->getData();
+            error_log("DEBUG: Fichiers uploadés récupérés : " . ($uploadedFiles ? (is_array($uploadedFiles) ? count($uploadedFiles) : '1 fichier unique') : 'Aucun fichier'));
+            
             $documentsCreated = 0;
             if ($uploadedFiles) {
                 // Vérifier si c'est un fichier unique ou multiple
                 if (!is_array($uploadedFiles)) {
                     $uploadedFiles = [$uploadedFiles];
+                    error_log("DEBUG: Fichier unique converti en tableau");
                 }
                 
-                foreach ($uploadedFiles as $uploadedFile) {
+                error_log("DEBUG: Traitement de " . count($uploadedFiles) . " fichier(s)");
+                
+                foreach ($uploadedFiles as $index => $uploadedFile) {
+                    error_log("DEBUG: Traitement du fichier " . ($index + 1) . " : " . $uploadedFile->getClientOriginalName());
+                    
                     if ($uploadedFile) {
                         try {
                             $document = new Document();
-                            $document->setFile($uploadedFile);
+                            error_log("DEBUG: Nouvelle entité Document créée");
+                            
+                            $document->setFile($uploadedFile); // VichUploader gère automatiquement le fileName
+                            error_log("DEBUG: Fichier assigné au document");
+                            
                             $document->setEvent($event);
+                            $event->addDocument($document); // Maintenir la relation bidirectionnelle
+                            error_log("DEBUG: Événement assigné au document et document ajouté à l'événement");
+                            
                             $em->persist($document);
+                            error_log("DEBUG: Document persisté en EntityManager");
+                            
                             $documentsCreated++;
+                            error_log("DEBUG: Document " . $documentsCreated . " créé avec succès");
                         } catch (\Exception $e) {
-                            error_log('Erreur lors de la création du document: ' . $e->getMessage());
+                            error_log('ERROR: Erreur lors de la création du document: ' . $e->getMessage());
+                            error_log('ERROR: Trace: ' . $e->getTraceAsString());
                         }
                     }
                 }
+            } else {
+                error_log("DEBUG: Aucun fichier uploadé détecté");
             }
             
+            error_log("DEBUG: Total documents créés : " . $documentsCreated);
+            
             $em->flush();
+            error_log("DEBUG: EntityManager flush effectué");
             
             // Notification aux participants
             $this->eventNotificationService->sendEventUpdateNotification($event);
@@ -388,7 +440,7 @@ class EventController extends AbstractController
             $acceptedInvitation = $invitationRepo->findOneBy([
                 'email' => $user->getEmail(),
                 'event' => $event,
-                'status' => 'accepted'
+                'status' => InvitationStatus::ACCEPTED->value
             ]);
             $hasAcceptedInvitation = $acceptedInvitation !== null;
         }
@@ -399,9 +451,12 @@ class EventController extends AbstractController
 
         // Récupérer le procès-verbal associé à cet événement (si c'est une réunion)
         $procesVerbal = null;
-        if ($event->getCategory() === 'Réunion') {
+        if (strtolower($event->getCategory()) === 'réunion' || strtolower($event->getCategory()) === 'reunion') {
             $procesVerbal = $entityManager->getRepository('App\Entity\ProcesVerbal')->findByEvent($event);
         }
+
+        // Récupérer les documents associés à l'événement
+        $documents = $event->getDocuments();
 
         return $this->render('event/show.html.twig', [
             'event' => $event,
@@ -409,6 +464,7 @@ class EventController extends AbstractController
             'hasAcceptedInvitation' => $hasAcceptedInvitation,
             'hasAdminAccess' => $hasAdminAccess,
             'procesVerbal' => $procesVerbal,
+            'documents' => $documents,
         ]);
     }
 
@@ -489,7 +545,7 @@ class EventController extends AbstractController
         // Récupérer tous les participants qui ont accepté l'invitation
         $participations = $participationRepository->findBy([
             'event' => $event,
-            'invitationStatus' => 'accepté'
+            'invitationStatus' => InvitationStatus::ACCEPTED->value
         ]);
 
         return $this->render('event/training_attendance.html.twig', [

@@ -726,7 +726,6 @@
                            id="search-events">
                     <select class="filter-select" id="filter-category">
                         <option value="">Toutes les catégories</option>
-                        <option value="conférence">Conférence</option>
                         <option value="formation">Formation</option>
                         <option value="réunion">Réunion</option>
                         <option value="séminaire">Séminaire</option>
@@ -835,10 +834,12 @@
                                     </a>
                                 {% endif %}
                                 
-                                <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" 
-                                   class="action-btn notes">
-                                    <i class="fas fa-sticky-note"></i> Notes
-                                </a>
+                                {% if event.category|lower not in ['réunion', 'reunion'] %}
+                                    <a href="{{ path('app_collaborative_notes_list', {'id': event.id}) }}" 
+                                       class="action-btn notes">
+                                        <i class="fas fa-sticky-note"></i> Notes
+                                    </a>
+                                {% endif %}
                                 
 
                             </div>

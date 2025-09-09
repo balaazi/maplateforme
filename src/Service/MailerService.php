@@ -3,6 +3,7 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Entity\Event;
+use App\Entity\Invitation;
 use Symfony\Component\Mime\Email;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
@@ -58,6 +59,72 @@ try {
 $this->mailer->send($email);
 } catch (\Exception $e) {
 throw new \RuntimeException("Échec de l'envoi de l'email de rappel: " . $e->getMessage());
+}
+}
+
+// ✅ Envoi d'un email de rappel avancé (24h ou 1h avant)
+public function sendAdvancedReminderEmail(User $user, Event $event, string $reminderType): void
+{
+$hoursBefore = $reminderType === '24h' ? 24 : 1;
+$subject = $reminderType === '24h' ? '⏰ Rappel 24h - ' : '🚨 Rappel 1h - ';
+$subject .= $event->getTitle();
+    
+$email = (new TemplatedEmail())
+->from('nadiabalaazi@gmail.com')
+->to($user->getEmail())
+->subject($subject)
+->htmlTemplate('emails/reminder_advanced.html.twig')
+->context([
+'event' => $event,
+'user' => $user,
+'reminder_type' => $reminderType,
+'hours_before' => $hoursBefore,
+'event_date' => $event->getDateHeure(),
+'event_location' => $event->getSalle()?->getNom() ?? 'Non défini',
+'event_duration' => $event->getDuree(),
+'event_description' => $event->getDescription()
+]);
+
+try {
+$this->mailer->send($email);
+} catch (\Exception $e) {
+throw new \RuntimeException("Échec de l'envoi de l'email de rappel avancé: " . $e->getMessage());
+}
+}
+
+// ✅ Envoi d'un email de rappel avancé à un invité
+public function sendAdvancedReminderEmailToInvitee(Invitation $invitation, Event $event, string $reminderType): void
+{
+$hoursBefore = $reminderType === '24h' ? 24 : 1;
+$subject = $reminderType === '24h' ? '⏰ Rappel 24h - ' : '🚨 Rappel 1h - ';
+$subject .= $event->getTitle();
+    
+// Créer un objet utilisateur temporaire pour l'email
+$tempUser = new \stdClass();
+$tempUser->email = $invitation->getEmail();
+$tempUser->fullName = $invitation->getName();
+$tempUser->prenom = explode(' ', $invitation->getName())[0];
+    
+$email = (new TemplatedEmail())
+->from('nadiabalaazi@gmail.com')
+->to($invitation->getEmail())
+->subject($subject)
+->htmlTemplate('emails/reminder_advanced.html.twig')
+->context([
+'event' => $event,
+'user' => $tempUser,
+'reminder_type' => $reminderType,
+'hours_before' => $hoursBefore,
+'event_date' => $event->getDateHeure(),
+'event_location' => $event->getSalle()?->getNom() ?? 'Non défini',
+'event_duration' => $event->getDuree(),
+'event_description' => $event->getDescription()
+]);
+
+try {
+$this->mailer->send($email);
+} catch (\Exception $e) {
+throw new \RuntimeException("Échec de l'envoi de l'email de rappel avancé à l'invité: " . $e->getMessage());
 }
 }
 }

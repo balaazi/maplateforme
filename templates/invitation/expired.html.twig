@@ -18,8 +18,12 @@
                             Cette invitation a expiré
                         </h4>
                         <p class="mb-0">
-                            Le délai de réponse à cette invitation a dépassé. 
-                            Elle ne peut plus être traitée.
+                            {% if event_passed is defined and event_passed %}
+                                La date de l'événement est dépassée, cette invitation n'est plus valide.
+                            {% else %}
+                                Le délai de réponse à cette invitation a dépassé.
+                                Elle ne peut plus être traitée.
+                            {% endif %}
                         </p>
                     </div>
 

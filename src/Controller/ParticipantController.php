@@ -11,6 +11,7 @@ use App\Repository\CollaborativeNoteRepository;
 use App\Service\NotificationService;
 use App\Service\AutoArchiveService;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Enum\InvitationStatus;
 
 #[IsGranted('ROLE_PARTICIPANT')]
 class ParticipantController extends AbstractController
@@ -165,38 +166,63 @@ class ParticipantController extends AbstractController
         }
         
         $user = $this->getUser();
-        
-        // Récupérer TOUTES les participations de l'utilisateur (même archivées)
+                // NOUVELLE LOGIQUE : Récupération de TOUS les événements accessibles
         $allParticipations = $participationRepository->findBy(['user' => $user]);
-
-        // Extraire les événements de ces participations
-        $events = [];
-        foreach ($allParticipations as $participation) {
-            $events[] = $participation->getEvent();
-        }
-        
-        // AJOUT : Récupérer aussi les événements créés par l'utilisateur
         $eventRepository = $entityManager->getRepository(\App\Entity\Event::class);
-        $createdEvents = $eventRepository->findBy(['createdBy' => $user]);
         
-        // Fusionner les événements (éviter les doublons)
         $allEventsIds = [];
         $allEvents = [];
+        $accessRights = [];
         
-        // Ajouter les événements de participation
-        foreach ($events as $event) {
+        // 1. Événements où l'utilisateur participe (toutes participations, même archivées)
+        foreach ($allParticipations as $participation) {
+            $event = $participation->getEvent();
             if ($event && !in_array($event->getId(), $allEventsIds)) {
                 $allEventsIds[] = $event->getId();
                 $allEvents[] = $event;
+                $accessRights[$event->getId()] = [
+                    'participant' => true,
+                    'organizer' => $event->getOrganizer() === $user,
+                    'creator' => $event->getCreatedBy() === $user,
+                    'participation_status' => $participation->getInvitationStatus()
+                ];
             }
         }
         
-        // Ajouter les événements créés
+        // 2. Événements créés par l'utilisateur (même s'il n'y participe pas)
+        $createdEvents = $eventRepository->findBy(['createdBy' => $user]);
         foreach ($createdEvents as $event) {
             if ($event && !in_array($event->getId(), $allEventsIds)) {
                 $allEventsIds[] = $event->getId();
                 $allEvents[] = $event;
+                $accessRights[$event->getId()] = [
+                    'participant' => false,
+                    'organizer' => $event->getOrganizer() === $user,
+                    'creator' => true,
+                    'participation_status' => null
+                ];
             }
+        }
+        
+        // 3. Événements organisés par l'utilisateur (même s'il n'y participe pas et ne les a pas créés)
+        $organizedEvents = $eventRepository->findBy(['organizer' => $user]);
+        foreach ($organizedEvents as $event) {
+            if ($event && !in_array($event->getId(), $allEventsIds)) {
+                $allEventsIds[] = $event->getId();
+                $allEvents[] = $event;
+                $accessRights[$event->getId()] = [
+                    'participant' => false,
+                    'organizer' => true,
+                    'creator' => $event->getCreatedBy() === $user,
+                    'participation_status' => null
+                ];
+            }
+        }
+
+        // DEBUG : Afficher les événements récupérés
+        error_log("DEBUG: Événements accessibles pour l'utilisateur " . $user->getUserIdentifier() . ": " . count($allEvents));
+        foreach ($allEvents as $event) {
+            error_log("DEBUG: Événement ID " . $event->getId() . " - " . $event->getTitle() . " - Documents: " . $event->getDocuments()->count());
         }
 
         // Récupérer tous les documents uploadés des événements
@@ -207,6 +233,9 @@ class ParticipantController extends AbstractController
                 $documents[] = $document;
             }
         }
+
+        // DEBUG : Afficher le nombre de documents récupérés
+        error_log("DEBUG: Total documents récupérés: " . count($documents));
 
         return $this->render('participant/documents.html.twig', [
             'documents' => $documents,
@@ -273,15 +302,23 @@ class ParticipantController extends AbstractController
 
             // Statuts d'invitation
             switch ($participation->getInvitationStatus()) {
-                case 'accepted':
-                    $stats['accepted']++;
+                case InvitationStatus::ACCEPTED:
+                    $statusText = 'Acceptée';
                     break;
-                case 'declined':
-                    $stats['declined']++;
+                case InvitationStatus::DECLINED:
+                    $statusText = 'Refusée';
+                    break;
+                case InvitationStatus::PENDING:
+                    $statusText = 'En attente';
+                    break;
+                case InvitationStatus::EXPIRED:
+                    $statusText = 'Expirée';
+                    break;
+                case InvitationStatus::CONFLICT:
+                    $statusText = 'Conflit horaire';
                     break;
                 default:
-                    $stats['pending']++;
-                    break;
+                    $statusText = 'Non défini';
             }
 
             // Répartition par catégorie

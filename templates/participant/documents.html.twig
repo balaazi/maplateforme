@@ -317,6 +317,95 @@
             text-decoration: none;
         }
 
+        .btn-delete-document {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-left: 0.5rem;
+        }
+
+        .btn-delete-document:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+        }
+
+        /* Section Container */
+        .section-container {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .section-subtitle {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        .section-body {
+            padding: 2rem;
+        }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
         /* États vides */
         .empty-state {
             text-align: center;
@@ -406,9 +495,7 @@
                 </div>
             </div>
 
-
-
-            <!-- Documents Uploadés -->
+            <!-- Section Documents Uploadés -->
             {% if documents|length > 0 %}
                 <div class="section-container">
                     <div class="section-header">
@@ -418,24 +505,55 @@
                             </div>
                             Documents Uploadés
                         </h2>
+                        <p class="section-subtitle">
+                            Documents partagés lors des événements auxquels vous participez
+                        </p>
                     </div>
                     <div class="section-body">
                         <div class="documents-grid">
                             {% for document in documents %}
-                                <div class="document-card">
+                                <div class="document-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 100 }}">
                                     <div class="document-header">
-                                        <div class="document-type-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
-                                            <i class="fas fa-file"></i>
+                                        <div class="document-type-icon">
+                                            {% set fileExtension = document.fileName|split('.')|last|lower %}
+                                            {% if fileExtension in ['pdf'] %}
+                                                <i class="fas fa-file-pdf"></i>
+                                            {% elseif fileExtension in ['doc', 'docx'] %}
+                                                <i class="fas fa-file-word"></i>
+                                            {% elseif fileExtension in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                                <i class="fas fa-file-image"></i>
+                                            {% else %}
+                                                <i class="fas fa-file"></i>
+                                            {% endif %}
                                         </div>
                                         <div>
-                                            <h3 class="document-title">{{ document.fileName }}</h3>
-                                            <div class="document-event">{{ document.event.title }}</div>
+                                            <h3 class="document-title">{{ document.fileName|split('.')|first|title }}</h3>
+                                            <p class="document-event">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                {{ document.event.title }}
+                                            </p>
                                         </div>
                                     </div>
                                     
                                     <div class="document-content">
-                                        <p><strong>Type:</strong> Document uploadé</p>
-                                        <p><strong>Événement:</strong> {{ document.event.title }}</p>
+                                        <p>
+                                            <strong>Type :</strong> 
+                                            {% if fileExtension in ['pdf'] %}
+                                                Document PDF
+                                            {% elseif fileExtension in ['doc', 'docx'] %}
+                                                Document Word
+                                            {% elseif fileExtension in ['jpg', 'jpeg', 'png', 'gif', 'webp'] %}
+                                                Image
+                                            {% else %}
+                                                Fichier
+                                            {% endif %}
+                                        </p>
+                                        <p>
+                                            <strong>Événement :</strong> {{ document.event.title }}
+                                        </p>
+                                        <p>
+                                            <strong>Organisateur :</strong> {{ document.event.organizer.prenom }} {{ document.event.organizer.nom }}
+                                        </p>
                                     </div>
                                     
                                     <div class="document-meta">
@@ -444,10 +562,19 @@
                                             {{ document.createdAt|date('d/m/Y H:i') }}
                                         </div>
                                         <div class="document-actions">
-                                            <a href="{{ path('document_download', {'id': document.id}) }}" class="btn-document" style="background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);">
+                                            <a href="{{ path('document_download', {'id': document.id}) }}" 
+                                               class="btn-document">
                                                 <i class="fas fa-download"></i>
                                                 Télécharger
                                             </a>
+                                            <button type="button" 
+                                                    class="btn-delete-document" 
+                                                    data-document-id="{{ document.id }}"
+                                                    data-document-name="{{ document.fileName|split('.')|first|title }}"
+                                                    onclick="confirmDeleteDocument({{ document.id }}, '{{ document.fileName|split('.')|first|title }}')">
+                                                <i class="fas fa-trash-alt"></i>
+                                                Supprimer
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -456,8 +583,6 @@
                     </div>
                 </div>
             {% endif %}
-
-
 
             <!-- État vide si aucun document -->
             {% if documents|length == 0 %}
@@ -579,6 +704,33 @@
                     stat.textContent = Math.floor(currentValue);
                 }, 50);
             });
+
+            // Fonction pour confirmer la suppression d'un document
+            function confirmDeleteDocument(documentId, documentName) {
+                if (confirm(`Êtes-vous sûr de vouloir supprimer le document "${documentName}" ?\n\nCette action est irréversible.`)) {
+                    deleteDocument(documentId);
+                }
+            }
+
+            // Fonction pour supprimer un document
+            function deleteDocument(documentId) {
+                // Créer un formulaire temporaire pour la suppression
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/document/delete/${documentId}`;
+                
+                // Ajouter le token CSRF (généré dynamiquement)
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                // Utiliser un token générique ou récupérer depuis une meta tag
+                csrfToken.value = document.querySelector('meta[name="csrf-token"]')?.content || 'delete-token';
+                form.appendChild(csrfToken);
+                
+                // Ajouter le formulaire au DOM et le soumettre
+                document.body.appendChild(form);
+                form.submit();
+            }
         });
     </script>
 {% endblock %} 

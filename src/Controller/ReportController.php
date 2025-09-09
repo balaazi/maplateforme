@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Enum\InvitationStatus;
 
 #[IsGranted('ROLE_ORGANISATEUR')]
 class ReportController extends AbstractController
@@ -326,7 +327,7 @@ class ReportController extends AbstractController
                 "%s,%s,%s,%d,%d,%d,%.2f%%\n",
                 $event->getTitle(),
                 $event->getDateHeure()->format('d/m/Y H:i'),
-                $event->getSalle() ? $event->getSalle()->getNom() : 'Non défini',
+                  $event->getLieu() ?? 'Non défini',
                 $invited,
                 $present,
                 $absent,

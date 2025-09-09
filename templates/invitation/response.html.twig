@@ -113,7 +113,20 @@
                                         <div class="text-left">
                                             <p class="mb-2">
                                                 <i class="fas fa-database text-success"></i>
-                                                <strong>Statut :</strong> {{ participation.invitationStatus|title }}
+                                                <strong>Statut :</strong> 
+                                                {% if participation.invitationStatus == 'accepted' %}
+                                                    <span class="badge bg-success">Acceptée</span>
+                                                {% elseif participation.invitationStatus == 'declined' %}
+                                                    <span class="badge bg-danger">Refusée</span>
+                                                {% elseif participation.invitationStatus == 'pending' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% elseif participation.invitationStatus == 'expired' %}
+                                                    <span class="badge bg-secondary">Expirée</span>
+                                                {% elseif participation.invitationStatus == 'conflict' %}
+                                                    <span class="badge bg-warning">Conflit horaire</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">{{ participation.invitationStatus|title }}</span>
+                                                {% endif %}
                                             </p>
                                             <p class="mb-2">
                                                 <i class="fas fa-calendar-check text-success"></i>
@@ -148,7 +161,20 @@
                                         <div class="text-left">
                                             <p class="mb-2">
                                                 <i class="fas fa-database text-warning"></i>
-                                                <strong>Statut :</strong> {{ participation.invitationStatus|title }}
+                                                <strong>Statut :</strong> 
+                                                {% if participation.invitationStatus == 'accepted' %}
+                                                    <span class="badge bg-success">Acceptée</span>
+                                                {% elseif participation.invitationStatus == 'declined' %}
+                                                    <span class="badge bg-danger">Refusée</span>
+                                                {% elseif participation.invitationStatus == 'pending' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% elseif participation.invitationStatus == 'expired' %}
+                                                    <span class="badge bg-secondary">Expirée</span>
+                                                {% elseif participation.invitationStatus == 'conflict' %}
+                                                    <span class="badge bg-warning">Conflit horaire</span>
+                                                {% else %}
+                                                    <span class="badge bg-info">{{ participation.invitationStatus|title }}</span>
+                                                {% endif %}
                                             </p>
                                             <p class="mb-2">
                                                 <i class="fas fa-calendar-times text-danger"></i>

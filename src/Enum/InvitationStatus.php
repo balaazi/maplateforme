@@ -7,4 +7,5 @@ enum InvitationStatus: string {
     case ACCEPTED = 'accepted';
     case DECLINED = 'declined';
     case EXPIRED = 'expired';
+    case CONFLICT = 'conflict';
 }

@@ -1,0 +1,282 @@
+@startuml Diagrammes_Sequence_Authentification_Simplifies
+!theme plain
+skinparam backgroundColor #FFFFFF
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 20
+
+title Diagrammes de Séquence du Système d'Authentification - EventHub
+
+' ========================================
+' DIAGRAMME 1: CONNEXION UTILISATEUR
+' ========================================
+page 2x2 {
+    title Connexion Utilisateur
+
+    actor "Utilisateur" as U
+    participant "Navigateur" as B
+    participant "SecurityController" as SC
+    participant "AppAuthenticator" as A
+    participant "UserRepository" as R
+    database "Base de\nDonnées" as DB
+
+    U -> B : Accès à /login
+    B -> SC : GET /login
+    activate SC
+    
+    alt Utilisateur déjà connecté
+        SC -> B : RedirectResponse(app_home)
+        B --> U : Redirection vers accueil
+    else Utilisateur non connecté
+        SC -> B : render(login.html.twig)
+        B --> U : Affichage formulaire
+    end
+    deactivate SC
+
+    U -> B : Saisit credentials
+    B -> A : POST /login
+    activate A
+    
+    A -> R : findOneBy(['email' => email])
+    R -> DB : SELECT * FROM users WHERE email = ?
+    DB --> R : User entity
+    R --> A : User object
+    
+    A -> A : Création Passport
+    A --> B : Passport object
+    deactivate A
+    
+    alt Authentification réussie
+        A -> A : onAuthenticationSuccess()
+        A -> R : findOneByEmail() pour rôles
+        R -> DB : SELECT avec rôles
+        DB --> R : User avec rôles
+        R --> A : User object
+        
+        alt ROLE_ADMIN + ROLE_ORGANISATEUR
+            A -> B : RedirectResponse(common_dashboard)
+        else ROLE_ADMIN
+            A -> B : RedirectResponse(admin_dashboard)
+        else ROLE_ORGANISATEUR
+            A -> B : RedirectResponse(organisateur_dashboard)
+        else ROLE_PARTICIPANT
+            A -> B : RedirectResponse(participant_dashboard)
+        end
+        
+        B --> U : Redirection vers dashboard
+    else Authentification échouée
+        B --> U : Message d'erreur
+    end
+}
+
+' ========================================
+' DIAGRAMME 2: INSCRIPTION UTILISATEUR
+' ========================================
+page 2x2 {
+    title Inscription Utilisateur
+
+    actor "Utilisateur" as U
+    participant "Navigateur" as B
+    participant "RegisterController" as RC
+    participant "UserPasswordHasher" as UPH
+    participant "EntityManager" as EM
+    database "Base de\nDonnées" as DB
+
+    U -> B : Accès à /register
+    B -> RC : GET /register
+    activate RC
+    
+    alt Email pré-rempli (invitation)
+        RC -> RC : Pré-remplissage email/rôle
+    end
+    
+    RC -> B : render(register.html.twig)
+    B --> U : Affichage formulaire
+    deactivate RC
+
+    U -> B : Soumet formulaire
+    B -> RC : POST /register
+    activate RC
+    
+    RC -> RC : Validation formulaire
+    alt Formulaire valide
+        RC -> EM : Vérification email existant
+        EM -> DB : SELECT email
+        DB --> EM : Résultat
+        
+        alt Email disponible
+            RC -> UPH : hashPassword()
+            UPH --> RC : Mot de passe hashé
+            
+            RC -> RC : Attribution rôles
+            RC -> EM : persist(user)
+            EM -> DB : INSERT INTO users
+            DB --> EM : Succès
+            
+            RC -> B : RedirectResponse(app_login)
+            B --> U : Redirection connexion
+        else Email utilisé
+            RC -> B : render avec erreur
+            B --> U : Affichage erreur
+        end
+    else Formulaire invalide
+        RC -> B : render avec erreurs
+        B --> U : Affichage erreurs
+    end
+    deactivate RC
+}
+
+' ========================================
+' DIAGRAMME 3: RÉINITIALISATION MOT DE PASSE
+' ========================================
+page 2x2 {
+    title Réinitialisation Mot de Passe
+
+    actor "Utilisateur" as U
+    participant "Navigateur" as B
+    participant "ResetPasswordController" as RPC
+    participant "ResetPasswordHelper" as RPH
+    participant "Mailer" as M
+    participant "EntityManager" as EM
+    database "Base de\nDonnées" as DB
+
+    U -> B : Accès /reset-password
+    B -> RPC : GET /reset-password
+    activate RPC
+    RPC -> B : render(request.html.twig)
+    B --> U : Formulaire demande
+    deactivate RPC
+
+    U -> B : Saisit email
+    B -> RPC : POST /reset-password
+    activate RPC
+    
+    RPC -> EM : findOneBy(['email' => email])
+    EM -> DB : SELECT email
+    DB --> EM : User
+    
+    alt Utilisateur trouvé
+        RPC -> RPH : generateResetToken()
+        RPH --> RPC : ResetToken
+        
+        RPC -> M : send(email)
+        M --> RPC : Confirmation
+        
+        RPC -> B : RedirectResponse(app_check_email)
+        B --> U : Confirmation envoi
+    else Utilisateur non trouvé
+        RPC -> B : RedirectResponse(app_check_email)
+        B --> U : Confirmation envoi
+    end
+    deactivate RPC
+
+    U -> B : Clic lien email
+    B -> RPC : GET /reset-password/reset/{token}
+    activate RPC
+    RPC -> RPC : Stockage token session
+    RPC -> B : RedirectResponse(app_reset_password)
+    B --> U : Formulaire réinitialisation
+    deactivate RPC
+    
+    U -> B : Nouveau mot de passe
+    B -> RPC : POST /reset-password
+    activate RPC
+    
+    RPC -> RPH : validateTokenAndFetchUser()
+    RPH --> RPC : User
+    
+    alt Formulaire valide
+        RPC -> RPH : removeResetRequest()
+        RPC -> UPH : hashPassword()
+        UPH --> RPC : Hash
+        
+        RC -> EM : flush()
+        EM -> DB : UPDATE password
+        DB --> EM : Succès
+        
+        RPC -> B : RedirectResponse(app_home)
+        B --> U : Redirection accueil
+    else Formulaire invalide
+        RPC -> B : render avec erreurs
+        B --> U : Affichage erreurs
+    end
+    deactivate RPC
+}
+
+' ========================================
+' DIAGRAMME 4: GESTION ACCÈS REFUSÉS
+' ========================================
+page 2x2 {
+    title Gestion Accès Refusés
+
+    actor "Utilisateur" as U
+    participant "Navigateur" as B
+    participant "Symfony" as S
+    participant "AccessDeniedHandler" as H
+    participant "Router" as R
+
+    U -> B : Accès route protégée
+    B -> S : GET /admin/dashboard
+    activate S
+    
+    S -> S : AccessDeniedException
+    S -> H : handle(Request, Exception)
+    activate H
+    
+    H -> H : Analyse type erreur
+    
+    alt Erreur ROLE_ORGANISATEUR
+        H -> R : generate('calendar_index')
+        R --> H : URL /calendar
+    else Erreur ROLE_ADMIN
+        H -> R : generate('app_home')
+        R --> H : URL /
+    else Erreur événements
+        H -> R : generate('event_list')
+        R --> H : URL /event
+    else Erreur salles
+        H -> R : generate('calendar_index')
+        R --> H : URL /calendar
+    end
+    
+    H -> S : RedirectResponse(URL)
+    deactivate H
+    
+    S --> B : Response redirection
+    B --> U : Redirection page autorisée
+    deactivate S
+}
+
+' ========================================
+' DIAGRAMME 5: DÉCONNEXION
+' ========================================
+page 2x2 {
+    title Déconnexion Utilisateur
+
+    actor "Utilisateur" as U
+    participant "Navigateur" as B
+    participant "Symfony" as S
+    participant "SecurityController" as SC
+
+    U -> B : Clic "Déconnexion"
+    activate B
+    
+    B -> S : POST /logout + CSRF
+    activate S
+    
+    S -> S : Invalidation session
+    S -> S : Suppression token
+    S -> S : Suppression cookies
+    
+    S -> SC : logout()
+    activate SC
+    SC --> S : Confirmation
+    deactivate SC
+    
+    S --> B : RedirectResponse(app_home)
+    deactivate S
+    
+    B --> U : Redirection accueil
+    deactivate B
+}
+
+@enduml

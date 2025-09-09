@@ -20,8 +20,11 @@ class EventApiController extends AbstractController
         $user = $this->getUser();
 
         // Filtrer les événements selon le rôle de l'utilisateur
-        if ($this->isGranted('ROLE_ORGANISATEUR') || $this->isGranted('ROLE_ADMIN')) {
-            // ADMIN: voit tous les événements / ORGANISATEUR: voit ses événements + participations
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // ADMIN: voit tous les événements
+            $events = $eventRepository->findAllForAdmin();
+        } else if ($this->isGranted('ROLE_ORGANISATEUR')) {
+            // ORGANISATEUR: voit ses événements + participations
             $events = $eventRepository->findByRole($user);
         } else {
             // Les participants ne voient que les événements qu'ils ont acceptés
@@ -44,6 +47,9 @@ class EventApiController extends AbstractController
             // Pour les participants, les événements acceptés sont toujours en vert mais gardent leur type
             $isAcceptedParticipant = !$this->isGranted('ROLE_ORGANISATEUR') && !$this->isGranted('ROLE_ADMIN');
             
+            // Déterminer si c'est un événement vu par un administrateur mais non organisé par lui
+            $isAdminView = $this->isGranted('ROLE_ADMIN') && $event->getOrganizer() !== $user;
+            
             // Générer l'URL uniquement si l'utilisateur a accès à l'événement
             $eventData = [
                 'id' => $event->getId(),
@@ -55,9 +61,10 @@ class EventApiController extends AbstractController
                     'type' => $type, // Garder le type d'origine
                     'originalType' => $type, // Type d'origine pour référence
                     'organizer' => $event->getOrganizer() ? $event->getOrganizer()->getNom() . ' ' . $event->getOrganizer()->getPrenom() : 'Non défini',
-                    'lieu' => $event->getLieu(),
+                    'lieu' => $event->getLieu() ?? 'Non défini',
                     'role' => $userRole,
-                    'isAccepted' => $isAcceptedParticipant
+                    'isAccepted' => $isAcceptedParticipant,
+                    'isAdminView' => $isAdminView
                 ]
             ];
             

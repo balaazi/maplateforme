@@ -4,7 +4,9 @@
 
 namespace App\Entity;
 
+use App\Enum\InvitationStatus;
 use App\Repository\ParticipationRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -24,12 +26,15 @@ class Participation
     #[ORM\JoinColumn(nullable: false)]
     private ?Event $event = null;
 
-    #[ORM\Column(length: 20)]
-    #[Assert\Choice(choices: ['accepté', 'refusé', 'en_attente'], message: 'Choix invalide')]
+    #[ORM\Column(name: 'invitation_status', length: 20)]
+    #[Assert\Choice(choices: ['pending', 'accepted', 'declined', 'expired', 'conflict'], message: 'Choix invalide')]
     private ?string $invitationStatus = null;
 
     #[ORM\Column]
     private ?bool $isPresent = false;
+
+    #[ORM\Column]
+    private ?bool $presenceValidated = false;
 
     #[ORM\Column(type: 'datetime')]
     private ?\DateTime $createdAt = null;
@@ -86,6 +91,18 @@ class Participation
     public function setIsPresent(bool $isPresent): self
     {
         $this->isPresent = $isPresent;
+
+        return $this;
+    }
+
+    public function isPresenceValidated(): ?bool
+    {
+        return $this->presenceValidated;
+    }
+
+    public function setPresenceValidated(bool $presenceValidated): self
+    {
+        $this->presenceValidated = $presenceValidated;
 
         return $this;
     }

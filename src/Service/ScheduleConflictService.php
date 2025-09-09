@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Event;
 use App\Entity\User;
+use App\Enum\InvitationStatus;
 use App\Repository\EventRepository;
 use Psr\Log\LoggerInterface;
 
@@ -49,6 +50,7 @@ class ScheduleConflictService
             'newEvent' => $newEvent,
             'user' => $user,
             'conflictType' => 'schedule_overlap',
+            'status' => InvitationStatus::CONFLICT->value,
             'message' => sprintf(
                 'Vous participez déjà à l\'événement "%s" qui se déroule pendant la même période que "%s"',
                 $conflictingEvent->getTitle(),

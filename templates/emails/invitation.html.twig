@@ -13,58 +13,72 @@
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; position: relative;">
             <!-- Icône décorative -->
             <div style="background: rgba(255,255,255,0.2); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; border: 2px solid rgba(255,255,255,0.3);">
-                <span style="font-size: 2rem;">🔑</span>
+                <span style="font-size: 2rem;">🎉</span>
             </div>
-            <h1 style="margin: 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Bienvenue sur EventHub</h1>
-            <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 18px;">Vos identifiants sont prêts !</p>
+            <h1 style="margin: 0; font-size: 32px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">Bienvenue sur EventHub !</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 18px;">Votre compte a été créé avec succès</p>
         </div>
 
         <!-- Corps du message -->
         <div style="padding: 40px;">
             <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #333; margin: 0; font-size: 24px; font-weight: 600;">🎯 Voici vos identifiants de connexion</h2>
+                <h2 style="color: #333; margin: 0; font-size: 24px; font-weight: 600;">🎯 Invitation acceptée !</h2>
+                <p style="color: #666; margin: 10px 0 0 0; font-size: 16px;">
+                    Votre compte a été créé automatiquement avec le rôle <strong>{{ roleName }}</strong>
+                </p>
+                <p style="color: #28a745; margin: 5px 0 0 0; font-size: 14px; font-weight: 600;">
+                    ✅ Vous pouvez maintenant vous connecter avec les identifiants ci-dessous
+                </p>
             </div>
 
             <!-- Section identifiants stylée -->
             <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 15px; padding: 30px; margin: 30px 0; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border: 1px solid #e3e6ea;">
-                <div style="display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e9ecef;">
+                <h3 style="color: #333; margin: 0 0 20px 0; font-size: 20px; font-weight: 600;">🔑 Vos identifiants de connexion</h3>
+                
+                <div style="display: flex; align-items: center; margin-bottom: 20px;">
                     <div style="background: #667eea; color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 18px;">
                         📧
                     </div>
                     <div>
                         <div style="font-size: 14px; color: #6c757d; margin-bottom: 5px; font-weight: 500;">Adresse email</div>
-                        <div style="font-size: 18px; font-weight: 600;">
-                            <a href="mailto:{{ email }}" style="color: #667eea; text-decoration: none;">{{ email }}</a>
+                        <div style="font-size: 16px; font-weight: 600; color: #333;">
+                            {{ email }}
                         </div>
                     </div>
                 </div>
-                
+
                 <div style="display: flex; align-items: center;">
                     <div style="background: #28a745; color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 18px;">
-                        🔐
+                        🔒
                     </div>
                     <div>
                         <div style="font-size: 14px; color: #6c757d; margin-bottom: 5px; font-weight: 500;">Mot de passe temporaire</div>
-                        <div style="font-size: 18px; font-weight: 600; background: #f8f9fa; padding: 8px 12px; border-radius: 8px; font-family: 'Courier New', monospace; color: #495057; border: 2px solid #e9ecef;">
+                        <div style="font-size: 16px; font-weight: 600; color: #333;">
                             {{ temporaryPassword }}
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Message important de changement de mot de passe -->
-            <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 15px; padding: 25px; margin: 30px 0; border: 2px solid #f0ad4e; text-align: center; box-shadow: 0 5px 15px rgba(240,173,78,0.2);">
-                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                    <div style="background: #f0ad4e; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 24px;">
-                        ⚠️
-                    </div>
-                    <h3 style="margin: 0; color: #856404; font-size: 20px; font-weight: 700;">Important</h3>
-                </div>
-                <p style="margin: 0; color: #856404; font-size: 16px; font-weight: 600;">
-                    🔐 Veuillez changer votre mot de passe dès maintenant.
-                </p>
-                <p style="margin: 10px 0 0 0; color: #856404; font-size: 14px; font-style: italic;">
-                    Pour votre sécurité, nous vous recommandons de modifier ce mot de passe temporaire lors de votre première connexion.
+            <!-- Bouton de connexion -->
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="http://127.0.0.1:8000/login" 
+                   style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); 
+                          color: white; padding: 15px 30px; text-decoration: none; 
+                          border-radius: 25px; font-weight: bold; font-size: 16px;
+                          display: inline-block; box-shadow: 0 4px 15px rgba(40,167,69,0.3);">
+                    🚀 Se connecter maintenant
+                </a>
+            </div>
+
+            <!-- Section importante -->
+            <div style="background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border-radius: 15px; padding: 25px; margin: 30px 0; border: 1px solid rgba(255,193,7,0.3);">
+                <h3 style="margin: 0 0 15px 0; color: #856404; font-size: 18px; font-weight: 600; display: flex; align-items: center;">
+                    <span style="margin-right: 10px;">⚠️</span> Important
+                </h3>
+                <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.5;">
+                    Veuillez changer votre mot de passe dès maintenant.<br>
+                    <span style="font-weight: 600;">Pour votre sécurité, nous vous recommandons de modifier ce mot de passe temporaire lors de votre première connexion.</span>
                 </p>
             </div>
 

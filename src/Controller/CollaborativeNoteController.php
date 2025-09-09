@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Enum\InvitationStatus;
 
 #[Route('/collaborative-notes')]
 #[IsGranted('ROLE_PARTICIPANT')]
@@ -54,7 +55,7 @@ class CollaborativeNoteController extends AbstractController
                 $participation = new \App\Entity\Participation();
                 $participation->setUser($user);
                 $participation->setEvent($event);
-                $participation->setInvitationStatus('accepté');
+                $participation->setInvitationStatus(InvitationStatus::ACCEPTED->value);
                 $participation->setIsPresent(false);
                 $participation->setCreatedAt(new \DateTime());
                 
