@@ -6,6 +6,7 @@ use App\Entity\Event;
 use App\Entity\CalendarEvent;
 use App\Entity\Invitation;
 use App\Entity\Participation;
+use App\Entity\Reminder;
 use App\Entity\User;
 use App\Entity\Document;
 use App\Form\EventFormType;
@@ -128,7 +129,15 @@ class EventController extends AbstractController
             } else {
                 error_log("DEBUG: Création - Aucun fichier uploadé détecté");
             }
-            
+            $rappel1h=new Reminder();
+            $rappel1h->setEvent($event);
+            $rappel1h->setTitle($event->getTitle());
+            $rappel1h->setUser($this->getUser());
+            $event1h=(clone $event->getDateHeure())->modify('-1 hour');
+            $rappel1h->setDueDate($event1h);
+            error_log("DEBUG: Création - Total documents créés : " . $documentsCreated);
+
+            $entityManager->persist($rappel1h);
             error_log("DEBUG: Création - Total documents créés : " . $documentsCreated);
             
             $entityManager->persist($event);

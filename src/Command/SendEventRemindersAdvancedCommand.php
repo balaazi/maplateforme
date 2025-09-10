@@ -2,7 +2,9 @@
 
 namespace App\Command;
 
+use App\Entity\Reminder;
 use App\Repository\EventRepository;
+use App\Repository\ReminderRepository;
 use App\Service\MailerService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,6 +25,7 @@ class SendEventRemindersAdvancedCommand extends Command
 {
     public function __construct(
         private EventRepository $eventRepository,
+        private ReminderRepository $reminderRepository,
         private MailerService $mailerService,
         private NotificationService $notificationService,
         private EntityManagerInterface $em,
@@ -126,8 +129,9 @@ class SendEventRemindersAdvancedCommand extends Command
     private function processReminders(SymfonyStyle $io, string $type, ?string $forceDate, bool $testMode, bool $dryRun): array
     {
         $hoursBefore = $type === '24h' ? 24 : 1;
-        $events = $this->getEventsForReminder($type, $forceDate);
-        
+         $events = $this->getEventsForReminder($type, $forceDate);
+        $reminders = $this->getEventsForReminder($type, $forceDate);
+
         if (empty($events)) {
             $io->text(sprintf('Aucun événement trouvé pour les rappels %s', $type));
             return ['events' => 0, 'reminders' => 0, 'errors' => 0];
@@ -135,11 +139,34 @@ class SendEventRemindersAdvancedCommand extends Command
         
         $io->text(sprintf('Traitement de %d événement(s) pour rappels %s', count($events), $type));
         
-        $reminders = 0;
+        $reminder = 0;
         $errors = 0;
         $usersNotified = [];
         
-        foreach ($events as $event) {
+        foreach ($reminders as $rem) {
+            /**
+             * @var Reminder $rem
+             */
+            if ($rem->isTriggered()){
+                $io->text(sprintf("Reminder igonre"));
+                continue;
+            }
+            if($rem->getEvent()->getDateHeure() == $rem->getDueDate()){
+                $io->text(sprintf('   📅 Traitement: %s', $rem->getEvent()->getTitle()));
+
+                foreach ($rem->getEvent()->getInvitations() as $invitation) {
+                    $io->text(sprintf('      ✅ Rappel %s %senvoyé à l\'invité: %s (%s)',
+                        $type,
+                        ($testMode || $dryRun) ? '(simulation) ' : '',
+                        $invitation->getName(),
+                        $invitation->getStatus()
+                    ));
+                    $this->sendReminderEmailToInvitee($invitation, $rem->getEvent(), $type);
+                }
+
+            }
+        }
+        /*foreach ($events as $event) {
             if ($event->getStatus() === 'annulé') {
                 $io->text(sprintf('   ⏭️  Événement "%s" annulé - ignoré', $event->getTitle()));
                 continue;
@@ -176,11 +203,11 @@ class SendEventRemindersAdvancedCommand extends Command
                 }
             }
             
-            $reminders += $eventReminders;
+            $reminder += $eventReminders;
             $io->text(sprintf('      📊 %d rappel(s) envoyé(s) pour cet événement', $eventReminders));
         }
-        
-        return ['events' => count($events), 'reminders' => $reminders, 'errors' => $errors];
+        */
+        return ['events' => count($events), 'reminders' => $reminder, 'errors' => $errors];
     }
     
     private function getEventsForReminder(string $type, ?string $forceDate): array
@@ -201,8 +228,9 @@ class SendEventRemindersAdvancedCommand extends Command
         // Calculer la plage de temps pour les événements
         $startTime = (clone $targetDate)->modify("+{$hoursBefore} hours")->setTime(0, 0, 0);
         $endTime = (clone $startTime)->modify('+1 day');
-        
-        return $this->eventRepository->findByDateRange($startTime, $endTime);
+        return $this->reminderRepository->findUpcomingReminders(5);
+
+       // return $this->reminderRepository->findByDateRange($startTime, $endTime);
     }
     
     private function sendReminderEmail($user, $event, string $type): void

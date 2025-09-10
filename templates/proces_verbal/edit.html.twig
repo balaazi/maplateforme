@@ -67,20 +67,6 @@
         box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
     }
 
-    .actions-collection {
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-top: 1rem;
-    }
-
-    .action-item {
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
 
     .btn-action {
         padding: 0.5rem 1rem;
@@ -199,36 +185,6 @@
 {{ parent() }}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gestion de la collection d'actions
-    const actionsContainer = document.querySelector('.actions-collection');
-    if (actionsContainer) {
-        const addButton = document.createElement('button');
-        addButton.type = 'button';
-        addButton.className = 'btn btn-success btn-sm';
-        addButton.innerHTML = '<i class="fas fa-plus"></i> Ajouter une action';
-        addButton.onclick = addAction;
-        
-        actionsContainer.appendChild(addButton);
-    }
-    
-    function addAction() {
-        const container = document.querySelector('[data-prototype]');
-        if (!container) return;
-        
-        const prototype = container.dataset.prototype;
-        const index = document.querySelectorAll('.action-item').length;
-        const newForm = prototype.replace(/__name__/g, index);
-        
-        const div = document.createElement('div');
-        div.className = 'action-item';
-        div.innerHTML = newForm + '<button type="button" class="btn btn-danger btn-sm" onclick="removeAction(this)"><i class="fas fa-trash"></i></button>';
-        
-        container.appendChild(div);
-    }
-    
-    window.removeAction = function(button) {
-        button.closest('.action-item').remove();
-    };
 
     // Gestion du bouton "Tout sélectionner" pour les participants
     const selectAllBtn = document.getElementById('select-all-btn');
@@ -353,21 +309,6 @@ document.addEventListener('DOMContentLoaded', function() {
         {{ form_errors(form.decisionsPrises) }}
     </div>
 
-    <div class="form-group">
-        {{ form_label(form.actions) }}
-        <div class="actions-collection" data-prototype="{{ form_widget(form.actions.vars.prototype)|e('html_attr') }}">
-            {% for action in form.actions %}
-                <div class="action-item">
-                    {{ form_widget(action) }}
-                    <button type="button" class="btn btn-danger btn-sm" onclick="removeAction(this)">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            {% endfor %}
-        </div>
-        {{ form_help(form.actions) }}
-        {{ form_errors(form.actions) }}
-    </div>
 
     <div class="form-group">
         <div class="form-check">

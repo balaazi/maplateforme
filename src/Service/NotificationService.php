@@ -172,6 +172,62 @@ class NotificationService
     }
 
     /**
+     * Crée une notification de rappel d'invitation
+     */
+    public function createInvitationReminderNotification(User $user, Event $event, string $reminderType): Notification
+    {
+        $hoursBefore = $reminderType === '24h' ? 24 : 1;
+        $title = $reminderType === '24h' ? "⏰ Rappel 24h - Invitation à un événement" : "🚨 Rappel 1h - Invitation urgente";
+        
+        $message = sprintf(
+            $reminderType === '24h' 
+                ? "Rappel : Vous avez été invité(e) à l'événement '%s' qui aura lieu demain le %s à %s."
+                : "URGENT : L'événement '%s' auquel vous êtes invité(e) commence dans 1 heure le %s à %s !",
+            $event->getTitle(),
+            $event->getDateHeure()->format('d/m/Y'),
+            $event->getDateHeure()->format('H:i')
+        );
+
+        $type = $reminderType === '24h' ? 'invitation_reminder_24h' : 'invitation_reminder_1h';
+        
+        return $this->createNotification($user, $title, $message, $type, $event);
+    }
+
+    /**
+     * Crée une notification de rappel d'invitation pour un invité externe
+     */
+    public function createInvitationReminderForExternalInvitee(string $email, string $name, Event $event, string $reminderType): Notification
+    {
+        $hoursBefore = $reminderType === '24h' ? 24 : 1;
+        $title = $reminderType === '24h' ? "⏰ Rappel 24h - Invitation à un événement" : "🚨 Rappel 1h - Invitation urgente";
+        
+        $message = sprintf(
+            $reminderType === '24h' 
+                ? "Rappel : Vous avez été invité(e) à l'événement '%s' qui aura lieu demain le %s à %s."
+                : "URGENT : L'événement '%s' auquel vous êtes invité(e) commence dans 1 heure le %s à %s !",
+            $event->getTitle(),
+            $event->getDateHeure()->format('d/m/Y'),
+            $event->getDateHeure()->format('H:i')
+        );
+
+        $type = $reminderType === '24h' ? 'invitation_reminder_24h' : 'invitation_reminder_1h';
+        
+        // Créer une notification générique pour les invités externes
+        $notification = new Notification();
+        $notification->setTitle($title);
+        $notification->setMessage($message);
+        $notification->setType($type);
+        $notification->setEvent($event);
+        $notification->setExternalEmail($email);
+        $notification->setExternalName($name);
+
+        $this->entityManager->persist($notification);
+        $this->entityManager->flush();
+
+        return $notification;
+    }
+
+    /**
      * Nettoie les anciennes notifications
      */
     public function cleanOldNotifications(): void

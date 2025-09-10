@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rappel d'invitation - {{ event.title }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        .email-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header .subtitle {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 18px;
+        }
+        .content {
+            padding: 40px;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .reminder-type {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            display: inline-block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .reminder-24h {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+        .reminder-1h {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .urgency-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+        .urgency-notice.urgent {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .event-card {
+            background: #f8f9ff;
+            border: 2px solid #e3f2fd;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+        }
+        .event-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px 15px 0 0;
+        }
+        .event-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .event-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .detail-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .detail-icon {
+            font-size: 20px;
+            margin-right: 10px;
+            width: 30px;
+            text-align: center;
+        }
+        .detail-content {
+            flex: 1;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-value {
+            color: #333;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+        .invitation-status {
+            background: #e8f5e8;
+            border: 2px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .invitation-status.pending {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+        .invitation-status.accepted {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+        .invitation-status.declined {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer p {
+            margin: 5px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            color: #667eea;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+            .event-title {
+                font-size: 20px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .event-details {
+                grid-template-columns: 1fr;
+            }
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>🔔 Rappel d'invitation</h1>
+            <p class="subtitle">EventHub - Plateforme de gestion d'événements</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Bonjour <strong>{{ user.prenom ?? user.fullName ?? 'Cher(e) invité(e)' }}</strong>,
+            </div>
+            
+            <div class="reminder-type {{ reminder_type == '24h' ? 'reminder-24h' : 'reminder-1h' }}">
+                {% if reminder_type == '24h' %}
+                    ⏰ Rappel 24 heures avant l'événement
+                {% else %}
+                    🚨 Rappel 1 heure avant l'événement
+                {% endif %}
+            </div>
+            
+            {% if reminder_type == '1h' %}
+            <div class="urgency-notice urgent">
+                <strong>⚠️ URGENT :</strong> L'événement auquel vous êtes invité(e) commence dans 1 heure !
+            </div>
+            {% endif %}
+            
+            <p>Nous vous rappelons que vous avez été invité(e) à un événement {% if reminder_type == '24h' %}qui aura lieu demain{% else %}qui commence dans 1 heure{% endif %} :</p>
+            
+            <div class="event-card">
+                <div class="event-title">🎯 {{ event.title }}</div>
+                
+                <div class="event-details">
+                    <div class="detail-item">
+                        <div class="detail-icon">📅</div>
+                        <div class="detail-content">
+                            <div class="detail-label">Date</div>
+                            <div class="detail-value">{{ event_date|date('d/m/Y') }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">🕐</div>
+                        <div class="detail-content">
+                            <div class="detail-label">Heure</div>
+                            <div class="detail-value">{{ event_date|date('H:i') }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">📍</div>
+                        <div class="detail-content">
+                            <div class="detail-label">Lieu</div>
+                            <div class="detail-value">{{ event_location }}</div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-icon">⏱️</div>
+                        <div class="detail-content">
+                            <div class="detail-label">Durée</div>
+                            <div class="detail-value">{{ event_duration }} minutes</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if event_description %}
+                <div style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <strong>Description :</strong><br>
+                    {{ event_description|nl2br }}
+                </div>
+                {% endif %}
+                
+                <div class="invitation-status {{ invitation.status }}">
+                    {% if invitation.status == 'pending' %}
+                        ⏳ Statut : En attente de votre réponse
+                    {% elseif invitation.status == 'accepted' %}
+                        ✅ Statut : Vous avez accepté l'invitation
+                    {% elseif invitation.status == 'declined' %}
+                        ❌ Statut : Vous avez décliné l'invitation
+                    {% else %}
+                        📧 Statut : {{ invitation.status|title }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="#" class="btn btn-primary">Voir l'événement</a>
+                <a href="#" class="btn btn-secondary">Répondre à l'invitation</a>
+            </div>
+            
+            <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                <strong>💡 Conseil :</strong> 
+                {% if reminder_type == '24h' %}
+                    N'oubliez pas de préparer tout ce dont vous avez besoin pour demain !
+                {% else %}
+                    Il est temps de vous préparer, l'événement commence bientôt !
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p><strong>EventHub</strong> - Plateforme de gestion d'événements</p>
+            <p>Cet email a été envoyé automatiquement pour vous rappeler votre invitation.</p>
+            <p>Si vous ne souhaitez plus recevoir ces rappels, contactez l'organisateur de l'événement.</p>
+            
+            <div class="social-links">
+                <a href="#">Site web</a> |
+                <a href="#">Support</a> |
+                <a href="#">Aide</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
