@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\Event;
+use App\Entity\Invitation;
 use App\Entity\Reminder;
 use App\Repository\EventRepository;
 use App\Repository\ReminderRepository;
@@ -298,7 +299,7 @@ class SendEventRemindersAdvancedCommand extends Command
                filter_var($invitation->getEmail(), FILTER_VALIDATE_EMAIL);
     }
 
-    private function createReminderRecord($invitation, Event $event, string $type): void
+    private function createReminderRecord(Invitation $invitation, Event $event, string $type): void
     {
         $reminder = new Reminder();
         $reminder->setTitle("Rappel {$type} - " . $event->getTitle());
@@ -310,8 +311,8 @@ class SendEventRemindersAdvancedCommand extends Command
         $reminder->setEvent($event);
         
         // Associer à l'utilisateur si l'invitation a un utilisateur lié
-        if ($invitation->getUser()) {
-            $reminder->setUser($invitation->getUser());
+        if ($invitation->getParticipant()) {
+            $reminder->setUser($invitation->getParticipant());
         }
 
         $this->em->persist($reminder);
