@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Département{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold">{{ departement.nom }}</h1>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_departement_edit', {id: departement.id}) }}" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Modifier
+            </a>
+            <a href="{{ path('app_departement_assign_user', {id: departement.id}) }}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Affecter un utilisateur
+            </a>
+            <a href="{{ path('app_departement_index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6"><strong>Code:</strong> {{ departement.code }}</div>
+                <div class="col-md-6"><strong>Responsable:</strong> {{ departement.responsable ?: '-' }}</div>
+                <div class="col-md-6"><strong>Email:</strong> {{ departement.emailContact ?: '-' }}</div>
+                <div class="col-md-6"><strong>Téléphone:</strong> {{ departement.telephone ?: '-' }}</div>
+                <div class="col-md-12"><strong>Localisation:</strong> {{ departement.localisation ?: '-' }}</div>
+                <div class="col-md-12"><strong>Description:</strong><br>{{ departement.description ?: '-' }}</div>
+                <div class="col-md-6"><strong>Budget Annuel:</strong> {{ departement.budgetAnnuel }}</div>
+                <div class="col-md-6"><strong>Statut:</strong> {% if departement.actif %}<span class="badge bg-success">Actif</span>{% else %}<span class="badge bg-secondary">Inactif</span>{% endif %}</div>
+                <div class="col-md-6"><strong>Créé le:</strong> {{ departement.createdAt ? departement.createdAt|date('Y-m-d H:i') : '-' }}</div>
+                <div class="col-md-6"><strong>Mis à jour le:</strong> {{ departement.updatedAt ? departement.updatedAt|date('Y-m-d H:i') : '-' }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <form method="post" action="{{ path('app_departement_delete', {id: departement.id}) }}" onsubmit="return confirm('Confirmer la suppression ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ departement.id) }}">
+            <button class="btn btn-outline-danger"><i class="fas fa-trash"></i> Supprimer</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

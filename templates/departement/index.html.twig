@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Départements{% endblock %}
+
+{% block body %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-6 fw-bold">Gestion des Départements</h1>
+        <a href="{{ path('app_departement_new') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nouveau Département
+        </a>
+    </div>
+
+    {% if departements is empty %}
+        <div class="alert alert-info">Aucun département trouvé.</div>
+    {% else %}
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Code</th>
+                        <th>Responsable</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Actif</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for d in departements %}
+                    <tr>
+                        <td>{{ d.nom }}</td>
+                        <td>{{ d.code }}</td>
+                        <td>{{ d.responsable ?: '-' }}</td>
+                        <td>{{ d.emailContact ?: '-' }}</td>
+                        <td>{{ d.telephone ?: '-' }}</td>
+                        <td>
+                            {% if d.actif %}
+                                <span class="badge bg-success">Actif</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ path('app_departement_show', {id: d.id}) }}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ path('app_departement_edit', {id: d.id}) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form method="post" action="{{ path('app_departement_delete', {id: d.id}) }}" class="d-inline" onsubmit="return confirm('Confirmer la suppression ?');">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ d.id) }}">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+    
+    <div class="mt-3">
+        <small class="text-muted">Total: {{ departements|length }} département(s)</small>
+    </div>
+</div>
+{% endblock %}
