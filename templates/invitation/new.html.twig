@@ -853,7 +853,6 @@
                         </div>
                         <h2>Étape 2 : Envoyer l'invitation</h2>
                     </div>
-                    
                     <form method="post" class="invitation-form" id="quick-send-form">
                         <!-- Champs cachés pour le ciblage -->
                         <input type="hidden" id="targeting-type" name="targeting_type" value="">
@@ -1221,8 +1220,8 @@
                         if (departmentSelect) {
                 departmentSelect.addEventListener('change', function() {
                     if (this.value && selectedTargeting === 'department') {
-                        formCard.style.opacity = '1';
-                        formCard.style.pointerEvents = 'auto';
+                     //   formCard.style.opacity = '1';
+                      //  formCard.style.pointerEvents = 'auto';
                         
                         // Calculer le nombre d'employés dans ce département
                         const userSelect = document.getElementById('employee-select');
